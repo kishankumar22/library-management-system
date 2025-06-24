@@ -1,0 +1,71 @@
+
+// library-management-system/src/app/api/auth/otp/route.ts
+import { NextRequest, NextResponse } from 'next/server';
+import jwt from 'jsonwebtoken';
+import { getConnection } from '@/app/lib/db';
+import logger from '@/app/lib/logger';
+import { otpStore } from '../login/route';
+
+export async function POST(req: NextRequest) {
+  try {
+    const { email, otp, role } = await req.json();
+
+    // Verify OTP
+    const storedOtp = otpStore[email];
+    if (!storedOtp || storedOtp.otp !== otp || storedOtp.expires < Date.now()) {
+      return NextResponse.json({ message: 'Invalid or expired OTP' }, { status: 401 });
+    }
+
+    if (storedOtp.role !== role) {
+      return NextResponse.json({ message: 'Invalid role for OTP' }, { status: 401 });
+    }
+
+    // Delete OTP after verification
+    delete otpStore[email];
+
+    const pool = await getConnection();
+
+    if (role === 'admin') {
+      const result = await pool
+        .request()
+        .input('email', email)
+        .query('SELECT * FROM [User] WHERE email = @email AND roleId = 2');
+
+      if (result.recordset.length === 0) {
+        return NextResponse.json({ message: 'User not found' }, { status: 404 });
+      }
+
+      const user = result.recordset[0];
+      const token = jwt.sign({ userId: user.user_id, role: 'admin' }, process.env.JWT_SECRET!, {
+        expiresIn: '1h',
+      });
+
+      return NextResponse.json({
+        token,
+        user: { name: user.name, profilePic: user.profile_pic_url },
+      });
+    } else {
+      const result = await pool
+        .request()
+        .input('email', email)
+        .query('SELECT * FROM Student WHERE email = @email');
+
+      if (result.recordset.length === 0) {
+        return NextResponse.json({ message: 'Student not found' }, { status: 404 });
+      }
+
+      const student = result.recordset[0];
+      const token = jwt.sign({ studentId: student.id, role: 'student' }, process.env.JWT_SECRET!, {
+        expiresIn: '1h',
+      });
+
+      return NextResponse.json({
+        token,
+        user: { name: `${student.fName} ${student.lName}`, profilePic: student.studentImage },
+      });
+    }
+  } catch (error) {
+    logger.error(`OTP verification error: ${error}`);
+    return NextResponse.json({ message: 'Internal server error' }, { status: 500 });
+  }
+}

@@ -1,0 +1,13 @@
+DB_USER=kishankk
+DB_PASSWORD=Kishan
+DB_SERVER=localhost
+DB_NAME=jkconsultancyadmindb
+DB_PORT=1433
+JWT_SECRET=your_secure_jwt_secret_1234567890abcdef
+EMAIL_USER=kishan143@example.com
+EMAIL_PASS=xebu ziey qhca vzxg
+# EMAIL_USER=kishan143ku@gmail.com
+# EMAIL_PASSWORD=xebu ziey qhca vzxg
+
+Simple Message:
+Environment variables for the database and email have been set.
