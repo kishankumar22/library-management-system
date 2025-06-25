@@ -1,5 +1,3 @@
-
-// library-management-system/src/app/api/auth/otp/route.ts
 import { NextRequest, NextResponse } from 'next/server';
 import jwt from 'jsonwebtoken';
 import { getConnection } from '@/app/lib/db';
@@ -9,8 +7,10 @@ import { otpStore } from '../login/route';
 export async function POST(req: NextRequest) {
   try {
     const { email, otp, role } = await req.json();
+    if (!email || !otp || !role) {
+      return NextResponse.json({ message: 'Missing required fields' }, { status: 400 });
+    }
 
-    // Verify OTP
     const storedOtp = otpStore[email];
     if (!storedOtp || storedOtp.otp !== otp || storedOtp.expires < Date.now()) {
       return NextResponse.json({ message: 'Invalid or expired OTP' }, { status: 401 });
@@ -20,16 +20,17 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ message: 'Invalid role for OTP' }, { status: 401 });
     }
 
-    // Delete OTP after verification
     delete otpStore[email];
 
     const pool = await getConnection();
+    const rememberMe = req.headers.get('X-Remember-Me') === 'true';
+    const expiresIn = rememberMe ? '7d' : '1h';
 
     if (role === 'admin') {
       const result = await pool
         .request()
         .input('email', email)
-        .query('SELECT * FROM [User] WHERE email = @email AND roleId = 2');
+        .query('SELECT * FROM [User] WHERE email = @email');
 
       if (result.recordset.length === 0) {
         return NextResponse.json({ message: 'User not found' }, { status: 404 });
@@ -37,7 +38,7 @@ export async function POST(req: NextRequest) {
 
       const user = result.recordset[0];
       const token = jwt.sign({ userId: user.user_id, role: 'admin' }, process.env.JWT_SECRET!, {
-        expiresIn: '1h',
+        expiresIn,
       });
 
       return NextResponse.json({
@@ -56,7 +57,7 @@ export async function POST(req: NextRequest) {
 
       const student = result.recordset[0];
       const token = jwt.sign({ studentId: student.id, role: 'student' }, process.env.JWT_SECRET!, {
-        expiresIn: '1h',
+        expiresIn,
       });
 
       return NextResponse.json({
@@ -64,8 +65,8 @@ export async function POST(req: NextRequest) {
         user: { name: `${student.fName} ${student.lName}`, profilePic: student.studentImage },
       });
     }
-  } catch (error) {
-    logger.error(`OTP verification error: ${error}`);
+  } catch (error: any) {
+    logger.error(`OTP verification error: ${error.message}`);
     return NextResponse.json({ message: 'Internal server error' }, { status: 500 });
   }
 }

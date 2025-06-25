@@ -39,7 +39,7 @@ const Sidebar: React.FC<SidebarProps> = ({ role }) => {
         <ul>
           {links.map((link) => (
             <li key={link.href} className="mb-2">
-              <Link href={link.href} className="hover:bg-gray-700 p-2 rounded block">
+              <Link href={link.href} className="hover:bg-gray-700 ml-2 pl-2 p-2 rounded block">
                 {link.name}
               </Link>
             </li>

@@ -23,10 +23,10 @@ const SubjectsPage = () => {
       if (res.ok) {
         setSubjects(data);
       } else {
-        toast.error(data.message);
+        // toast.error(data.message);
       }
     } catch (error) {
-      toast.error('Failed to fetch subjects');
+      // toast.error('Failed to fetch subjects');
     }
   };
 
@@ -42,13 +42,13 @@ const SubjectsPage = () => {
         toast.success(editingId ? 'Subject updated' : 'Subject added');
         setName('');
         setEditingId(null);
-        fetchSubjects();
+        // fetchSubjects();
       } else {
         const data = await res.json();
-        toast.error(data.message);
+        // toast.error(data.message);
       }
     } catch (error) {
-      toast.error('An error occurred');
+      // toast.error('An error occurred');
     }
   };
 
@@ -69,10 +69,10 @@ const SubjectsPage = () => {
         fetchSubjects();
       } else {
         const data = await res.json();
-        toast.error(data.message);
+        // toast.error(data.message);
       }
     } catch (error) {
-      toast.error('An error occurred');
+      // toast.error('An error occurred');
     }
   };
 
@@ -88,10 +88,10 @@ const SubjectsPage = () => {
         fetchSubjects();
       } else {
         const data = await res.json();
-        toast.error(data.message);
+        // toast.error(data.message);
       }
     } catch (error) {
-      toast.error('An error occurred');
+      // toast.error('An error occurred');
     }
   };
 

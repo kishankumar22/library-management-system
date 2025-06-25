@@ -8,7 +8,7 @@ const Breadcrumb: React.FC = () => {
 
   return (
     <nav className="flex items-center space-x-2 text-sm text-gray-600 p-4">
-      <Link href="/" className="hover:underline">Home</Link>
+      <Link href="/admin" className="hover:underline">Home</Link>
       {pathSegments.map((segment, index) => (
         <span key={index} className="flex items-center">
           <span className="mx-2">/</span>

@@ -13,8 +13,8 @@ const Header: React.FC<HeaderProps> = ({ user, onLogout }) => {
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
 
   return (
-    <header className="bg-gray-900 text-white p-4 flex justify-between items-center">
-      <h1 className="text-xl font-bold">Library Management System</h1>
+    <header className="bg-gray-900 text-white p-4 flex justify-end items-center">
+      {/* <h1 className="text-xl font-bold">Library Management System</h1> */}
       <div className="relative">
         <div
           className="flex items-center space-x-2 cursor-pointer"
@@ -30,7 +30,7 @@ const Header: React.FC<HeaderProps> = ({ user, onLogout }) => {
           <span>{user.name}</span>
         </div>
         {isDropdownOpen && (
-          <div className="absolute right-0 mt-2 w-48 bg-white text-black rounded shadow-lg">
+          <div className="absolute right-0 mt-5 w-48 p-1 bg-white text-black rounded shadow-lg">
             <button
               onClick={() => {
                 onLogout();
