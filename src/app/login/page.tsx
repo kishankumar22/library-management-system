@@ -4,7 +4,8 @@ import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { toast } from 'react-toastify';
 import Image from 'next/image';
-import pic from '../../public/images/library.jpg';
+import axios from 'axios';
+import pic from '../../public/images/Library.png';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faSpinner, faEye, faEyeSlash, faArrowLeft } from '@fortawesome/free-solid-svg-icons';
 
@@ -22,21 +23,21 @@ const LoginPage = () => {
   const [showPassword, setShowPassword] = useState(false);
   const [step, setStep] = useState<'email' | 'verify'>('email');
   const [userType, setUserType] = useState<'admin' | 'student' | null>(null);
+  const [rememberedUser, setRememberedUser] = useState<string | null>(null);
 
-  // Load localStorage data on client side
+  // Check for remembered user and validate token on mount
   useEffect(() => {
-    const storedEmail = localStorage.getItem('email') || '';
-    const storedRememberMe = localStorage.getItem('rememberMe') === 'true';
+    const remembered = localStorage.getItem('rememberedUser');
     const token = localStorage.getItem('token');
-
-    setEmail(storedEmail);
-    setRememberMe(storedRememberMe);
-
-    if (token && storedEmail) {
-      checkUserType(storedEmail, true);
+    if (remembered && token) {
+      setRememberedUser(remembered);
+      setEmail(remembered);
+      setRememberMe(true);
+      validateToken(remembered, token);
     }
-  }, [router]);
+  }, []);
 
+  // Handle resend OTP timer
   useEffect(() => {
     let timer: NodeJS.Timeout;
     if (isOtpSent && resendTimer > 0) {
@@ -47,236 +48,203 @@ const LoginPage = () => {
     return () => clearInterval(timer);
   }, [isOtpSent, resendTimer]);
 
-  const checkUserType = async (email: string, isAutoLogin = false) => {
+  // Validate token for remembered user
+  const validateToken = async (email: string, token: string) => {
     setIsLoading(true);
     try {
-      const res = await fetch('/api/auth/login', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': isAutoLogin ? `Bearer ${localStorage.getItem('token')}` : '',
-        },
-        body: JSON.stringify({ email, step: 'email' }),
-      });
-      
-      const data = await res.json();
-      
-      if (res.ok) {
-        if (data.userType) {
-          setUserType(data.userType);
-          setStep('verify');
-          
-          if (isAutoLogin && data.userType === 'admin') {
-            // For auto-login, we need to check the token
-            const token = localStorage.getItem('token');
-            if (token) {
-              const res = await fetch('/api/auth/login', {
-                method: 'POST',
-                headers: {
-                  'Content-Type': 'application/json',
-                  'Authorization': `Bearer ${token}`,
-                },
-                body: JSON.stringify({ email, step: 'verify' }),
-              });
-              
-              const data = await res.json();
-              if (res.ok) {
-                if (data.token) {
-                  localStorage.setItem('token', data.token);
-                  localStorage.setItem('role', 'admin');
-                  localStorage.setItem('email', email);
-                  toast.success('Auto-login successful');
-                  router.push('/admin/students');
-                  router.refresh();
-                }
-              }
-            }
-          }
-        } else {
-          toast.error('User type not found');
-        }
+      const response = await axios.post(
+        '/api/auth/login',
+        { email: email.toLowerCase(), step: 'verify' },
+        { headers: { Authorization: `Bearer ${token}`, 'X-Remember-Me': rememberMe } }
+      );
+
+      const data = response.data;
+      console.log('Token Validation Response:', data);
+      if (response.status === 200 && data.token) {
+        setUserType(data.userType);
+        localStorage.setItem('token', data.token);
+        localStorage.setItem('role', data.userType);
+        localStorage.setItem('rememberedUser', email.toLowerCase());
+        toast.success('Auto-login successful');
+        router.push(data.userType === 'admin' ? '/admin' : '/student');
+        router.refresh();
       } else {
-        toast.error(data.message || 'Email not found');
+        localStorage.removeItem('token');
+        localStorage.removeItem('role');
+        toast.error(data.message || 'Invalid or expired token');
       }
     } catch (error: any) {
-      console.error('Error checking user type:', error);
-      toast.error('An error occurred while checking user type');
+      console.error('Token validation error:', error);
+      localStorage.removeItem('token');
+      localStorage.removeItem('role');
+      toast.error(error.response?.data?.message || 'Error validating token');
     } finally {
       setIsLoading(false);
     }
   };
 
+  // Check user type (admin or student)
+  const checkUserType = async (email: string) => {
+    setIsLoading(true);
+    try {
+      const response = await axios.post('/api/auth/login', {
+        email: email.toLowerCase(),
+        step: 'email',
+      });
+
+      const data = response.data;
+      console.log('Check User Type Response:', data);
+      if (response.status === 200 && data.userType) {
+        setUserType(data.userType);
+        setStep('verify');
+      } else {
+        toast.error(data.message || 'Email not found');
+      }
+    } catch (error: any) {
+      console.error('Error checking user type:', error);
+      toast.error(error.response?.data?.message || 'An error occurred while checking user type');
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  // Handle email submission
   const handleEmailSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!email) {
       toast.error('Email is required');
       return;
     }
-    
-    if (rememberMe) {
-      localStorage.setItem('email', email);
-      localStorage.setItem('rememberMe', 'true');
-    } else {
-      localStorage.removeItem('email');
-      localStorage.removeItem('rememberMe');
-    }
-    
     await checkUserType(email);
   };
 
+  // Handle login (password/DOB and OTP)
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsLoading(true);
     try {
-      const token = localStorage.getItem('token');
-      const storedEmail = localStorage.getItem('email');
-      
-      if (token && storedEmail === email) {
-        const res = await fetch('/api/auth/login', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            'Authorization': `Bearer ${token}`,
-            'X-Remember-Me': rememberMe.toString(),
-          },
-          body: JSON.stringify({ email, step: 'verify', skipOTP: true }),
-        });
-        
-        const data = await res.json();
-        if (res.ok) {
-          localStorage.setItem('token', data.token || token);
-          localStorage.setItem('role', userType || '');
-          localStorage.setItem('email', email);
+      const body = {
+        email: email.toLowerCase(),
+        step: 'verify',
+        ...(userType === 'admin' ? { password } : { dob }),
+        rememberMe,
+      };
+
+      const response = await axios.post('/api/auth/login', body, {
+        headers: { 'X-Remember-Me': rememberMe },
+      });
+      const data = response.data;
+      console.log('Login Response:', data);
+
+      if (response.status === 200) {
+        if (data.otpRequired) {
+          setIsOtpSent(true);
+          setIsModalOpen(true);
+          setResendTimer(59);
+          toast.success('OTP sent to your email');
+        } else if (data.token) {
           if (rememberMe) {
-            localStorage.setItem('rememberMe', 'true');
+            localStorage.setItem('rememberedUser', email.toLowerCase());
+            setRememberedUser(email.toLowerCase());
+          } else {
+            localStorage.removeItem('rememberedUser');
+            setRememberedUser(null);
           }
+          localStorage.setItem('token', data.token);
+          localStorage.setItem('role', userType || '');
           toast.success('Logged in successfully');
-          router.push(userType === 'admin' ? '/admin/students' : '/student/my-account');
+          router.push(userType === 'admin' ? '/admin' : '/student');
           router.refresh();
         } else {
-          toast.error(data.message || 'Login failed');
+          toast.error('Login failed: No token received');
         }
       } else {
-        const body = { 
-          email, 
-          step: 'verify',
-          ...(userType === 'admin' ? { password } : { dob }),
-          rememberMe 
-        };
-        
-        const res = await fetch('/api/auth/login', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            'X-Remember-Me': rememberMe.toString(),
-          },
-          body: JSON.stringify(body),
-        });
-        
-        const data = await res.json();
-        if (res.ok) {
-          if (data.otpRequired) {
-            setIsOtpSent(true);
-            setIsModalOpen(true);
-            setResendTimer(55);
-            toast.success('OTP sent to your email');
-          } else {
-            localStorage.setItem('token', data.token);
-            localStorage.setItem('role', userType || '');
-            localStorage.setItem('email', email);
-            if (rememberMe) {
-              localStorage.setItem('rememberMe', 'true');
-            }
-            toast.success('Logged in successfully');
-            router.push(userType === 'admin' ? '/admin/students' : '/student/my-account');
-            router.refresh();
-          }
-        } else {
-          toast.error(data.message || 'Login failed');
-        }
+        toast.error(data.message || 'Login failed');
       }
     } catch (error: any) {
       console.error('Login error:', error);
-      toast.error('An error occurred during login');
+      toast.error(error.response?.data?.message || 'An error occurred during login');
     } finally {
       setIsLoading(false);
     }
   };
 
+  // Handle OTP verification
   const handleOtpVerification = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsLoading(true);
     try {
-      const res = await fetch('/api/auth/otp', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'X-Remember-Me': rememberMe.toString(),
-        },
-        body: JSON.stringify({ email, otp, role: userType }),
+      const response = await axios.post('/api/auth/otp', {
+        email: email.toLowerCase(),
+        otp: otp.trim(),
+        role: userType,
+      }, {
+        headers: { 'X-Remember-Me': rememberMe },
       });
-      
-      const data = await res.json();
-      if (res.ok) {
+
+      const data = response.data;
+      console.log('OTP Verification Response:', data);
+      if (response.status === 200 && data.token) {
+        if (rememberMe) {
+          localStorage.setItem('rememberedUser', email.toLowerCase());
+          setRememberedUser(email.toLowerCase());
+        } else {
+          localStorage.removeItem('rememberedUser');
+          setRememberedUser(null);
+        }
         localStorage.setItem('token', data.token);
         localStorage.setItem('role', userType || '');
-        localStorage.setItem('email', email);
-        if (rememberMe) {
-          localStorage.setItem('rememberMe', 'true');
-        }
         setIsModalOpen(false);
         setIsOtpSent(false);
         setOtp('');
         setResendTimer(0);
         toast.success('OTP verified successfully');
-        router.push(userType === 'admin' ? '/admin/students' : '/student/my-account');
+        router.push(userType === 'admin' ? '/admin' : '/student');
         router.refresh();
       } else {
         toast.error(data.message || 'OTP verification failed');
       }
     } catch (error: any) {
       console.error('OTP verification error:', error);
-      toast.error('An error occurred during OTP verification');
+      toast.error(error.response?.data?.message || 'An error occurred during OTP verification');
     } finally {
       setIsLoading(false);
     }
   };
 
+  // Resend OTP
   const handleResendOtp = async () => {
     if (resendTimer > 0) return;
     setIsLoading(true);
     try {
-      const body = { 
-        email, 
+      const body = {
+        email: email.toLowerCase(),
         step: 'verify',
         ...(userType === 'admin' ? { password } : { dob }),
-        rememberMe 
+        rememberMe,
       };
-      
-      const res = await fetch('/api/auth/login', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'X-Remember-Me': rememberMe.toString(),
-        },
-        body: JSON.stringify(body),
+
+      const response = await axios.post('/api/auth/login', body, {
+        headers: { 'X-Remember-Me': rememberMe },
       });
-      
-      const data = await res.json();
-      if (res.ok && data.otpRequired) {
-        setResendTimer(55);
+      const data = response.data;
+      console.log('Resend OTP Response:', data);
+
+      if (response.status === 200 && data.otpRequired) {
+        setResendTimer(59);
         toast.success('OTP resent to your email');
       } else {
         toast.error(data.message || 'Failed to resend OTP');
       }
     } catch (error: any) {
       console.error('Resend OTP error:', error);
-      toast.error('An error occurred while resending OTP');
+      toast.error(error.response?.data?.message || 'An error occurred while resending OTP');
     } finally {
       setIsLoading(false);
     }
   };
 
+  // Close OTP modal
   const closeModal = () => {
     setIsModalOpen(false);
     setOtp('');
@@ -284,16 +252,18 @@ const LoginPage = () => {
     setResendTimer(0);
   };
 
+  // Go back to email step
   const goBackToEmail = () => {
     setStep('email');
     setUserType(null);
+    setPassword('');
+    setDob('');
   };
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-100 to-blue-200 p-4">
       <div className="bg-white p-8 rounded-xl shadow-xl w-full max-w-md">
-        <h2 className="text-3xl font-bold text-center mb-6 text-blue-700">🔐 Login</h2>
-        <div className="flex justify-center mb-6">
+        <div className="flex justify-center mb-2">
           <Image
             src={pic}
             alt="Library Logo"
@@ -302,7 +272,8 @@ const LoginPage = () => {
             className="rounded-full border-4 border-blue-500 shadow-md"
           />
         </div>
-        
+        <h2 className="text-3xl font-bold text-center mb-2 text-blue-700">Login</h2>
+
         {step === 'email' ? (
           <form onSubmit={handleEmailSubmit} className="space-y-4">
             <div>
@@ -310,12 +281,11 @@ const LoginPage = () => {
               <input
                 type="email"
                 value={email}
-                onChange={(e) => setEmail(e.target.value)}
+                onChange={(e) => setEmail(e.target.value.trim())}
                 className="w-full mt-1 p-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-400"
                 required
               />
             </div>
-            
             <label className="inline-flex items-center">
               <input
                 type="checkbox"
@@ -325,7 +295,6 @@ const LoginPage = () => {
               />
               <span className="text-gray-700">Remember Me</span>
             </label>
-            
             <button
               type="submit"
               className="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 rounded transition duration-200 flex items-center justify-center"
@@ -347,7 +316,7 @@ const LoginPage = () => {
               </button>
               <span className="text-gray-700">{email}</span>
             </div>
-            
+
             {userType === 'admin' ? (
               <div className="relative">
                 <label className="block text-sm font-semibold text-gray-700">Password</label>
@@ -378,7 +347,17 @@ const LoginPage = () => {
                 />
               </div>
             )}
-            
+
+            <label className="inline-flex items-center">
+              <input
+                type="checkbox"
+                checked={rememberMe}
+                onChange={(e) => setRememberMe(e.target.checked)}
+                className="form-checkbox text-blue-600 mr-2"
+              />
+              <span className="text-gray-700">Remember Me</span>
+            </label>
+
             <button
               type="submit"
               className="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 rounded transition duration-200 flex items-center justify-center"
@@ -389,7 +368,7 @@ const LoginPage = () => {
             </button>
           </form>
         )}
-        
+
         {isModalOpen && (
           <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
             <div className="bg-white p-6 rounded-lg shadow-lg w-full max-w-sm">
@@ -401,7 +380,7 @@ const LoginPage = () => {
                   <input
                     type="text"
                     value={otp}
-                    onChange={(e) => setOtp(e.target.value)}
+                    onChange={(e) => setOtp(e.target.value.trim())}
                     className="w-full mt-1 p-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-400"
                     required
                   />

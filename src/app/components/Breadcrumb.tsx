@@ -1,4 +1,5 @@
 // library-management-system/src/app/components/Breadcrumb.tsx
+'use client';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 

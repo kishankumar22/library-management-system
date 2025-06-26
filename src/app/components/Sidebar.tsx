@@ -1,52 +1,90 @@
-// library-management-system/src/app/components/Sidebar.tsx
+'use client';
+
 import Link from 'next/link';
-import { useRouter } from 'next/navigation';
+import { useState } from 'react';
+import { LayoutDashboard, Menu } from 'lucide-react';
+import {
+  Book,
+  LibraryBig,
+  GraduationCap,
+  FileText,
+  ClipboardList,
+  NotebookPen,
+  BookOpenCheck,
+  BookCopy,
+  AlertTriangle,
+  BookDown,
+} from 'lucide-react';
 
 interface SidebarProps {
   role: 'admin' | 'student';
 }
 
 const Sidebar: React.FC<SidebarProps> = ({ role }) => {
-  const router = useRouter();
+  const [isOpen, setIsOpen] = useState(false);
 
   const adminLinks = [
-    { name: 'Subjects', href: '/admin/subjects' },
-    { name: 'Publications', href: '/admin/publications' },
-    { name: 'Books', href: '/admin/books' },
-    { name: 'Courses', href: '/admin/courses' },
-    { name: 'Students', href: '/admin/students' },
-    { name: 'Student Report', href: '/admin/student-report' },
-    { name: 'Book Issue', href: '/admin/book-issue' },
-    { name: 'Book Report', href: '/admin/book-report' },
-    { name: 'Issue Report', href: '/admin/issue-report' },
-    { name: 'Return Book', href: '/admin/return-book' },
-    { name: 'Penalty', href: '/admin/penalty' },
+    { name: 'DashBoard', href: '/admin', icon: LayoutDashboard },
+    { name: 'Subject', href: '/admin/subject', icon: LibraryBig },
+    { name: 'Publication', href: '/admin/publication', icon: NotebookPen },
+    { name: 'Book', href: '/admin/book', icon: Book },
+    { name: 'Course', href: '/admin/course', icon: GraduationCap },
+    { name: 'Student', href: '/admin/student', icon: GraduationCap },
+    { name: 'Student Report', href: '/admin/student-report', icon: FileText },
+    { name: 'Book Issue', href: '/admin/book-issue', icon: BookDown },
+    { name: 'Book Report', href: '/admin/book-report', icon: BookCopy },
+    { name: 'Issue Report', href: '/admin/issue-report', icon: ClipboardList },
+    { name: 'Return Book', href: '/admin/return-book', icon: BookOpenCheck },
+    { name: 'Penalty', href: '/admin/penalty', icon: AlertTriangle },
   ];
 
   const studentLinks = [
-    { name: 'My Account', href: '/student/my-account' },
-    { name: 'My Report', href: '/student/my-report' },
-    { name: 'Penalty Report', href: '/student/penalty-report' },
-    { name: 'Book Report', href: '/student/book-report' },
+    { name: 'Dashboard', href: '/student', icon: LayoutDashboard },
+    { name: 'My Account', href: '/student/my-account', icon: GraduationCap },
+    { name: 'My Report', href: '/student/my-report', icon: FileText },
+    { name: 'Penalty Report', href: '/student/penalty-report', icon: AlertTriangle },
+    { name: 'Book Report', href: '/student/book-report', icon: BookCopy },
   ];
 
+  // ✅ Role-based links
   const links = role === 'admin' ? adminLinks : studentLinks;
 
   return (
-    <aside className="w-64 bg-gray-800 text-white h-screen p-4">
-      <h2 className="text-xl font-bold mb-4">Library Management</h2>
-      <nav>
-        <ul>
-          {links.map((link) => (
-            <li key={link.href} className="mb-2">
-              <Link href={link.href} className="hover:bg-gray-700 ml-2 pl-2 p-2 rounded block">
-                {link.name}
-              </Link>
-            </li>
-          ))}
-        </ul>
-      </nav>
-    </aside>
+    <>
+      {/* Mobile top-bar */}
+      <div className="bg-gray-800 text-white flex items-center p-3 md:hidden fixed top-0 left-0 w-full z-20 shadow-md">
+        <button onClick={() => setIsOpen(!isOpen)}>
+          <Menu size={24} />
+        </button>
+        <h2 className="text-lg font-bold ml-3">Library Management</h2>
+      </div>
+
+      {/* Sidebar */}
+      <aside
+        className={`fixed top-0 left-0 h-screen bg-gray-800 text-white w-64 p-4 transform ${
+          isOpen ? 'translate-x-0' : '-translate-x-full'
+        } md:translate-x-0 z-10 overflow-y-auto`}
+      >
+        <h2 className="text-xl font-bold mb-6 hidden md:block">Library Management</h2>
+        <nav>
+          <ul>
+            {links.map(({ href, name, icon: Icon }) => (
+              <li key={href} className="">
+                <Link href={href} className="flex items-center gap-3 p-1.5 hover:bg-gray-700 rounded transition-colors">
+                  <Icon className="w-5 h-5" />
+                  <span>{name}</span>
+                </Link>
+              </li>
+            ))}
+          </ul>
+        </nav>
+      </aside>
+
+      {/* Mobile overlay */}
+      {isOpen && (
+        <div className="fixed inset-0 bg-black opacity-50 md:hidden z-0" onClick={() => setIsOpen(false)} />
+      )}
+    </>
   );
 };
 

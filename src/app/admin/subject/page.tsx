@@ -3,9 +3,8 @@
 
 import { useEffect, useState } from 'react';
 import { toast } from 'react-toastify';
-import Layout from '@/app/components/Layout';
+
 import { Subject } from '../../../types/index';
-import pic  from '../../../public/images/library.jpg'; // 
 
 const SubjectsPage = () => {
   const [subjects, setSubjects] = useState<Subject[]>([]);
@@ -96,7 +95,7 @@ const SubjectsPage = () => {
   };
 
   return (
-    <Layout role="admin" user={{ name: 'Admin', profilePic: pic.src }}>
+    
       <div className="p-4">
         <h2 className="text-2xl font-bold mb-4">Manage Subjects</h2>
         <form onSubmit={handleSubmit} className="mb-4">
@@ -154,7 +153,7 @@ const SubjectsPage = () => {
           </tbody>
         </table>
       </div>
-    </Layout>
+ 
   );
 };
 

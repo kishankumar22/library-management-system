@@ -8,7 +8,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
     <html lang="en">
       <body className="bg-gray-100">
         {children}
-        <ToastContainer position="top-right" autoClose={2000} />
+        <ToastContainer position="top-right" autoClose={1000} />
       </body>
     </html>
   );

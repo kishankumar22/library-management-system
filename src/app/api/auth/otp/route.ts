@@ -11,8 +11,18 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ message: 'Missing required fields' }, { status: 400 });
     }
 
-    const storedOtp = otpStore[email];
-    if (!storedOtp || storedOtp.otp !== otp || storedOtp.expires < Date.now()) {
+    const normalizedEmail = email.toLowerCase();
+    const storedOtp = otpStore[normalizedEmail];
+    console.log('OTP Verification - Request:', { email: normalizedEmail, otp, role });
+    console.log('Stored OTP:', storedOtp);
+    console.log('Current Time:', Date.now(), 'Stored Expiration:', storedOtp?.expires);
+
+    if (!storedOtp || String(storedOtp.otp) !== String(otp) || storedOtp.expires < Date.now()) {
+      console.log('OTP Check Failed:', {
+        storedOtpExists: !!storedOtp,
+        otpMatch: storedOtp?.otp === otp,
+        isExpired: storedOtp?.expires < Date.now(),
+      });
       return NextResponse.json({ message: 'Invalid or expired OTP' }, { status: 401 });
     }
 
@@ -20,7 +30,7 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ message: 'Invalid role for OTP' }, { status: 401 });
     }
 
-    delete otpStore[email];
+    delete otpStore[normalizedEmail];
 
     const pool = await getConnection();
     const rememberMe = req.headers.get('X-Remember-Me') === 'true';
@@ -29,7 +39,7 @@ export async function POST(req: NextRequest) {
     if (role === 'admin') {
       const result = await pool
         .request()
-        .input('email', email)
+        .input('email', normalizedEmail)
         .query('SELECT * FROM [User] WHERE email = @email');
 
       if (result.recordset.length === 0) {
@@ -48,7 +58,7 @@ export async function POST(req: NextRequest) {
     } else {
       const result = await pool
         .request()
-        .input('email', email)
+        .input('email', normalizedEmail)
         .query('SELECT * FROM Student WHERE email = @email');
 
       if (result.recordset.length === 0) {

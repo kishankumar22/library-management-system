@@ -1,15 +1,10 @@
-import Layout from "../components/Layout"
+'use client';
 
 export default function AdminPage() {
-    return (
-        <Layout role={"admin"} user={{
-            name: "",
-            profilePic: ""
-        }}>
-        <main>
-            <h1>Admin Dashboard</h1>
-            <p>Welcome to the Library Management System Admin Page.</p>
-        </main>
-        </Layout>
-    );
+  return (
+    <>
+      <h1 className="text-2xl font-bold ">Admin Dashboard</h1>
+      <p>Welcome to the Library Management System Admin Page.</p>
+    </>
+  );
 }
