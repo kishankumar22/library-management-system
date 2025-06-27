@@ -1,27 +1,44 @@
 'use client';
 
 import Image from 'next/image';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { toast } from 'react-toastify';
 import { LogOut } from 'lucide-react';
-import pic from '../../public/images/library.jpg';
+import defaultPic from '../../public/images/library.jpg'; // fallback image
 
-interface HeaderProps {
-  user: { name: string; profilePic?: string };
-  onLogout: () => void;
-}
-
-const Header: React.FC<HeaderProps> = ({ user, onLogout }) => {
+const Header = () => {
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
+  const [user, setUser] = useState<{ name: string; profilePic?: string | null }>({ name: 'User', profilePic: null });
   const router = useRouter();
+
+  useEffect(() => {
+    // Load and parse user info
+    const stored = localStorage.getItem('UserDetails');
+    if (stored) {
+      try {
+        const parsed = JSON.parse(stored);
+        const userData = parsed.user || {}; // nested user
+        const name =
+          userData.name ||
+          (userData.fName && userData.lName ? `${userData.fName} ${userData.lName}` : 'User');
+
+        const profilePic = userData.profilePic || userData.studentImage || null;
+
+        setUser({ name, profilePic });
+        console.log('User loaded from localStorage:', name, profilePic);
+      } catch (err) {
+        console.error('Failed to parse user data:', err);
+      }
+    }
+  }, []);
 
   const handleLogout = () => {
     localStorage.removeItem('token');
     localStorage.removeItem('role');
     localStorage.removeItem('email');
     localStorage.removeItem('rememberMe');
-    onLogout();
+    localStorage.removeItem('UserDetails');
     toast.success('Logged out successfully');
     router.refresh();
     router.push('/login');
@@ -34,14 +51,15 @@ const Header: React.FC<HeaderProps> = ({ user, onLogout }) => {
         onClick={() => setIsDropdownOpen(!isDropdownOpen)}
       >
         <Image
-          src={user.profilePic || pic}
+          src={user.profilePic || defaultPic}
           alt="Profile"
-          width={40}
-          height={40}
-          className="rounded-full"
+          width={50}
+          height={50}
+          className="rounded-full object-cover"
         />
         <span className="hidden sm:inline">{user.name}</span>
       </div>
+
       {isDropdownOpen && (
         <div className="absolute right-4 mt-32 w-48 bg-white border border-gray-200 text-black rounded-md shadow-lg py-2 z-50">
           <button

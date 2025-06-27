@@ -1,7 +1,8 @@
 'use client';
 
 import Link from 'next/link';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
+import { usePathname } from 'next/navigation';
 import { LayoutDashboard, Menu } from 'lucide-react';
 import {
   Book,
@@ -22,14 +23,40 @@ interface SidebarProps {
 
 const Sidebar: React.FC<SidebarProps> = ({ role }) => {
   const [isOpen, setIsOpen] = useState(false);
+  const pathname = usePathname();
+
+  // Define route-to-title mappings
+  const routeTitles = {
+    '/admin': 'Dashboard',
+    '/admin/subject': 'Manage Subject',
+    '/admin/publication': 'Manage Publication',
+    '/admin/book': 'Manage Book',
+    '/admin/student-report': 'Student Report',
+    '/admin/book-issue': 'Book Issue',
+    '/admin/book-report': 'Book Report',
+    '/admin/issue-report': 'Issue Report',
+    '/admin/return-book': 'Return Book',
+    '/admin/penalty': 'Penaltie',
+    '/student': 'Dashboard',
+    '/student/my-account': 'My Account',
+    '/student/my-report': 'My Report',
+    '/student/penalty-report': 'Penalty Report',
+    '/student/book-report': 'Book Report',
+  };
+
+  // Get current page title based on route
+  const currentTitle = routeTitles[pathname as keyof typeof routeTitles] || 'Library Management';
+
+  // Set page title
+  useEffect(() => {
+    document.title = `${currentTitle} | Library Management`;
+  }, [pathname, currentTitle]);
 
   const adminLinks = [
     { name: 'DashBoard', href: '/admin', icon: LayoutDashboard },
     { name: 'Subject', href: '/admin/subject', icon: LibraryBig },
     { name: 'Publication', href: '/admin/publication', icon: NotebookPen },
     { name: 'Book', href: '/admin/book', icon: Book },
-    { name: 'Course', href: '/admin/course', icon: GraduationCap },
-    { name: 'Student', href: '/admin/student', icon: GraduationCap },
     { name: 'Student Report', href: '/admin/student-report', icon: FileText },
     { name: 'Book Issue', href: '/admin/book-issue', icon: BookDown },
     { name: 'Book Report', href: '/admin/book-report', icon: BookCopy },
@@ -46,7 +73,6 @@ const Sidebar: React.FC<SidebarProps> = ({ role }) => {
     { name: 'Book Report', href: '/student/book-report', icon: BookCopy },
   ];
 
-  // ✅ Role-based links
   const links = role === 'admin' ? adminLinks : studentLinks;
 
   return (
@@ -56,7 +82,7 @@ const Sidebar: React.FC<SidebarProps> = ({ role }) => {
         <button onClick={() => setIsOpen(!isOpen)}>
           <Menu size={24} />
         </button>
-        <h2 className="text-lg font-bold ml-3">Library Management</h2>
+        <h2 className="text-lg font-bold ml-3">{currentTitle}</h2>
       </div>
 
       {/* Sidebar */}

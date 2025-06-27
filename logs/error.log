@@ -1,0 +1,1 @@
+{"level":"error","message":"Error adding book: RequestError: Cannot insert the value NULL into column 'IsbnNumber', table 'jkconsultancyadmindb.dbo.Books'; column does not allow nulls. INSERT fails.","timestamp":"2025-06-27T12:34:41.203Z"}

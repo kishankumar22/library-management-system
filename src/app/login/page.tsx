@@ -7,7 +7,7 @@ import Image from 'next/image';
 import axios from 'axios';
 import pic from '../../public/images/Library.png';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faSpinner, faEye, faEyeSlash, faArrowLeft } from '@fortawesome/free-solid-svg-icons';
+import { faSpinner, faEye, faEyeSlash, faArrowLeft, faInfoCircle } from '@fortawesome/free-solid-svg-icons';
 
 const LoginPage = () => {
   const router = useRouter();
@@ -65,18 +65,21 @@ const LoginPage = () => {
         localStorage.setItem('token', data.token);
         localStorage.setItem('role', data.userType);
         localStorage.setItem('rememberedUser', email.toLowerCase());
+        localStorage.setItem('UserDetails', JSON.stringify(data || {}));
         toast.success('Auto-login successful');
         router.push(data.userType === 'admin' ? '/admin' : '/student');
         router.refresh();
       } else {
         localStorage.removeItem('token');
         localStorage.removeItem('role');
+        localStorage.removeItem('UserDetails');
         toast.error(data.message || 'Invalid or expired token');
       }
     } catch (error: any) {
       console.error('Token validation error:', error);
       localStorage.removeItem('token');
       localStorage.removeItem('role');
+      localStorage.removeItem('UserDetails');
       toast.error(error.response?.data?.message || 'Error validating token');
     } finally {
       setIsLoading(false);
@@ -141,7 +144,9 @@ const LoginPage = () => {
           setIsOtpSent(true);
           setIsModalOpen(true);
           setResendTimer(59);
-          toast.success('OTP sent to your email');
+          toast.success(`OTP sent to ${email}. Please check your inbox and enter the 6-digit code.`, {
+            position: 'top-center',
+          });
         } else if (data.token) {
           if (rememberMe) {
             localStorage.setItem('rememberedUser', email.toLowerCase());
@@ -152,6 +157,7 @@ const LoginPage = () => {
           }
           localStorage.setItem('token', data.token);
           localStorage.setItem('role', userType || '');
+          localStorage.setItem('UserDetails', JSON.stringify(data || {}));
           toast.success('Logged in successfully');
           router.push(userType === 'admin' ? '/admin' : '/student');
           router.refresh();
@@ -194,6 +200,7 @@ const LoginPage = () => {
         }
         localStorage.setItem('token', data.token);
         localStorage.setItem('role', userType || '');
+        localStorage.setItem('UserDetails', JSON.stringify(data || {}));
         setIsModalOpen(false);
         setIsOtpSent(false);
         setOtp('');
@@ -202,7 +209,7 @@ const LoginPage = () => {
         router.push(userType === 'admin' ? '/admin' : '/student');
         router.refresh();
       } else {
-        toast.error(data.message || 'OTP verification failed');
+        toast.error(data.message || 'Invalid or expired OTP');
       }
     } catch (error: any) {
       console.error('OTP verification error:', error);
@@ -232,7 +239,9 @@ const LoginPage = () => {
 
       if (response.status === 200 && data.otpRequired) {
         setResendTimer(59);
-        toast.success('OTP resent to your email');
+        toast.success(`New OTP sent to ${email}. Please check your inbox.`, {
+          position: 'top-center',
+        });
       } else {
         toast.error(data.message || 'Failed to resend OTP');
       }
@@ -383,9 +392,10 @@ const LoginPage = () => {
                     onChange={(e) => setOtp(e.target.value.trim())}
                     className="w-full mt-1 p-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-400"
                     required
+                    placeholder="Enter the 6-digit OTP"
                   />
                 </div>
-                <div className="flex justify-end space-x-2">
+                <div className="flex justify-between items-center">
                   <button
                     type="button"
                     onClick={closeModal}
@@ -403,7 +413,8 @@ const LoginPage = () => {
                   </button>
                 </div>
               </form>
-              <p className="text-sm text-gray-500 mt-4">
+              <p className="text-sm text-gray-500 mt-4 flex items-center">
+                <FontAwesomeIcon icon={faInfoCircle} className="mr-2 text-blue-600" />
                 Resend OTP in {resendTimer > 0 ? resendTimer : '0'}s{' '}
                 <button
                   onClick={handleResendOtp}

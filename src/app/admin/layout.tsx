@@ -26,7 +26,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
       <Sidebar role="admin" />
       <div className="flex flex-col min-h-screen md:ml-64"> {/* sidebar width */}
         <Header
-          user={{ name: 'Admin User', profilePic: '' }}
+          user={{ name: 'Kishan Kumar', profilePic: '' }}
           onLogout={() => {
             localStorage.removeItem('token');
             localStorage.removeItem('role');
@@ -34,7 +34,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
           }}
         />
         <Breadcrumb />
-        <main className="flex-1 p-4">{children}</main>
+        <main className="flex-1 ">{children}</main>
       </div>
     </div>
   );
