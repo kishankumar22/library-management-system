@@ -4,27 +4,9 @@ import { useEffect, useState, useRef } from 'react';
 import { toast } from 'react-toastify';
 import axios from 'axios';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { 
-  faSpinner, 
-  faEye, 
-  faEyeSlash, 
-  faArrowLeft, 
-  faPlus, 
-  faEdit, 
-  faTrash, 
-  faSearch, 
-  faFilter 
-} from '@fortawesome/free-solid-svg-icons';
-
-interface Subject {
-  SubId: number;
-  Name: string;
-  IsActive: boolean;
-  CreatedBy: string;
-  CreatedOn: string;
-  ModifiedBy?: string;
-  ModifiedOn?: string;
-}
+import { faSpinner,  faEye,faEyeSlash,faArrowLeft,  faPlus,faEdit, faTrash, faSearch,  faFilter }
+ from '@fortawesome/free-solid-svg-icons';
+import { Subject } from '@/types';
 
 const SubjectsPage = () => {
   const [subjects, setSubjects] = useState<Subject[]>([]);

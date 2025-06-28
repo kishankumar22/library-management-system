@@ -1,1 +1,21 @@
-{"level":"error","message":"Error adding book: RequestError: Cannot insert the value NULL into column 'IsbnNumber', table 'jkconsultancyadmindb.dbo.Books'; column does not allow nulls. INSERT fails.","timestamp":"2025-06-27T12:34:41.203Z"}
+1. Penalty: 
+•	id (Int)
+•	issueId (Int)
+•	amount (Float)
+•	status (paid | unpaid)
+•	createdAt (DateTime)
+•	updatedAt (DateTime)
+ CreatedBy NVARCHAR(100),
+    CreatedOn DATETIME DEFAULT GETDATE(),
+    ModifiedBy NVARCHAR(100),
+    ModifiedOn DATETIME,
+2. LibararyPayment 
+1.  studentId
+2 .issueid
+3. PaidAmount
+4.PaymentMode- cash (optional )  then transaction number 
+5. receive by 
+ CreatedBy NVARCHAR(100),
+    CreatedOn DATETIME DEFAULT GETDATE(),
+    ModifiedBy NVARCHAR(100),
+    ModifiedOn DATETIME,

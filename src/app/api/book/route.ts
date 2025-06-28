@@ -5,19 +5,33 @@ import multer from 'multer';
 import path from 'path';
 import fs from 'fs/promises';
 
-// Configure Multer for file uploads
+// Configure Multer for file uploads with unique naming
 const uploadDir = path.join(process.cwd(), 'public/Books');
-fs.mkdir(uploadDir, { recursive: true }).catch(() => {});
+fs.mkdir(uploadDir, { recursive: true }).catch(err => logger.error(`Failed to create directory: ${err}`));
 
 const storage = multer.diskStorage({
   destination: (req, file, cb) => {
     cb(null, uploadDir);
   },
   filename: (req, file, cb) => {
-    // Use timestamp for unique filename
-    const timestamp = Date.now();
-    const uniqueFilename = `book_${timestamp}${path.extname(file.originalname)}`;
-    cb(null, uniqueFilename);
+    const ext = path.extname(file.originalname);
+    const baseName = path.basename(file.originalname, ext);
+    let uniqueName = baseName;
+    let counter = 1;
+
+    const checkFile = async () => {
+      const filePath = path.join(uploadDir, `${uniqueName}${ext}`);
+      try {
+        await fs.access(filePath);
+        uniqueName = `${baseName}(${counter})`;
+        counter++;
+        await checkFile();
+      } catch {
+        cb(null, `${uniqueName}${ext}`);
+      }
+    };
+
+    checkFile();
   },
 });
 
@@ -33,12 +47,12 @@ const upload = multer({
   },
 });
 
-// Middleware to handle multipart/form-data
+// Middleware to handle multipart/form-data (kept for compatibility)
 const uploadMiddleware = upload.single('BookPhoto');
 
 export const config = {
   api: {
-    bodyParser: false, // Disable Next.js body parsing to allow Multer to handle it
+    bodyParser: false, // Disable Next.js body parsing to allow manual handling
   },
 };
 
@@ -113,8 +127,8 @@ export async function GET(req: NextRequest) {
 
 export async function POST(req: NextRequest) {
   try {
-    // Run Multer middleware
     await runMiddleware(req, NextResponse.next(), uploadMiddleware);
+    logger.info('POST Middleware executed, file:', (req as any).file);
 
     const body = await parseFormData(req);
     const {
@@ -125,6 +139,9 @@ export async function POST(req: NextRequest) {
     // Validation
     if (!IsbnNumber || !Title) {
       return NextResponse.json({ message: 'ISBN and Title are required' }, { status: 400 });
+    }
+    if (!CourseId || !SubjectId || !PublicationId) {
+      return NextResponse.json({ message: 'Course, Subject, and Publication are required' }, { status: 400 });
     }
     if (!/^\d{10,13}$/.test(IsbnNumber)) {
       return NextResponse.json({ message: 'Invalid ISBN format' }, { status: 400 });
@@ -138,7 +155,6 @@ export async function POST(req: NextRequest) {
 
     const pool = await getConnection();
 
-    // Check if ISBN already exists
     const checkResult = await pool.request()
       .input('IsbnNumber', IsbnNumber)
       .query('SELECT * FROM Books WHERE IsbnNumber = @IsbnNumber');
@@ -150,6 +166,9 @@ export async function POST(req: NextRequest) {
     const file = (req as any).file;
     if (file) {
       bookPhotoPath = `/Books/${file.filename}`;
+      logger.info(`File saved at: ${bookPhotoPath}`);
+    } else {
+      logger.warn('No file uploaded');
     }
 
     const result = await pool.request()
@@ -157,10 +176,10 @@ export async function POST(req: NextRequest) {
       .input('Title', Title)
       .input('Author', Author || null)
       .input('Details', Details || null)
-      .input('CourseId', CourseId || null)
+      .input('CourseId', CourseId)
       .input('Price', Price ? parseFloat(Price) : null)
-      .input('SubjectId', SubjectId || null)
-      .input('PublicationId', PublicationId || null)
+      .input('SubjectId', SubjectId)
+      .input('PublicationId', PublicationId)
       .input('TotalCopies', TotalCopies ? parseInt(TotalCopies) : 1)
       .input('AvailableCopies', TotalCopies ? parseInt(TotalCopies) : 1)
       .input('Edition', Edition || null)
@@ -189,10 +208,20 @@ export async function POST(req: NextRequest) {
 
 export async function PUT(req: NextRequest) {
   try {
-    // Run Multer middleware
-    await runMiddleware(req, NextResponse.next(), uploadMiddleware);
+    const formData = await req.formData(); // Process FormData directly
+    logger.info('PUT FormData processed');
 
-    const body = await parseFormData(req);
+    let body: { [key: string]: string } = {};
+    let file: File | null = null;
+    for (const [key, value] of formData.entries()) {
+      if (typeof value === 'string') {
+        body[key] = value;
+      } else if (key === 'BookPhoto' && value instanceof File) {
+        file = value;
+        logger.info(`File detected in formData: ${file.name}`);
+      }
+    }
+
     const {
       BookId, IsbnNumber, Title, Author, Details, CourseId, Price, SubjectId, PublicationId,
       TotalCopies, Edition, Language, PublishedYear, ModifiedBy, Barcode
@@ -201,6 +230,9 @@ export async function PUT(req: NextRequest) {
     // Validation
     if (!BookId || !IsbnNumber || !Title) {
       return NextResponse.json({ message: 'BookId, ISBN, and Title are required' }, { status: 400 });
+    }
+    if (!CourseId || !SubjectId || !PublicationId) {
+      return NextResponse.json({ message: 'Course, Subject, and Publication are required' }, { status: 400 });
     }
     if (!/^\d{10,13}$/.test(IsbnNumber)) {
       return NextResponse.json({ message: 'Invalid ISBN format' }, { status: 400 });
@@ -215,9 +247,23 @@ export async function PUT(req: NextRequest) {
     const pool = await getConnection();
 
     let bookPhotoPath = body.BookPhoto || '';
-    const file = (req as any).file;
     if (file) {
-      bookPhotoPath = `/Books/${file.filename}`;
+      const uploadResult = await handleManualFileUpload(file);
+      if (uploadResult) {
+        bookPhotoPath = `/Books/${uploadResult.filename}`;
+        logger.info(`New file saved at: ${bookPhotoPath}`);
+        const oldBook = await pool.request().input('BookId', BookId).query('SELECT BookPhoto FROM Books WHERE BookId = @BookId');
+        if (oldBook.recordset[0]?.BookPhoto) {
+          const oldPhotoPath = path.join(process.cwd(), 'public', oldBook.recordset[0].BookPhoto);
+          await fs.unlink(oldPhotoPath).catch(err => logger.error(`Failed to delete old photo: ${err}`));
+        }
+      } else {
+        logger.warn('File upload failed, keeping existing photo');
+      }
+    } else {
+      logger.warn('No new file uploaded for update, keeping existing:', body.BookPhoto);
+      const existingBook = await pool.request().input('BookId', BookId).query('SELECT BookPhoto FROM Books WHERE BookId = @BookId');
+      bookPhotoPath = existingBook.recordset[0]?.BookPhoto || '';
     }
 
     const result = await pool.request()
@@ -226,10 +272,10 @@ export async function PUT(req: NextRequest) {
       .input('Title', Title)
       .input('Author', Author || null)
       .input('Details', Details || null)
-      .input('CourseId', CourseId || null)
+      .input('CourseId', CourseId)
       .input('Price', Price ? parseFloat(Price) : null)
-      .input('SubjectId', SubjectId || null)
-      .input('PublicationId', PublicationId || null)
+      .input('SubjectId', SubjectId)
+      .input('PublicationId', PublicationId)
       .input('TotalCopies', TotalCopies ? parseInt(TotalCopies) : null)
       .input('AvailableCopies', TotalCopies ? parseInt(TotalCopies) : null)
       .input('Edition', Edition || null)
@@ -252,7 +298,7 @@ export async function PUT(req: NextRequest) {
     logger.info(`Book updated: ${Title}`);
     return NextResponse.json({ message: 'Book updated successfully' });
   } catch (error: any) {
-    logger.error(`Error updating book: ${error.message}`);
+    logger.error(`Error updating book: ${error.message}`, { stack: error.stack });
     return NextResponse.json({ message: error.message || 'Internal server error' }, { status: 500 });
   }
 }
@@ -271,7 +317,7 @@ export async function DELETE(req: NextRequest) {
 
     if (book.recordset[0]?.BookPhoto) {
       const photoPath = path.join(process.cwd(), 'public', book.recordset[0].BookPhoto);
-      await fs.unlink(photoPath).catch(() => {});
+      await fs.unlink(photoPath).catch(err => logger.error(`Failed to delete photo: ${err}`));
     }
 
     await pool.request()
@@ -322,7 +368,45 @@ async function parseFormData(req: NextRequest): Promise<{ [key: string]: string 
   for (const [key, value] of formData.entries()) {
     if (typeof value === 'string') {
       body[key] = value;
+    } else if (key === 'BookPhoto' && value instanceof File) {
+      logger.info(`File detected in formData: ${value.name}`);
     }
   }
   return body;
+}
+
+// Manual file upload function
+async function handleManualFileUpload(file: File): Promise<{ filename: string } | null> {
+  try {
+    const ext = path.extname(file.name);
+    const baseName = path.basename(file.name, ext);
+    let uniqueName = baseName;
+    let counter = 1;
+
+    const checkFile = async () => {
+      const filePath = path.join(uploadDir, `${uniqueName}${ext}`);
+      try {
+        await fs.access(filePath);
+        uniqueName = `${baseName}(${counter})`;
+        counter++;
+        await checkFile();
+      } catch {
+        return { filename: `${uniqueName}${ext}` };
+      }
+    };
+
+    const result = await checkFile();
+    if (result) {
+      const filePath = path.join(uploadDir, result.filename);
+      const arrayBuffer = await file.arrayBuffer();
+      const uint8Array = new Uint8Array(arrayBuffer);
+      await fs.writeFile(filePath, uint8Array);
+      logger.info(`Manually saved file at: ${filePath}`);
+      return result;
+    }
+    return null;
+  } catch (error) {
+    logger.error(`Error in manual file upload: ${error}`);
+    return null;
+  }
 }

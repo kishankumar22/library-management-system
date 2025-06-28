@@ -1,3 +1,5 @@
+import { ReactNode } from "react";
+
 // library-management-system/src/types/index.ts
 export interface User {
   user_id: number;
@@ -72,12 +74,15 @@ export interface Book {
 }
 
 export interface Course {
+  [x: string]: ReactNode;
   id: number;
   name: string;
   isActive: boolean;
 }
 
 export interface BookIssue {
+  [x: string]: any;
+  IssueId: any;
   id: number;
   studentId: number;
   bookId: number;
@@ -85,4 +90,52 @@ export interface BookIssue {
   dueDate: Date;
   returnDate?: Date;
   penalty?: number;
+}
+export interface Book {
+  BookId: number;
+  IsbnNumber: string;
+  Title: string;
+  Barcode: string | null;
+  Author: string | null;
+  BookPhoto: string | null;
+  Details: string | null;
+  CourseId: number | null;
+  courseName: string | null;
+  Price: number | null;
+  SubjectId: number | null;
+  SubjectName: string | null;
+  PublicationId: number | null;
+  PublicationName: string | null;
+  IsAvailable: boolean;
+  TotalCopies: number;
+  AvailableCopies: number;
+  Edition: string | null;
+  Language: string | null;
+  PublishedYear: number | null;
+  IsActive: boolean;
+  CreatedBy: string;
+  CreatedOn: string;
+  ModifiedBy: string | null;
+  ModifiedOn: string | null;
+}
+
+
+ export interface Subject {
+  SubId: number;
+  Name: string;
+  IsActive: boolean;
+  CreatedBy: string;
+  CreatedOn: string;
+  ModifiedBy?: string;
+  ModifiedOn?: string;
+}
+
+export interface Publication {
+  PubId: number;
+  Name: string;
+  IsActive: boolean;
+  CreatedBy: string;
+  CreatedOn: string;
+  ModifiedBy?: string;
+  ModifiedOn?: string;
 }

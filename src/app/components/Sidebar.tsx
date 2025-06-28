@@ -54,15 +54,15 @@ const Sidebar: React.FC<SidebarProps> = ({ role }) => {
 
   const adminLinks = [
     { name: 'DashBoard', href: '/admin', icon: LayoutDashboard },
-    { name: 'Subject', href: '/admin/subject', icon: LibraryBig },
-    { name: 'Publication', href: '/admin/publication', icon: NotebookPen },
-    { name: 'Book', href: '/admin/book', icon: Book },
-    { name: 'Student Report', href: '/admin/student-report', icon: FileText },
+    { name: 'Manage Subject', href: '/admin/subject', icon: LibraryBig },
+    { name: 'Manage Publication', href: '/admin/publication', icon: NotebookPen },
+    { name: 'Manage Book', href: '/admin/book', icon: Book },
+    // { name: 'Student Report', href: '/admin/student-report', icon: FileText },
     { name: 'Book Issue', href: '/admin/book-issue', icon: BookDown },
-    { name: 'Book Report', href: '/admin/book-report', icon: BookCopy },
-    { name: 'Issue Report', href: '/admin/issue-report', icon: ClipboardList },
-    { name: 'Return Book', href: '/admin/return-book', icon: BookOpenCheck },
-    { name: 'Penalty', href: '/admin/penalty', icon: AlertTriangle },
+    // { name: 'Book Report', href: '/admin/book-report', icon: BookCopy },
+    // { name: 'Issue Report', href: '/admin/issue-report', icon: ClipboardList },
+    // { name: 'Return Book', href: '/admin/return-book', icon: BookOpenCheck },
+    { name: 'Manage Penalty', href: '/admin/penalty', icon: AlertTriangle },
   ];
 
   const studentLinks = [

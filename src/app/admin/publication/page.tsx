@@ -15,16 +15,9 @@ import {
   faSearch, 
   faFilter 
 } from '@fortawesome/free-solid-svg-icons';
+import { Publication } from '@/types';
 
-interface Publication {
-  PubId: number;
-  Name: string;
-  IsActive: boolean;
-  CreatedBy: string;
-  CreatedOn: string;
-  ModifiedBy?: string;
-  ModifiedOn?: string;
-}
+
 
 const PublicationsPage = () => {
   const [publications, setPublications] = useState<Publication[]>([]);

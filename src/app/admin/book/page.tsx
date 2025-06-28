@@ -7,34 +7,7 @@ import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import {
   faSpinner, faEye, faEyeSlash, faArrowLeft, faPlus, faEdit, faTrash, faSearch, faFilter
 } from '@fortawesome/free-solid-svg-icons';
-
-interface Book {
-  BookId: number;
-  IsbnNumber: string;
-  Title: string;
-  Barcode: string | null;
-  Author: string | null;
-  BookPhoto: string | null;
-  Details: string | null;
-  CourseId: number | null;
-  courseName: string | null;
-  Price: number | null;
-  SubjectId: number | null;
-  SubjectName: string | null;
-  PublicationId: number | null;
-  PublicationName: string | null;
-  IsAvailable: boolean;
-  TotalCopies: number;
-  AvailableCopies: number;
-  Edition: string | null;
-  Language: string | null;
-  PublishedYear: number | null;
-  IsActive: boolean;
-  CreatedBy: string;
-  CreatedOn: string;
-  ModifiedBy: string | null;
-  ModifiedOn: string | null;
-}
+import { Book } from '@/types';
 
 interface Course { id: number; courseName: string; }
 interface Subject { SubId: number; Name: string; }
@@ -47,7 +20,7 @@ const BooksPage = () => {
   const [publications, setPublications] = useState<Publication[]>([]);
   const [formData, setFormData] = useState({
     IsbnNumber: '', Title: '', Author: '', Details: '', CourseId: '', Price: '',
-    SubjectId: '', PublicationId: '', TotalCopies: '1', Edition: '', Language: 'English',
+    SubjectId: '', PublicationId: '', TotalCopies: '1', Edition: '', Language: '',
     PublishedYear: '', BookPhoto: null as File | null, Barcode: ''
   });
   const [editingId, setEditingId] = useState<number | null>(null);
@@ -101,25 +74,11 @@ const BooksPage = () => {
 
   const fetchInitialData = async () => {
     try {
-      const coursePromise = axios.get('/api/course').catch(error => {
-        toast.error('Failed to fetch courses');
-        return { data: [] };
-      });
-      const subjectPromise = axios.get('/api/subject').catch(error => {
-        toast.error('Failed to fetch subjects');
-        return { data: [] };
-      });
-      const publicationPromise = axios.get('/api/publication').catch(error => {
-        toast.error('Failed to fetch publications');
-        return { data: [] };
-      });
-
       const [courseRes, subjectRes, publicationRes] = await Promise.all([
-        coursePromise,
-        subjectPromise,
-        publicationPromise,
+        axios.get('/api/course').catch(() => ({ data: [] })),
+        axios.get('/api/subject').catch(() => ({ data: [] })),
+        axios.get('/api/publication').catch(() => ({ data: [] })),
       ]);
-
       setCourses(courseRes.data);
       setSubjects(subjectRes.data);
       setPublications(publicationRes.data);
@@ -155,6 +114,9 @@ const BooksPage = () => {
     if (!formData.IsbnNumber) newErrors.IsbnNumber = 'ISBN is required';
     else if (!/^\d{10,13}$/.test(formData.IsbnNumber)) newErrors.IsbnNumber = 'Invalid ISBN format';
     if (!formData.Title) newErrors.Title = 'Title is required';
+    if (!formData.CourseId) newErrors.CourseId = 'Course is required';
+    if (!formData.SubjectId) newErrors.SubjectId = 'Subject is required';
+    if (!formData.PublicationId) newErrors.PublicationId = 'Publication is required';
     if (formData.Price && isNaN(parseFloat(formData.Price))) newErrors.Price = 'Invalid price format';
     if (formData.TotalCopies && isNaN(parseInt(formData.TotalCopies))) newErrors.TotalCopies = 'Invalid number';
     if (formData.PublishedYear && isNaN(parseInt(formData.PublishedYear))) newErrors.PublishedYear = 'Invalid year';
@@ -169,13 +131,22 @@ const BooksPage = () => {
     try {
       const form = new FormData();
       Object.entries(formData).forEach(([key, value]) => {
-        if (value !== null && value !== '') form.append(key, value as string | Blob);
+        if (value !== null && value !== '') {
+          if (key === 'BookPhoto' && value instanceof File) {
+            form.append(key, value);
+            console.log(`Appending file for ${editingId ? 'edit' : 'add'}: ${value.name}`); // Enhanced debug
+          } else {
+            form.append(key, value as string);
+          }
+        }
       });
       if (editingId) form.append('BookId', editingId.toString());
 
+      const url = '/api/book';
+      const method = editingId ? 'put' : 'post';
       const res = await axios({
-        method: editingId ? 'put' : 'post',
-        url: '/api/book',
+        method,
+        url,
         data: form,
         headers: { 'Content-Type': 'multipart/form-data' },
       });
@@ -201,9 +172,9 @@ const BooksPage = () => {
       PublicationId: book.PublicationId?.toString() || '',
       TotalCopies: book.TotalCopies.toString(),
       Edition: book.Edition || '',
-      Language: book.Language || 'English',
+      Language: book.Language || '',
       PublishedYear: book.PublishedYear?.toString() || '',
-      BookPhoto: null,
+      BookPhoto: null, // Reset for new upload, preview handled separately
       Barcode: book.Barcode || ''
     });
     setEditingId(book.BookId);
@@ -247,7 +218,7 @@ const BooksPage = () => {
   const resetForm = () => {
     setFormData({
       IsbnNumber: '', Title: '', Author: '', Details: '', CourseId: '', Price: '',
-      SubjectId: '', PublicationId: '', TotalCopies: '1', Edition: '', Language: 'English',
+      SubjectId: '', PublicationId: '', TotalCopies: '1', Edition: '', Language: '',
       PublishedYear: '', BookPhoto: null, Barcode: ''
     });
     setEditingId(null);
@@ -256,128 +227,135 @@ const BooksPage = () => {
     if (fileInputRef.current) fileInputRef.current.value = '';
   };
 
+  const baseUrl = 'http://localhost:3001'; // Adjust based on your Next.js app URL
+
   return (
-    <div className="p-4 sm:p-6">
-      <div className="bg-white w-full rounded-lg shadow-sm px-4 py-1">
+    <div className="">
+      <div className="bg-white rounded-lg shadow-sm p-4">
         {initialLoading ? (
-          <div className="flex items-center justify-center h-screen">
-            <FontAwesomeIcon icon={faSpinner} className="animate-spin text-blue-500 text-4xl" />
+          <div className="flex  items-center justify-center h-[96vh]">
+            <FontAwesomeIcon icon={faSpinner} className="animate-spin w-16 h-16  text-blue-500 text-4xl" /> 
+             {/* <span className="text-gray-500">Loading.... Please wait </span>  */}
           </div>
         ) : (
           <>
-            <h2 className="text-xl font-semibold mb-3 text-gray-800">Manage Books</h2>
-
-            <div className="flex flex-col sm:flex-row justify-between mb-2 gap-2">
-              <div className="flex flex-col sm:flex-row gap-2 w-full sm:w-auto">
-                <div className="relative flex-grow sm:w-56">
-                  <FontAwesomeIcon icon={faSearch} className="absolute left-2 top-1/2 transform -translate-y-1/2 text-gray-400" />
-                  <input
-                    type="text"
-                    value={searchTerm}
-                    onChange={(e) => setSearchTerm(e.target.value)}
-                    placeholder="Search by title or ISBN..."
-                    className="pl-8 pr-2 py-1.5 text-sm border border-gray-300 rounded w-full focus:outline-none focus:ring-1 focus:ring-blue-500"
-                  />
-                </div>
-                <div className="relative flex-grow sm:w-36">
-                  <FontAwesomeIcon icon={faFilter} className="absolute left-2 top-1/2 transform -translate-y-1/2 text-gray-400" />
-                  <select
-                    value={statusFilter}
-                    onChange={(e) => setStatusFilter(e.target.value as any)}
-                    className="pl-8 pr-2 py-1.5 text-sm border border-gray-300 rounded w-full focus:outline-none focus:ring-1 focus:ring-blue-500"
-                  >
-                    <option value="all">All Status</option>
-                    <option value="active">Active</option>
-                    <option value="inactive">Inactive</option>
-                  </select>
-                </div>
-                <div className="relative flex-grow sm:w-36">
-                  <FontAwesomeIcon icon={faFilter} className="absolute left-2 top-1/2 transform -translate-y-1/2 text-gray-400" />
-                  <select
-                    value={courseFilter}
-                    onChange={(e) => setCourseFilter(e.target.value)}
-                    className="pl-8 pr-2 py-1.5 text-sm border border-gray-300 rounded w-full focus:outline-none focus:ring-1 focus:ring-blue-500"
-                  >
-                    <option value="">All Courses</option>
-                    {courses.map(course => (
-                      <option key={course.id} value={course.id}>{course.courseName}</option>
-                    ))}
-                  </select>
-                </div>
-                <div className="relative flex-grow sm:w-36">
-                  <FontAwesomeIcon icon={faFilter} className="absolute left-2 top-1/2 transform -translate-y-1/2 text-gray-400" />
-                  <select
-                    value={subjectFilter}
-                    onChange={(e) => setSubjectFilter(e.target.value)}
-                    className="pl-8 pr-2 py-1.5 text-sm border border-gray-300 rounded w-full focus:outline-none focus:ring-1 focus:ring-blue-500"
-                  >
-                    <option value="">All Subjects</option>
-                    {subjects.map(subject => (
-                      <option key={subject.SubId} value={subject.SubId}>{subject.Name}</option>
-                    ))}
-                  </select>
-                </div>
-                <div className="relative flex-grow sm:w-36">
-                  <FontAwesomeIcon icon={faFilter} className="absolute left-2 top-1/2 transform -translate-y-1/2 text-gray-400" />
-                  <select
-                    value={publicationFilter}
-                    onChange={(e) => setPublicationFilter(e.target.value)}
-                    className="pl-8 pr-2 py-1.5 text-sm border border-gray-300 rounded w-full focus:outline-none focus:ring-1 focus:ring-blue-500"
-                  >
-                    <option value="">All Publications</option>
-                    {publications.map(pub => (
-                      <option key={pub.PubId} value={pub.PubId}>{pub.Name}</option>
-                    ))}
-                  </select>
-                </div>
-                <div className="relative flex-grow sm:w-36">
-                  <FontAwesomeIcon icon={faFilter} className="absolute left-2 top-1/2 transform -translate-y-1/2 text-gray-400" />
-                  <input
-                    type="number"
-                    value={availableCopiesFilter}
-                    onChange={(e) => setAvailableCopiesFilter(e.target.value)}
-                    placeholder="Min Available Copies"
-                    className="pl-8 pr-2 py-1.5 text-sm border border-gray-300 rounded w-full focus:outline-none focus:ring-1 focus:ring-blue-500"
-                  />
-                </div>
-              </div>
+            <div className="flex flex-col sm:flex-row justify-between items-center mb-2 gap-2">
+              <h2 className="text-xl font-semibold text-gray-800">Manage Books</h2>
               <button
                 onClick={() => {
                   resetForm();
                   setIsModalOpen(true);
                 }}
-                className="bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium py-1.5 px-3 rounded flex items-center gap-1"
+                className="bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium py-2 px-4 rounded flex items-center gap-1"
               >
-                <FontAwesomeIcon icon={faPlus} size="xs" /> Add Book
+                <FontAwesomeIcon icon={faPlus} size="sm" /> Add Book
               </button>
+            </div>
+
+            <div className="flex flex-col sm:flex-row gap-2 mb-4 bg-gray-50 p-3 rounded-lg">
+              <div className="relative flex-grow">
+                <FontAwesomeIcon icon={faSearch} className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-500" />
+                <input
+                  type="text"
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
+                  placeholder="Search by title or ISBN..."
+                  className="pl-10 pr-4 py-2 text-sm border border-gray-300 rounded-lg w-full focus:outline-none focus:ring-2 focus:ring-blue-500"
+                />
+              </div>
+              <div className="relative flex-grow sm:w-40">
+                <FontAwesomeIcon icon={faFilter} className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-500" />
+                <select
+                  value={statusFilter}
+                  onChange={(e) => setStatusFilter(e.target.value as any)}
+                  className="pl-10 pr-4 py-2 text-sm border border-gray-300 rounded-lg w-full focus:outline-none focus:ring-2 focus:ring-blue-500"
+                >
+                  <option value="all">All Status</option>
+                  <option value="active">Active</option>
+                  <option value="inactive">Inactive</option>
+                </select>
+              </div>
+              <div className="relative flex-grow sm:w-40">
+                <FontAwesomeIcon icon={faFilter} className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-500" />
+                <select
+                  value={courseFilter}
+                  onChange={(e) => setCourseFilter(e.target.value)}
+                  className="pl-10 pr-4 py-2 text-sm border border-gray-300 rounded-lg w-full focus:outline-none focus:ring-2 focus:ring-blue-500"
+                >
+                  <option value="">All Courses</option>
+                  {courses.map(course => (
+                    <option key={course.id} value={course.id}>{course.courseName}</option>
+                  ))}
+                </select>
+              </div>
+              <div className="relative flex-grow sm:w-40">
+                <FontAwesomeIcon icon={faFilter} className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-500" />
+                <select
+                  value={subjectFilter}
+                  onChange={(e) => setSubjectFilter(e.target.value)}
+                  className="pl-10 pr-4 py-2 text-sm border border-gray-300 rounded-lg w-full focus:outline-none focus:ring-2 focus:ring-blue-500"
+                >
+                  <option value="">All Subjects</option>
+                  {subjects.map(subject => (
+                    <option key={subject.SubId} value={subject.SubId}>{subject.Name}</option>
+                  ))}
+                </select>
+              </div>
+              <div className="relative flex-grow sm:w-40">
+                <FontAwesomeIcon icon={faFilter} className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-500" />
+                <select
+                  value={publicationFilter}
+                  onChange={(e) => setPublicationFilter(e.target.value)}
+                  className="pl-10 pr-4 py-2 text-sm border border-gray-300 rounded-lg w-full focus:outline-none focus:ring-2 focus:ring-blue-500"
+                >
+                  <option value="">All Publications</option>
+                  {publications.map(pub => (
+                    <option key={pub.PubId} value={pub.PubId}>{pub.Name}</option>
+                  ))}
+                </select>
+              </div>
+              <div className="relative flex-grow sm:w-40">
+                <FontAwesomeIcon icon={faFilter} className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-500" />
+                <input
+                  type="number"
+                  value={availableCopiesFilter}
+                  onChange={(e) => setAvailableCopiesFilter(e.target.value)}
+                  placeholder="Min Copies"
+                  className="pl-10 pr-4 py-2 text-sm border border-gray-300 rounded-lg w-full focus:outline-none focus:ring-2 focus:ring-blue-500"
+                />
+              </div>
             </div>
 
             {isModalOpen && (
               <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-3 z-50">
-                <div ref={modalRef} className="bg-white rounded-lg shadow-md p-4 w-full max-w-lg">
-                  <h3 className="text-lg font-semibold mb-3">{editingId ? 'Edit Book' : 'Add Book'}</h3>
-                  <form onSubmit={handleSubmit} className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                <div ref={modalRef} className="bg-white rounded-lg shadow-md p-6 w-full max-w-2xl">
+                  <h3 className="text-xl font-semibold text-gray-800 mb-4">{editingId ? 'Edit Book' : 'Add Book'}</h3>
+                  <form onSubmit={handleSubmit} className="grid grid-cols-1 md:grid-cols-3 gap-4">
                     <div>
-                      <label htmlFor="isbn" className="block text-sm font-medium text-gray-700">ISBN Number</label>
+                      <label htmlFor="isbn" className="block text-sm font-medium text-gray-700">
+                        ISBN Number <span className="text-red-500">*</span>
+                      </label>
                       <input
                         id="isbn"
                         type="text"
                         value={formData.IsbnNumber}
                         onChange={(e) => setFormData({ ...formData, IsbnNumber: e.target.value })}
                         placeholder="Enter ISBN Number"
-                        className={`p-2 text-sm border rounded w-full ${errors.IsbnNumber ? 'border-red-500' : 'border-gray-300'}`}
+                        className={`mt-1 p-2 text-sm border rounded-lg w-full ${errors.IsbnNumber ? 'border-red-500' : 'border-gray-300'}`}
                       />
                       {errors.IsbnNumber && <p className="text-red-500 text-xs mt-1">{errors.IsbnNumber}</p>}
                     </div>
                     <div>
-                      <label htmlFor="title" className="block text-sm font-medium text-gray-700">Title</label>
+                      <label htmlFor="title" className="block text-sm font-medium text-gray-700">
+                        Title <span className="text-red-500">*</span>
+                      </label>
                       <input
                         id="title"
                         type="text"
                         value={formData.Title}
                         onChange={(e) => setFormData({ ...formData, Title: e.target.value })}
                         placeholder="Enter Title"
-                        className={`p-2 text-sm border rounded w-full ${errors.Title ? 'border-red-500' : 'border-gray-300'}`}
+                        className={`mt-1 p-2 text-sm border rounded-lg w-full ${errors.Title ? 'border-red-500' : 'border-gray-300'}`}
                       />
                       {errors.Title && <p className="text-red-500 text-xs mt-1">{errors.Title}</p>}
                     </div>
@@ -389,7 +367,7 @@ const BooksPage = () => {
                         value={formData.Author}
                         onChange={(e) => setFormData({ ...formData, Author: e.target.value })}
                         placeholder="Enter Author"
-                        className="p-2 text-sm border border-gray-300 rounded w-full"
+                        className="mt-1 p-2 text-sm border border-gray-300 rounded-lg w-full"
                       />
                     </div>
                     <div>
@@ -400,51 +378,60 @@ const BooksPage = () => {
                         value={formData.Price}
                         onChange={(e) => setFormData({ ...formData, Price: e.target.value })}
                         placeholder="Enter Price"
-                        className={`p-2 text-sm border rounded w-full ${errors.Price ? 'border-red-500' : 'border-gray-300'}`}
+                        className={`mt-1 p-2 text-sm border rounded-lg w-full ${errors.Price ? 'border-red-500' : 'border-gray-300'}`}
                       />
                       {errors.Price && <p className="text-red-500 text-xs mt-1">{errors.Price}</p>}
                     </div>
                     <div>
-                      <label htmlFor="course" className="block text-sm font-medium text-gray-700">Course</label>
+                      <label htmlFor="course" className="block text-sm font-medium text-gray-700">
+                        Course <span className="text-red-500">*</span>
+                      </label>
                       <select
                         id="course"
                         value={formData.CourseId}
                         onChange={(e) => setFormData({ ...formData, CourseId: e.target.value })}
-                        className="p-2 text-sm border border-gray-300 rounded w-full"
+                        className={`mt-1 p-2 text-sm border rounded-lg w-full ${errors.CourseId ? 'border-red-500' : 'border-gray-300'}`}
                       >
                         <option value="">Select Course</option>
                         {courses.map(course => (
                           <option key={course.id} value={course.id}>{course.courseName}</option>
                         ))}
                       </select>
+                      {errors.CourseId && <p className="text-red-500 text-xs mt-1">{errors.CourseId}</p>}
                     </div>
                     <div>
-                      <label htmlFor="subject" className="block text-sm font-medium text-gray-700">Subject</label>
+                      <label htmlFor="subject" className="block text-sm font-medium text-gray-700">
+                        Subject <span className="text-red-500">*</span>
+                      </label>
                       <select
                         id="subject"
                         value={formData.SubjectId}
                         onChange={(e) => setFormData({ ...formData, SubjectId: e.target.value })}
-                        className="p-2 text-sm border border-gray-300 rounded w-full"
+                        className={`mt-1 p-2 text-sm border rounded-lg w-full ${errors.SubjectId ? 'border-red-500' : 'border-gray-300'}`}
                       >
                         <option value="">Select Subject</option>
                         {subjects.map(subject => (
                           <option key={subject.SubId} value={subject.SubId}>{subject.Name}</option>
                         ))}
                       </select>
+                      {errors.SubjectId && <p className="text-red-500 text-xs mt-1">{errors.SubjectId}</p>}
                     </div>
                     <div>
-                      <label htmlFor="publication" className="block text-sm font-medium text-gray-700">Publication</label>
+                      <label htmlFor="publication" className="block text-sm font-medium text-gray-700">
+                        Publication <span className="text-red-500">*</span>
+                      </label>
                       <select
                         id="publication"
                         value={formData.PublicationId}
                         onChange={(e) => setFormData({ ...formData, PublicationId: e.target.value })}
-                        className="p-2 text-sm border border-gray-300 rounded w-full"
+                        className={`mt-1 p-2 text-sm border rounded-lg w-full ${errors.PublicationId ? 'border-red-500' : 'border-gray-300'}`}
                       >
                         <option value="">Select Publication</option>
                         {publications.map(pub => (
                           <option key={pub.PubId} value={pub.PubId}>{pub.Name}</option>
                         ))}
                       </select>
+                      {errors.PublicationId && <p className="text-red-500 text-xs mt-1">{errors.PublicationId}</p>}
                     </div>
                     <div>
                       <label htmlFor="copies" className="block text-sm font-medium text-gray-700">Total Copies</label>
@@ -454,7 +441,7 @@ const BooksPage = () => {
                         value={formData.TotalCopies}
                         onChange={(e) => setFormData({ ...formData, TotalCopies: e.target.value })}
                         placeholder="Enter Total Copies"
-                        className={`p-2 text-sm border rounded w-full ${errors.TotalCopies ? 'border-red-500' : 'border-gray-300'}`}
+                        className={`mt-1 p-2 text-sm border rounded-lg w-full ${errors.TotalCopies ? 'border-red-500' : 'border-gray-300'}`}
                       />
                       {errors.TotalCopies && <p className="text-red-500 text-xs mt-1">{errors.TotalCopies}</p>}
                     </div>
@@ -466,7 +453,7 @@ const BooksPage = () => {
                         value={formData.Edition}
                         onChange={(e) => setFormData({ ...formData, Edition: e.target.value })}
                         placeholder="Enter Edition"
-                        className="p-2 text-sm border border-gray-300 rounded w-full"
+                        className="mt-1 p-2 text-sm border border-gray-300 rounded-lg w-full"
                       />
                     </div>
                     <div>
@@ -475,8 +462,9 @@ const BooksPage = () => {
                         id="language"
                         value={formData.Language}
                         onChange={(e) => setFormData({ ...formData, Language: e.target.value })}
-                        className="p-2 text-sm border border-gray-300 rounded w-full"
+                        className="mt-1 p-2 text-sm border border-gray-300 rounded-lg w-full"
                       >
+                        <option value="">-- Select Language --</option>
                         <option value="English">English</option>
                         <option value="Hindi">Hindi</option>
                       </select>
@@ -489,7 +477,7 @@ const BooksPage = () => {
                         value={formData.PublishedYear}
                         onChange={(e) => setFormData({ ...formData, PublishedYear: e.target.value })}
                         placeholder="Enter Published Year"
-                        className={`p-2 text-sm border rounded w-full ${errors.PublishedYear ? 'border-red-500' : 'border-gray-300'}`}
+                        className={`mt-1 p-2 text-sm border rounded-lg w-full ${errors.PublishedYear ? 'border-red-500' : 'border-gray-300'}`}
                       />
                       {errors.PublishedYear && <p className="text-red-500 text-xs mt-1">{errors.PublishedYear}</p>}
                     </div>
@@ -501,44 +489,54 @@ const BooksPage = () => {
                         value={formData.Barcode}
                         onChange={(e) => setFormData({ ...formData, Barcode: e.target.value })}
                         placeholder="Enter Barcode"
-                        className="p-2 text-sm border border-gray-300 rounded w-full"
+                        className="mt-1 p-2 text-sm border border-gray-300 rounded-lg w-full"
                       />
                     </div>
-                    <div className="col-span-1 sm:col-span-2">
-                      <label htmlFor="photo" className="block text-sm font-medium text-gray-700">Book Photo</label>
+                    <div className="col-span-1 md:col-span-3">
+                      <label className="block text-sm font-medium text-gray-700">Book Photo</label>
+                      {editingId && books.find(b => b.BookId === editingId)?.BookPhoto && (
+                        <div className="mb-2">
+                          <img
+                            src={`${baseUrl}${books.find(b => b.BookId === editingId)?.BookPhoto}`}
+                            alt="Current Book"
+                            className="h-24 w-24 object-cover rounded-lg mb-2"
+                          />
+                          <p className="text-sm text-gray-600">Current Photo</p>
+                        </div>
+                      )}
                       <input
                         id="photo"
                         type="file"
                         accept="image/*"
                         ref={fileInputRef}
                         onChange={(e) => setFormData({ ...formData, BookPhoto: e.target.files?.[0] || null })}
-                        className="p-2 text-sm border border-gray-300 rounded w-full"
+                        className="mt-1 p-2 text-sm border border-gray-300 rounded-lg w-full"
                       />
                     </div>
-                    <div className="col-span-1 sm:col-span-2">
+                    <div className="col-span-1 md:col-span-3">
                       <label htmlFor="details" className="block text-sm font-medium text-gray-700">Details</label>
                       <textarea
                         id="details"
                         value={formData.Details}
                         onChange={(e) => setFormData({ ...formData, Details: e.target.value })}
                         placeholder="Enter Details"
-                        className="p-2 text-sm border border-gray-300 rounded w-full"
-                        rows={4}
+                        className="mt-1 p-2 text-sm border border-gray-300 rounded-lg w-full"
+                        rows={3}
                       />
                     </div>
-                    <div className="col-span-1 sm:col-span-2 flex justify-end gap-2">
+                    <div className="col-span-1 md:col-span-3 flex justify-end gap-4 mt-4">
                       <button
                         type="button"
                         onClick={resetForm}
-                        className="text-sm bg-gray-200 text-gray-800 py-1.5 px-3 rounded hover:bg-gray-300 flex items-center gap-1"
+                        className="bg-gray-200 text-gray-800 hover:bg-gray-300 text-sm font-medium py-2 px-4 rounded-lg flex items-center gap-1"
                       >
-                        <FontAwesomeIcon icon={faArrowLeft} size="xs" /> Cancel
+                        <FontAwesomeIcon icon={faArrowLeft} size="sm" /> Cancel
                       </button>
                       <button
                         type="submit"
-                        className="text-sm bg-blue-600 text-white py-1.5 px-3 rounded hover:bg-blue-700 flex items-center gap-1"
+                        className="bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium py-2 px-4 rounded-lg flex items-center gap-1"
                       >
-                        <FontAwesomeIcon icon={editingId ? faEdit : faPlus} size="xs" />
+                        <FontAwesomeIcon icon={editingId ? faEdit : faPlus} size="sm" />
                         {editingId ? 'Update' : 'Add'} Book
                       </button>
                     </div>
@@ -550,24 +548,24 @@ const BooksPage = () => {
             {isConfirmModalOpen && (
               <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-3 z-50">
                 <div ref={confirmModalRef} className="bg-white rounded-lg shadow-md p-4 w-full max-w-xs">
-                  <h3 className="text-lg font-semibold mb-2">Confirm Action</h3>
+                  <h3 className="text-lg font-semibold text-gray-800 mb-2">Confirm Action</h3>
                   <p className="text-sm text-gray-600 mb-3">
                     {confirmAction === 'delete' ? 'Delete this book?' : confirmStatus ? 'Deactivate this book?' : 'Activate this book?'}
                   </p>
                   <div className="flex justify-end gap-2">
                     <button
                       onClick={() => setIsConfirmModalOpen(false)}
-                      className="text-sm bg-gray-200 text-gray-800 py-1.5 px-3 rounded hover:bg-gray-300 flex items-center gap-1"
+                      className="bg-gray-200 text-gray-800 hover:bg-gray-300 text-sm font-medium py-2 px-4 rounded-lg flex items-center gap-1"
                     >
-                      <FontAwesomeIcon icon={faArrowLeft} size="xs" /> Cancel
+                      <FontAwesomeIcon icon={faArrowLeft} size="sm" /> Cancel
                     </button>
                     <button
                       onClick={confirmAction === 'delete' ? handleDelete : handleToggleActive}
-                      className={`text-sm text-white py-1.5 px-3 rounded flex items-center gap-1 ${
+                      className={`text-white text-sm font-medium py-2 px-4 rounded-lg flex items-center gap-1 ${
                         confirmAction === 'delete' ? 'bg-red-600 hover:bg-red-700' : confirmStatus ? 'bg-amber-600 hover:bg-amber-700' : 'bg-green-600 hover:bg-green-700'
                       }`}
                     >
-                      <FontAwesomeIcon icon={confirmAction === 'delete' ? faTrash : confirmStatus ? faEyeSlash : faEye} size="xs" />
+                      <FontAwesomeIcon icon={confirmAction === 'delete' ? faTrash : confirmStatus ? faEyeSlash : faEye} size="sm" />
                       {confirmAction === 'delete' ? 'Delete' : confirmStatus ? 'Deactivate' : 'Activate'}
                     </button>
                   </div>
@@ -575,64 +573,68 @@ const BooksPage = () => {
               </div>
             )}
 
-            <div className="overflow-x-auto rounded border border-gray-200">
+            <div className="overflow-x-auto rounded-lg border border-gray-200 mt-4">
               <table className="min-w-full divide-y divide-gray-200">
                 <thead className="bg-gray-50">
                   <tr>
-                    <th className="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">ID</th>
-                    <th className="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Photo</th>
-                    <th className="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Title</th>
-                    <th className="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">ISBN</th>
-                    <th className="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Author</th>
-                    <th className="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Course</th>
-                    <th className="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Subject</th>
-                    <th className="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Publication</th>
-                    <th className="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Price</th>
-                    <th className="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Copies</th>
-                    <th className="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
-                    <th className="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
+                    <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">ID</th>
+                    <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Photo</th>
+                    <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Title</th>
+                    <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">ISBN</th>
+                    <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Author</th>
+                    <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Course</th>
+                    <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Subject</th>
+                    <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Publication</th>
+                    <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Price</th>
+                    <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Copies</th>
+                    <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
+                    <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
                   </tr>
                 </thead>
                 <tbody className="bg-white divide-y divide-gray-200">
                   {tableLoading ? (
                     <tr>
-                      <td colSpan={12} className="px-3 py-2 text-center text-sm text-gray-600">
+                      <td colSpan={12} className="px-4 py-2 text-center text-sm text-gray-600">
                         <FontAwesomeIcon icon={faSpinner} className="animate-spin text-blue-500" size="sm" /> Loading...
                       </td>
                     </tr>
                   ) : books.length === 0 ? (
                     <tr>
-                      <td colSpan={12} className="px-3 py-2 text-center text-sm text-gray-500">
+                      <td colSpan={12} className="px-4 py-2 text-center text-sm text-gray-500">
                         No books found
                       </td>
                     </tr>
                   ) : (
                     books.map(book => (
                       <tr key={book.BookId} className="hover:bg-gray-50">
-                        <td className="px-3 py-2 whitespace-nowrap text-sm">{book.BookId}</td>
-                        <td className="px-3 py-2 whitespace-nowrap text-sm">
+                        <td className="px-4 py-2 whitespace-nowrap text-sm">{book.BookId}</td>
+                        <td className="px-4 py-2 whitespace-nowrap text-sm">
                           {book.BookPhoto ? (
-                            <img src={book.BookPhoto} alt={book.Title} className="h-12 w-12 object-cover rounded" />
+                            <img
+                              src={`${baseUrl}${book.BookPhoto}`}
+                              alt={book.Title}
+                              className="h-12 w-12 object-cover rounded-lg"
+                            />
                           ) : '-'}
                         </td>
-                        <td className="px-3 py-2 whitespace-nowrap text-sm">{book.Title}</td>
-                        <td className="px-3 py-2 whitespace-nowrap text-sm">{book.IsbnNumber}</td>
-                        <td className="px-3 py-2 whitespace-nowrap text-sm">{book.Author || '-'}</td>
-                        <td className="px-3 py-2 whitespace-nowrap text-sm">{book.courseName || '-'}</td>
-                        <td className="px-3 py-2 whitespace-nowrap text-sm">{book.SubjectName || '-'}</td>
-                        <td className="px-3 py-2 whitespace-nowrap text-sm">{book.PublicationName || '-'}</td>
-                        <td className="px-3 py-2 whitespace-nowrap text-sm">{book.Price ? `$${book.Price.toFixed(2)}` : '-'}</td>
-                        <td className="px-3 py-2 whitespace-nowrap text-sm">{book.AvailableCopies}/{book.TotalCopies}</td>
-                        <td className="px-3 py-2 whitespace-nowrap text-sm">
+                        <td className="px-4 py-2 whitespace-nowrap text-sm">{book.Title}</td>
+                        <td className="px-4 py-2 whitespace-nowrap text-sm">{book.IsbnNumber}</td>
+                        <td className="px-4 py-2 whitespace-nowrap text-sm">{book.Author || '-'}</td>
+                        <td className="px-4 py-2 whitespace-nowrap text-sm">{book.courseName || '-'}</td>
+                        <td className="px-4 py-2 whitespace-nowrap text-sm">{book.SubjectName || '-'}</td>
+                        <td className="px-4 py-2 whitespace-nowrap text-sm">{book.PublicationName || '-'}</td>
+                        <td className="px-4 py-2 whitespace-nowrap text-sm">{book.Price ? `$${book.Price.toFixed(2)}` : '-'}</td>
+                        <td className="px-4 py-2 whitespace-nowrap text-sm">{book.AvailableCopies}/{book.TotalCopies}</td>
+                        <td className="px-4 py-2 whitespace-nowrap text-sm">
                           <span className={`px-2 py-1 text-xs rounded-full ${book.IsActive ? 'bg-green-100 text-green-800' : 'bg-gray-100 text-gray-800'}`}>
                             {book.IsActive ? 'Active' : 'Inactive'}
                           </span>
                         </td>
-                        <td className="px-3 py-2 whitespace-nowrap text-sm">
+                        <td className="px-4 py-2 whitespace-nowrap text-sm">
                           <div className="flex gap-2">
                             <button
                               onClick={() => handleEdit(book)}
-                              className={`text-blue-600 hover:text-blue-800 p-1 ${!book.IsActive ? 'cursor-not-allowed opacity-60' : ''}`}
+                              className={`text-blue-600 hover:text-blue-800 p-2 rounded ${!book.IsActive ? 'cursor-not-allowed opacity-60' : ''}`}
                               title={book.IsActive ? 'Edit' : 'Please activate to edit'}
                               disabled={!book.IsActive}
                             >
@@ -640,14 +642,14 @@ const BooksPage = () => {
                             </button>
                             <button
                               onClick={() => openConfirmModal('delete', book.BookId)}
-                              className="text-red-600 hover:text-red-800 p-1"
+                              className="text-red-600 hover:text-red-800 p-2 rounded"
                               title="Delete"
                             >
                               <FontAwesomeIcon icon={faTrash} size="sm" />
                             </button>
                             <button
                               onClick={() => openConfirmModal('toggle', book.BookId, book.IsActive)}
-                              className={`p-1 ${book.IsActive ? 'text-amber-600 hover:text-amber-800' : 'text-green-600 hover:text-green-800'}`}
+                              className={`p-2 rounded ${book.IsActive ? 'text-amber-600 hover:text-amber-800' : 'text-green-600 hover:text-green-800'}`}
                               title={book.IsActive ? 'Deactivate' : 'Activate'}
                             >
                               <FontAwesomeIcon icon={book.IsActive ? faEyeSlash : faEye} size="sm" />
