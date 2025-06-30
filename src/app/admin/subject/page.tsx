@@ -4,7 +4,7 @@ import { useEffect, useState, useRef } from 'react';
 import { toast } from 'react-toastify';
 import axios from 'axios';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faSpinner,  faEye,faEyeSlash,faArrowLeft,  faPlus,faEdit, faTrash, faSearch,  faFilter }
+import { faSpinner,  faEye,faEyeSlash,faArrowLeft,  faPlus,faEdit, faTrash, faSearch,  faFilter, faTimes }
  from '@fortawesome/free-solid-svg-icons';
 import { Subject } from '@/types';
 
@@ -228,7 +228,17 @@ const SubjectsPage = () => {
                   ref={modalRef}
                   className="bg-white rounded-lg shadow-md p-4 w-full max-w-sm"
                 >
-                  <h3 className="text-lg font-semibold mb-3">{editingId ? 'Edit Subject' : 'Add Subject'}</h3>
+                  <div className='flex justify-between items-center mb-4'>
+                    <h3 className="text-lg font-semibold mb-3">{editingId ? 'Edit Subject' : 'Add Subject'}</h3> <button
+                        type="button"
+                        onClick={() => setIsModalOpen(false)}
+                        className="text-sm  text-red-600  px-2 rounded hover:bg-gray-300 flex items-center gap-1"
+                      >
+                        <FontAwesomeIcon icon={faTimes} size="2xl" />
+                      </button>
+
+                  </div>
+                  
                   <form onSubmit={handleSubmit}>
                     <input
                       type="text"

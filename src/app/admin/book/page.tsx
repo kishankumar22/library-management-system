@@ -5,7 +5,8 @@ import { toast } from 'react-toastify';
 import axios from 'axios';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import {
-  faSpinner, faEye, faEyeSlash, faArrowLeft, faPlus, faEdit, faTrash, faSearch, faFilter
+  faSpinner, faEye, faEyeSlash, faArrowLeft, faPlus, faEdit, faTrash, faSearch, faFilter,
+  faTimesCircle
 } from '@fortawesome/free-solid-svg-icons';
 import { Book } from '@/types';
 
@@ -38,6 +39,10 @@ const BooksPage = () => {
   const [initialLoading, setInitialLoading] = useState(true);
   const [tableLoading, setTableLoading] = useState(false);
   const [errors, setErrors] = useState<{ [key: string]: string }>({});
+  const [showSubjectInput, setShowSubjectInput] = useState(false);
+  const [showPublicationInput, setShowPublicationInput] = useState(false);
+  const [subjectSearch, setSubjectSearch] = useState('');
+  const [publicationSearch, setPublicationSearch] = useState('');
 
   const modalRef = useRef<HTMLDivElement>(null);
   const confirmModalRef = useRef<HTMLDivElement>(null);
@@ -134,7 +139,7 @@ const BooksPage = () => {
         if (value !== null && value !== '') {
           if (key === 'BookPhoto' && value instanceof File) {
             form.append(key, value);
-            console.log(`Appending file for ${editingId ? 'edit' : 'add'}: ${value.name}`); // Enhanced debug
+            console.log(`Appending file for ${editingId ? 'edit' : 'add'}: ${value.name}`);
           } else {
             form.append(key, value as string);
           }
@@ -174,10 +179,12 @@ const BooksPage = () => {
       Edition: book.Edition || '',
       Language: book.Language || '',
       PublishedYear: book.PublishedYear?.toString() || '',
-      BookPhoto: null, // Reset for new upload, preview handled separately
+      BookPhoto: null,
       Barcode: book.Barcode || ''
     });
     setEditingId(book.BookId);
+    setSubjectSearch(subjects.find(s => s.SubId === book.SubjectId)?.Name || '');
+    setPublicationSearch(publications.find(p => p.PubId === book.PublicationId)?.Name || '');
     setIsModalOpen(true);
   };
 
@@ -222,20 +229,35 @@ const BooksPage = () => {
       PublishedYear: '', BookPhoto: null, Barcode: ''
     });
     setEditingId(null);
+    setSubjectSearch('');
+    setPublicationSearch('');
+    setShowSubjectInput(false);
+    setShowPublicationInput(false);
     setIsModalOpen(false);
     setErrors({});
     if (fileInputRef.current) fileInputRef.current.value = '';
   };
 
-  const baseUrl = 'http://localhost:3001'; // Adjust based on your Next.js app URL
+  const baseUrl = 'http://localhost:3001';
+
+  const handleSubjectChange = (subId: string) => {
+    setFormData({ ...formData, SubjectId: subId });
+    setSubjectSearch(subjects.find(s => s.SubId.toString() === subId)?.Name || '');
+    setShowSubjectInput(false);
+  };
+
+  const handlePublicationChange = (pubId: string) => {
+    setFormData({ ...formData, PublicationId: pubId });
+    setPublicationSearch(publications.find(p => p.PubId.toString() === pubId)?.Name || '');
+    setShowPublicationInput(false);
+  };
 
   return (
     <div className="">
       <div className="bg-white rounded-lg shadow-sm p-4">
         {initialLoading ? (
-          <div className="flex  items-center justify-center h-[96vh]">
-            <FontAwesomeIcon icon={faSpinner} className="animate-spin w-16 h-16  text-blue-500 text-4xl" /> 
-             {/* <span className="text-gray-500">Loading.... Please wait </span>  */}
+          <div className="flex items-center justify-center h-[96vh]">
+            <FontAwesomeIcon icon={faSpinner} className="animate-spin w-16 h-16 text-blue-500 text-4xl" />
           </div>
         ) : (
           <>
@@ -403,34 +425,104 @@ const BooksPage = () => {
                       <label htmlFor="subject" className="block text-sm font-medium text-gray-700">
                         Subject <span className="text-red-500">*</span>
                       </label>
-                      <select
-                        id="subject"
-                        value={formData.SubjectId}
-                        onChange={(e) => setFormData({ ...formData, SubjectId: e.target.value })}
-                        className={`mt-1 p-2 text-sm border rounded-lg w-full ${errors.SubjectId ? 'border-red-500' : 'border-gray-300'}`}
+                      <div
+                        onClick={() => setShowSubjectInput(!showSubjectInput)}
+                        className="w-full p-1 border rounded text-sm bg-white flex justify-between items-center"
                       >
-                        <option value="">Select Subject</option>
-                        {subjects.map(subject => (
-                          <option key={subject.SubId} value={subject.SubId}>{subject.Name}</option>
-                        ))}
-                      </select>
+                        <input
+                          type="text"
+                          placeholder="Search Subject"
+                          className="w-full p-0 border-0 text-sm focus:outline-none"
+                          value={subjectSearch}
+                          onChange={(e) => {
+                            setSubjectSearch(e.target.value);
+                            // No filtering here, just update search term
+                          }}
+                          onBlur={() => setTimeout(() => setShowSubjectInput(false), 200)}
+                        />
+                        {subjectSearch && (
+                          <button
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              setSubjectSearch('');
+                              setFormData({ ...formData, SubjectId: '' });
+                            }}
+                            className="text-red-500 hover:text-red-700"
+                          >
+                            <FontAwesomeIcon icon={faTimesCircle} size="xs" />
+                          </button>
+                        )}
+                      </div>
+                      {showSubjectInput && (
+                        <div className="relative">
+                          <ul className="absolute w-full bg-white border rounded mt-1 max-h-40 overflow-y-auto z-10">
+                            <li className="p-1 bg-gray-100 font-medium">Select Subject</li>
+                            {subjects
+                              .filter(subject => subject.Name.toLowerCase().includes(subjectSearch.toLowerCase()))
+                              .map(subject => (
+                                <li
+                                  key={subject.SubId}
+                                  className="p-1 hover:bg-gray-100 cursor-pointer"
+                                  onClick={() => handleSubjectChange(subject.SubId.toString())}
+                                >
+                                  {subject.Name}
+                                </li>
+                              ))}
+                          </ul>
+                        </div>
+                      )}
                       {errors.SubjectId && <p className="text-red-500 text-xs mt-1">{errors.SubjectId}</p>}
                     </div>
                     <div>
                       <label htmlFor="publication" className="block text-sm font-medium text-gray-700">
                         Publication <span className="text-red-500">*</span>
                       </label>
-                      <select
-                        id="publication"
-                        value={formData.PublicationId}
-                        onChange={(e) => setFormData({ ...formData, PublicationId: e.target.value })}
-                        className={`mt-1 p-2 text-sm border rounded-lg w-full ${errors.PublicationId ? 'border-red-500' : 'border-gray-300'}`}
+                      <div
+                        onClick={() => setShowPublicationInput(!showPublicationInput)}
+                        className="w-full p-1 border rounded text-sm bg-white flex justify-between items-center"
                       >
-                        <option value="">Select Publication</option>
-                        {publications.map(pub => (
-                          <option key={pub.PubId} value={pub.PubId}>{pub.Name}</option>
-                        ))}
-                      </select>
+                        <input
+                          type="text"
+                          placeholder="Search Publication"
+                          className="w-full p-0 border-0 text-sm focus:outline-none"
+                          value={publicationSearch}
+                          onChange={(e) => {
+                            setPublicationSearch(e.target.value);
+                            // No filtering here, just update search term
+                          }}
+                          onBlur={() => setTimeout(() => setShowPublicationInput(false), 200)}
+                        />
+                        {publicationSearch && (
+                          <button
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              setPublicationSearch('');
+                              setFormData({ ...formData, PublicationId: '' });
+                            }}
+                            className="text-red-500 hover:text-red-700"
+                          >
+                            <FontAwesomeIcon icon={faTimesCircle} size="xs" />
+                          </button>
+                        )}
+                      </div>
+                      {showPublicationInput && (
+                        <div className="relative">
+                          <ul className="absolute w-full bg-white border rounded mt-1 max-h-40 overflow-y-auto z-10">
+                            <li className="p-1 bg-gray-100 font-medium">Select Publication</li>
+                            {publications
+                              .filter(pub => pub.Name.toLowerCase().includes(publicationSearch.toLowerCase()))
+                              .map(pub => (
+                                <li
+                                  key={pub.PubId}
+                                  className="p-1 hover:bg-gray-100 cursor-pointer"
+                                  onClick={() => handlePublicationChange(pub.PubId.toString())}
+                                >
+                                  {pub.Name}
+                                </li>
+                              ))}
+                          </ul>
+                        </div>
+                      )}
                       {errors.PublicationId && <p className="text-red-500 text-xs mt-1">{errors.PublicationId}</p>}
                     </div>
                     <div>
@@ -605,9 +697,9 @@ const BooksPage = () => {
                       </td>
                     </tr>
                   ) : (
-                    books.map(book => (
+                    books.map((book, index) => (
                       <tr key={book.BookId} className="hover:bg-gray-50">
-                        <td className="px-4 py-2 whitespace-nowrap text-sm">{book.BookId}</td>
+                        <td className="px-4 py-2 whitespace-nowrap text-sm">{index+1}</td>
                         <td className="px-4 py-2 whitespace-nowrap text-sm">
                           {book.BookPhoto ? (
                             <img

@@ -35,9 +35,8 @@ export async function POST(req: NextRequest) {
 
         const pool = await getConnection();
         
-        // Check book availability
         const bookCheck = await pool.request()
-            .input('BookId', BookId)
+            .input('BookId', sql.Int, BookId)
             .query('SELECT AvailableCopies FROM Books WHERE BookId = @BookId');
             
         if (bookCheck.recordset.length === 0 || bookCheck.recordset[0].AvailableCopies <= 0) {
@@ -45,27 +44,25 @@ export async function POST(req: NextRequest) {
             return NextResponse.json({ message: 'Book not available' }, { status: 400 });
         }
         
-        // Calculate dates
         const issueDate = new Date().toISOString();
         const dueDate = new Date();
         dueDate.setDate(dueDate.getDate() + Days);
         
-        // Create issue record
         await pool.request()
-            .input('BookId', BookId)
-            .input('StudentId', StudentId)
-            .input('IssueDate', issueDate)
-            .input('DueDate', dueDate.toISOString())
-            .input('Status', 'issued')
-            .input('CreatedBy', 'admin')
+            .input('BookId', sql.Int, BookId)
+            .input('StudentId', sql.Int, StudentId)
+            .input('IssueDate', sql.VarChar, issueDate)
+            .input('DueDate', sql.VarChar, dueDate.toISOString())
+            .input('Status', sql.VarChar, 'issued')
+            .input('Remarks', sql.NVarChar, Remarks || "Added New Book")
+            .input('CreatedBy', sql.NVarChar, 'admin')
             .query(`
-                INSERT INTO BookIssue (BookId, StudentId, IssueDate, DueDate, Status, CreatedBy)
-                VALUES (@BookId, @StudentId, @IssueDate, @DueDate, @Status, @CreatedBy)
+                INSERT INTO BookIssue (BookId, StudentId, IssueDate, DueDate, Status, CreatedBy, Remarks)
+                VALUES (@BookId, @StudentId, @IssueDate, @DueDate, @Status, @CreatedBy, @Remarks)
             `);
             
-        // Update book available copies
         await pool.request()
-            .input('BookId', BookId)
+            .input('BookId', sql.Int, BookId)
             .query('UPDATE Books SET AvailableCopies = AvailableCopies - 1 WHERE BookId = @BookId');
             
         logger.info(`Book issued successfully: ${BookId} to student ${StudentId}`);
@@ -80,7 +77,7 @@ export async function PUT(req: NextRequest) {
     try {
         const { searchParams } = new URL(req.url);
         const issueId = searchParams.get('id');
-        const { status, remarks, renewDays } = await req.json();
+        const { status, remarks, fineAmount } = await req.json();
         
         if (!issueId) {
             logger.error('Issue ID is required');
@@ -89,9 +86,8 @@ export async function PUT(req: NextRequest) {
 
         const pool = await getConnection();
         
-        // First get the current issue details
         const issueResult = await pool.request()
-            .input('IssueId', issueId)
+            .input('IssueId', sql.Int, issueId)
             .query('SELECT BookId, Status, DueDate FROM BookIssue WHERE IssueId = @IssueId');
             
         if (issueResult.recordset.length === 0) {
@@ -102,36 +98,64 @@ export async function PUT(req: NextRequest) {
         const currentIssue = issueResult.recordset[0];
         
         if (status === 'returned') {
-            // Verify book is currently issued
             if (currentIssue.Status !== 'issued') {
                 logger.error(`Book not in issued state: ${issueId}`);
                 return NextResponse.json({ message: 'Book is not currently issued' }, { status: 400 });
             }
             
-            // Start transaction to ensure both operations succeed or fail together
             const transaction = new sql.Transaction(pool);
             try {
                 await transaction.begin();
                 
-                // Update book issue record
+                const returnDate = new Date().toISOString();
+                const dueDate = new Date(currentIssue.DueDate);
+                const returnDateObj = new Date(returnDate);
+                const isLate = returnDateObj > dueDate;
+
                 await transaction.request()
-                    .input('IssueId', issueId)
-                    .input('ReturnDate', new Date().toISOString())
-                    .input('Status', 'returned')
-                    .input('Remarks', remarks || null)
+                    .input('IssueId', sql.Int, issueId)
+                    .input('ReturnDate', sql.VarChar, returnDate)
+                    .input('Status', sql.VarChar, 'returned')
+                    .input('Remarks', sql.NVarChar, remarks || null)
+                    .input('ModifiedBy', sql.NVarChar, 'admin')
                     .query(`
                         UPDATE BookIssue 
                         SET ReturnDate = @ReturnDate, 
                             Status = @Status,
-                            Remarks = @Remarks,
+                            Remarks = CASE 
+                                        WHEN @Remarks IS NOT NULL AND CAST(@ReturnDate AS DATE) <= CAST(DueDate AS DATE) 
+                                        THEN @Remarks 
+                                        ELSE Remarks 
+                                      END,
+                            ModifiedBy = @ModifiedBy,
                             ModifiedOn = GETDATE()
                         WHERE IssueId = @IssueId
                     `);
                 
-                // Update book available copies
                 await transaction.request()
-                    .input('BookId', currentIssue.BookId)
+                    .input('BookId', sql.Int, currentIssue.BookId)
                     .query('UPDATE Books SET AvailableCopies = AvailableCopies + 1 WHERE BookId = @BookId');
+
+                if (isLate && fineAmount && fineAmount > 0) {
+                    await transaction.request()
+                        .input('IssueId', sql.Int, issueId)
+                        .input('Amount', sql.Float, fineAmount)
+                        .input('CreatedBy', sql.NVarChar, 'admin')
+                        .input('Remarks', sql.NVarChar, remarks || 'Late return penalty')
+                        .query(`
+                            INSERT INTO Penalty (IssueId, Amount, Status, Remarks, CreatedBy, CreatedOn)
+                            VALUES (@IssueId, @Amount, 'unpaid', @Remarks, @CreatedBy, GETDATE())
+                        `);
+                } else if (!isLate && remarks) {
+                    await transaction.request()
+                        .input('IssueId', sql.Int, issueId)
+                        .input('Remarks', sql.NVarChar, remarks)
+                        .query(`
+                            UPDATE BookIssue 
+                            SET Remarks = @Remarks
+                            WHERE IssueId = @IssueId
+                        `);
+                }
                 
                 await transaction.commit();
                 
@@ -142,25 +166,23 @@ export async function PUT(req: NextRequest) {
                 logger.error('Transaction failed during book return', { error: transactionError.message, stack: transactionError.stack });
                 throw transactionError;
             }
-            
-        } else if (renewDays) {
-            // Verify book is currently issued
+        } else if (status === 'renewed') {
             if (currentIssue.Status !== 'issued') {
                 logger.error(`Book not in issued state: ${issueId}`);
                 return NextResponse.json({ message: 'Book is not currently issued' }, { status: 400 });
             }
             
-            // Calculate new due date
+            const body = await req.json();
+            const renewDays = parseInt(body.renewDays) || 7;
             const currentDueDate = new Date(currentIssue.DueDate);
             const newDueDate = new Date(currentDueDate);
             newDueDate.setDate(currentDueDate.getDate() + renewDays);
             
-            // Update book issue record
             await pool.request()
-                .input('IssueId', issueId)
-                .input('DueDate', newDueDate.toISOString())
-                .input('IsRenewed', true)
-                .input('ModifiedOn', new Date().toISOString())
+                .input('IssueId', sql.Int, issueId)
+                .input('DueDate', sql.VarChar, newDueDate.toISOString())
+                .input('IsRenewed', sql.Bit, true)
+                .input('ModifiedOn', sql.VarChar, new Date().toISOString())
                 .query(`
                     UPDATE BookIssue 
                     SET DueDate = @DueDate,
@@ -202,7 +224,6 @@ export async function PATCH(req: NextRequest) {
 
         const pool = await getConnection();
         
-        // Check if issue exists and is in issued state
         const issueResult = await pool.request()
             .input('IssueId', issueId)
             .query('SELECT BookId, Status FROM BookIssue WHERE IssueId = @IssueId');
@@ -218,7 +239,6 @@ export async function PATCH(req: NextRequest) {
             return NextResponse.json({ message: 'Book is not currently issued' }, { status: 400 });
         }
 
-        // Check book availability if BookId is changing
         let originalBookId = currentIssue.BookId;
         if (BookId !== originalBookId) {
             const bookCheck = await pool.request()
@@ -231,17 +251,14 @@ export async function PATCH(req: NextRequest) {
             }
         }
 
-        // Start transaction
         const transaction = new sql.Transaction(pool);
         try {
             await transaction.begin();
 
-            // Calculate new due date
             const issueDate = new Date().toISOString();
             const dueDate = new Date();
             dueDate.setDate(dueDate.getDate() + Days);
 
-            // Update issue record
             await transaction.request()
                 .input('IssueId', issueId)
                 .input('BookId', BookId)
@@ -260,14 +277,11 @@ export async function PATCH(req: NextRequest) {
                     WHERE IssueId = @IssueId
                 `);
 
-            // Update book copies if BookId changed
             if (BookId !== originalBookId) {
-                // Increment copies for original book
                 await transaction.request()
                     .input('BookId', originalBookId)
                     .query('UPDATE Books SET AvailableCopies = AvailableCopies + 1 WHERE BookId = @BookId');
                 
-                // Decrement copies for new book
                 await transaction.request()
                     .input('BookId', BookId)
                     .query('UPDATE Books SET AvailableCopies = AvailableCopies - 1 WHERE BookId = @BookId');
@@ -299,7 +313,6 @@ export async function DELETE(req: NextRequest) {
 
         const pool = await getConnection();
         
-        // Check if issue exists and is in issued state
         const issueResult = await pool.request()
             .input('IssueId', issueId)
             .query('SELECT BookId, Status FROM BookIssue WHERE IssueId = @IssueId');
@@ -313,19 +326,16 @@ export async function DELETE(req: NextRequest) {
         if (currentIssue.Status !== 'issued') {
             logger.error(`Book not in issued state: ${issueId}`);
             return NextResponse.json({ message: 'Book is not currently issued' }, { status: 400 });
-2        }
+        }
 
-        // Start transaction
         const transaction = new sql.Transaction(pool);
         try {
             await transaction.begin();
 
-            // Delete issue record
             await transaction.request()
                 .input('IssueId', issueId)
                 .query('DELETE FROM BookIssue WHERE IssueId = @IssueId');
 
-            // Update book available copies
             await transaction.request()
                 .input('BookId', currentIssue.BookId)
                 .query('UPDATE Books SET AvailableCopies = AvailableCopies + 1 WHERE BookId = @BookId');
