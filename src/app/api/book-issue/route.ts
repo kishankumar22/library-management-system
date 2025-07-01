@@ -3,27 +3,45 @@ import { getConnection } from '@/app/lib/db';
 import logger from '@/app/lib/logger';
 import sql from 'mssql';
 
-export async function GET() {
-    try {
-        const pool = await getConnection();
-        const result = await pool.request().query(`
-            SELECT bi.*, b.Title AS BookTitle, 
-                   s.fName + ' ' + s.lName AS StudentName,
-                   c.courseName, sad.courseYear
-            FROM BookIssue bi
-            JOIN Books b ON bi.BookId = b.BookId
-            JOIN Student s ON bi.StudentId = s.id
-            JOIN Course c ON s.courseId = c.id
-            LEFT JOIN StudentAcademicDetails sad ON s.id = sad.studentId
-            ORDER BY bi.IssueDate DESC
-        `);
-        return NextResponse.json(result.recordset);
-    } catch (error: any) {
-        logger.error('Error fetching book issues', { error: error.message, stack: error.stack });
-        return NextResponse.json({ message: 'Error fetching book issues' }, { status: 500 });
-    }
-}
+export async function GET(req: NextRequest) {
+  try {
+    const { searchParams } = new URL(req.url);
+    const studentId = searchParams.get('studentId');
+    const status = searchParams.get('status');
 
+    const pool = await getConnection();
+    let query = `
+      SELECT bi.*, b.Title AS BookTitle, 
+             s.fName + ' ' + s.lName AS StudentName,
+             c.courseName
+      FROM BookIssue bi
+      JOIN Books b ON bi.BookId = b.BookId
+      JOIN Student s ON bi.StudentId = s.id
+      JOIN Course c ON s.courseId = c.id
+      WHERE 1=1
+    `;
+    if (studentId) {
+      query += ` AND bi.StudentId = @StudentId`;
+    }
+    if (status) {
+      query += ` AND bi.Status = @Status`;
+    }
+    query += ` ORDER BY bi.IssueDate DESC`;
+
+    const request = pool.request();
+    if (studentId) {
+      request.input('StudentId', sql.Int, studentId);
+    }
+    if (status) {
+      request.input('Status', sql.VarChar, status);
+    }
+    const result = await request.query(query);
+    return NextResponse.json(result.recordset);
+  } catch (error: any) {
+    logger.error('Error fetching book issues', { error: error.message, stack: error.stack });
+    return NextResponse.json({ message: 'Error fetching book issues' }, { status: 500 });
+  }
+}
 export async function POST(req: NextRequest) {
     try {
         const { BookId, StudentId, Days, Remarks } = await req.json();
@@ -44,6 +62,16 @@ export async function POST(req: NextRequest) {
             return NextResponse.json({ message: 'Book not available' }, { status: 400 });
         }
         
+        const existingIssues = await pool.request()
+            .input('StudentId', sql.Int, StudentId)
+            .input('Status', sql.VarChar, 'issued')
+            .query('SELECT COUNT(*) as count FROM BookIssue WHERE StudentId = @StudentId AND Status = @Status');
+        
+        if (existingIssues.recordset[0].count > 0) {
+            logger.error(`Student ${StudentId} already has an issued book`);
+            return NextResponse.json({ message: 'Student already has an issued book' }, { status: 400 });
+        }
+
         const issueDate = new Date().toISOString();
         const dueDate = new Date();
         dueDate.setDate(dueDate.getDate() + Days);
@@ -242,7 +270,7 @@ export async function PATCH(req: NextRequest) {
         let originalBookId = currentIssue.BookId;
         if (BookId !== originalBookId) {
             const bookCheck = await pool.request()
-                .input('BookId', BookId)
+                .input('BookId', sql.Int, BookId)
                 .query('SELECT AvailableCopies FROM Books WHERE BookId = @BookId');
                 
             if (bookCheck.recordset.length === 0 || bookCheck.recordset[0].AvailableCopies <= 0) {
@@ -261,11 +289,11 @@ export async function PATCH(req: NextRequest) {
 
             await transaction.request()
                 .input('IssueId', issueId)
-                .input('BookId', BookId)
-                .input('StudentId', StudentId)
-                .input('IssueDate', issueDate)
-                .input('DueDate', dueDate.toISOString())
-                .input('Remarks', Remarks || null)
+                .input('BookId', sql.Int, BookId)
+                .input('StudentId', sql.Int, StudentId)
+                .input('IssueDate', sql.VarChar, issueDate)
+                .input('DueDate', sql.VarChar, dueDate.toISOString())
+                .input('Remarks', sql.NVarChar, Remarks || null)
                 .query(`
                     UPDATE BookIssue 
                     SET BookId = @BookId,
@@ -279,11 +307,11 @@ export async function PATCH(req: NextRequest) {
 
             if (BookId !== originalBookId) {
                 await transaction.request()
-                    .input('BookId', originalBookId)
+                    .input('BookId', sql.Int, originalBookId)
                     .query('UPDATE Books SET AvailableCopies = AvailableCopies + 1 WHERE BookId = @BookId');
                 
                 await transaction.request()
-                    .input('BookId', BookId)
+                    .input('BookId', sql.Int, BookId)
                     .query('UPDATE Books SET AvailableCopies = AvailableCopies - 1 WHERE BookId = @BookId');
             }
 
@@ -305,18 +333,18 @@ export async function DELETE(req: NextRequest) {
     try {
         const { searchParams } = new URL(req.url);
         const issueId = searchParams.get('id');
-        
+
         if (!issueId) {
-            logger.error('Issue ID is required for deletion');
+            logger.error('Issue ID is required');
             return NextResponse.json({ message: 'Issue ID is required' }, { status: 400 });
         }
 
         const pool = await getConnection();
-        
+
         const issueResult = await pool.request()
-            .input('IssueId', issueId)
+            .input('IssueId', sql.Int, issueId)
             .query('SELECT BookId, Status FROM BookIssue WHERE IssueId = @IssueId');
-            
+
         if (issueResult.recordset.length === 0) {
             logger.error(`Issue not found: ${issueId}`);
             return NextResponse.json({ message: 'Issue not found' }, { status: 404 });
@@ -333,11 +361,11 @@ export async function DELETE(req: NextRequest) {
             await transaction.begin();
 
             await transaction.request()
-                .input('IssueId', issueId)
+                .input('IssueId', sql.Int, issueId)
                 .query('DELETE FROM BookIssue WHERE IssueId = @IssueId');
 
             await transaction.request()
-                .input('BookId', currentIssue.BookId)
+                .input('BookId', sql.Int, currentIssue.BookId)
                 .query('UPDATE Books SET AvailableCopies = AvailableCopies + 1 WHERE BookId = @BookId');
 
             await transaction.commit();

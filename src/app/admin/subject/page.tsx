@@ -183,6 +183,9 @@ const SubjectsPage = () => {
 
             <div className="flex flex-col sm:flex-row justify-between mb-2 gap-2">
               <div className="flex flex-col sm:flex-row gap-2 w-full sm:w-auto">
+                  <div className="flex-grow mt-1 text-blue-700 sm:flex-grow-0 sm:w-36">
+                  Total Subjects: <span className="font-semibold">{filteredSubjects.length}</span>
+                </div>
                 <div className="relative flex-grow sm:flex-grow-0 sm:w-56">
                   <div className="absolute inset-y-0 left-0 pl-2 flex items-center pointer-events-none">
                     <FontAwesomeIcon icon={faSearch} className="text-gray-400 text-sm" />
@@ -209,6 +212,7 @@ const SubjectsPage = () => {
                     <option value="inactive">Inactive</option>
                   </select>
                 </div>
+              
               </div>
               <button
                 onClick={() => {

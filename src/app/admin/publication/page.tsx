@@ -185,6 +185,12 @@ const PublicationsPage = () => {
 
         <div className="flex flex-col sm:flex-row justify-between mb-6 gap-4">
           <div className="flex flex-col sm:flex-row gap-4 w-full sm:w-auto">
+          <div className="flex flex-col sm:flex-row gap-2 w-full sm:w-auto">
+                  <div className="flex-grow mt-1 text-blue-700 sm:flex-grow-0 sm:w-36">
+                  Total Publications: <span className="font-semibold">{filteredPublications.length}</span>
+                </div>
+              </div>
+            
             <div className="relative flex-grow sm:flex-grow-0 sm:w-64">
               <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
                 <FontAwesomeIcon icon={faSearch} className="text-gray-400" />

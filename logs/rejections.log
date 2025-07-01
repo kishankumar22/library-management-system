@@ -1,0 +1,14 @@
+
+CREATE TABLE BookStockHistory (
+    BookStockHistoryId INT IDENTITY(1,1) PRIMARY KEY,      -- Auto-increment PK
+    BookId INT NOT NULL,                                   -- Foreign key to Books
+    CopiesAdded INT NOT NULL,                              -- How many copies added
+    Remarks NVARCHAR(255) NULL,                            -- Optional remarks
+    CreatedOn DATETIME DEFAULT GETDATE(),                  -- Default current date
+    CreatedBy NVARCHAR(100) NULL,                          -- Optional creator
+    ModifiedOn DATETIME NULL,                              -- For future updates
+    ModifiedBy NVARCHAR(100) NULL,                         -- Who modified it
+    CONSTRAINT FK_BookHistory_Books 
+    FOREIGN KEY (BookId) REFERENCES Books(BookId)      -- FK relation
+);
+

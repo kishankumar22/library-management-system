@@ -17,6 +17,8 @@ export interface User {
 }
 
 export interface Student {
+  [x: string]: any;
+  courseYear: boolean;
   id: number;
   stdCollId: string;
   fName: string;
@@ -138,4 +140,16 @@ export interface Publication {
   CreatedOn: string;
   ModifiedBy?: string;
   ModifiedOn?: string;
+}
+export interface BookStockHistory {
+  BookStockHistoryId: number;
+  BookId: number;
+  BookName: string;
+  PublicationName: string;
+  CopiesAdded: number;
+  Remarks: string;
+  CreatedOn: Date;
+  CreatedBy: string;
+  ModifiedOn: Date;
+  ModifiedBy: string;
 }

@@ -275,6 +275,11 @@ const BooksPage = () => {
             </div>
 
             <div className="flex flex-col sm:flex-row gap-2 mb-4 bg-gray-50 p-3 rounded-lg">
+               <div className="flex flex-col sm:flex-row gap-2 w-full sm:w-auto">
+                  <div className="flex-grow mt-1 text-blue-700 sm:flex-grow-0 sm:w-36">
+                  Total Books: <span className="font-semibold">{books.length}</span>
+                </div>
+              </div>
               <div className="relative flex-grow">
                 <FontAwesomeIcon icon={faSearch} className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-500" />
                 <input
@@ -377,7 +382,7 @@ const BooksPage = () => {
                         value={formData.Title}
                         onChange={(e) => setFormData({ ...formData, Title: e.target.value })}
                         placeholder="Enter Title"
-                        className={`mt-1 p-2 text-sm border rounded-lg w-full ${errors.Title ? 'border-red-500' : 'border-gray-300'}`}
+                        className={`mt-1 p-2 text-sm uppercase border rounded-lg w-full ${errors.Title ? 'border-red-500' : 'border-gray-300'}`}
                       />
                       {errors.Title && <p className="text-red-500 text-xs mt-1">{errors.Title}</p>}
                     </div>
@@ -709,7 +714,7 @@ const BooksPage = () => {
                             />
                           ) : '-'}
                         </td>
-                        <td className="px-4 py-2 whitespace-nowrap text-sm">{book.Title}</td>
+                        <td className="px-4 py-2 whitespace-nowrap uppercase text-sm">{book.Title}</td>
                         <td className="px-4 py-2 whitespace-nowrap text-sm">{book.IsbnNumber}</td>
                         <td className="px-4 py-2 whitespace-nowrap text-sm">{book.Author || '-'}</td>
                         <td className="px-4 py-2 whitespace-nowrap text-sm">{book.courseName || '-'}</td>

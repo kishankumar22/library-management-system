@@ -1,3 +1,4 @@
+
 'use client';
 
 import React, { useState, useEffect } from 'react';
@@ -7,7 +8,7 @@ import {
   faSpinner,
   faCalendarDays,
   faSearch,
-  faTrash,
+  faMoneyBill,
 } from '@fortawesome/free-solid-svg-icons';
 
 const ManagePenalty = () => {
@@ -18,8 +19,9 @@ const ManagePenalty = () => {
   const [statusFilter, setStatusFilter] = useState('all');
   const [startDate, setStartDate] = useState('');
   const [endDate, setEndDate] = useState('');
+  const [error, setError] = useState(null);
 
-  const [isPaymentModalOpen, setIsPaymentModalOpen] = useState(false); // Changed to false by default
+  const [isPaymentModalOpen, setIsPaymentModalOpen] = useState(false);
   const [selectedPenalty, setSelectedPenalty] = useState(null);
   const [paymentData, setPaymentData] = useState({
     PaymentMode: 'Cash',
@@ -35,19 +37,20 @@ const ManagePenalty = () => {
   const fetchPenalties = async () => {
     try {
       setLoading(true);
-      const response = await axios.get('/api/penalty');
+      setError(null);
+      const response = await axios.get('/api/penalty', { timeout: 30000 }); // Increased timeout
       let filteredPenalties = response.data;
 
       // Filter penalties based on overdue books
       filteredPenalties = filteredPenalties.filter((penalty) => {
-        const issue = penalty;
-        return new Date(issue.ReturnDate) > new Date(issue.DueDate);
+        return new Date(penalty.ReturnDate) > new Date(penalty.DueDate);
       });
 
       setAllPenalties(filteredPenalties);
       applyFilters(filteredPenalties);
     } catch (error) {
       console.error('Error fetching penalties:', error);
+      setError('Failed to load penalties. Please try again later.');
     } finally {
       setLoading(false);
     }
@@ -66,7 +69,7 @@ const ManagePenalty = () => {
     if (statusFilter !== 'all') {
       filtered = filtered.filter(
         (penalty) =>
-          statusFilter === 'paid' ? penalty.Status === 'paid' : penalty.Status === 'unpaid'
+          statusFilter === 'paid' ? penalty.PenaltyStatus === 'paid' : penalty.PenaltyStatus === 'unpaid'
       );
     }
     if (startDate && endDate) {
@@ -88,7 +91,7 @@ const ManagePenalty = () => {
     setPaymentData({
       PaymentMode: 'Cash',
       TransactionId: '',
-      AmountPaid: penalty.Amount.toString(),
+      AmountPaid: (penalty.Amount - penalty.TotalPaid).toString(), // Remaining amount
       ReceivedDate: new Date().toISOString().split('T')[0],
     });
     setIsPaymentModalOpen(true);
@@ -97,6 +100,17 @@ const ManagePenalty = () => {
   const handlePaymentSubmit = async () => {
     if (!paymentData.AmountPaid || !paymentData.PaymentMode) {
       alert('Please fill all required fields');
+      return;
+    }
+
+    const amountToPay = parseFloat(paymentData.AmountPaid);
+    if (amountToPay <= 0) {
+      alert('Amount paid must be greater than zero');
+      return;
+    }
+
+    if (amountToPay > (selectedPenalty.Amount - selectedPenalty.TotalPaid)) {
+      alert('Amount paid cannot exceed the remaining penalty amount');
       return;
     }
 
@@ -111,26 +125,27 @@ const ManagePenalty = () => {
     }
 
     try {
-      await axios.post('/api/panalty', {
-        IssueId: selectedPenalty.IssueId,
-        StudentId: selectedPenalty.StudentId, // Added StudentId
-        AmountPaid: parseFloat(paymentData.AmountPaid),
-        PaymentMode: paymentData.PaymentMode,
-        TransactionId: paymentData.TransactionId || null,
-        ReceivedBy: 'Kishan Kumar',
-        CreatedBy: 'Kishan Kumar',
-      });
-
-      await axios.put(`/api/penalty?id=${selectedPenalty.PenaltyId}`, {
-        Status: 'paid',
-      });
+      // Save payment to LibraryPayment table
+      await axios.post(
+        '/api/penalty',
+        {
+          IssueId: selectedPenalty.IssueId,
+          StudentId: selectedPenalty.StudentId,
+          AmountPaid: amountToPay,
+          PaymentMode: paymentData.PaymentMode,
+          TransactionId: paymentData.TransactionId || null,
+          ReceiveBy: 'Kishan Kumar',
+          CreatedBy: 'Kishan Kumar',
+        },
+        { timeout: 30000 } // Increased timeout
+      );
 
       setIsPaymentModalOpen(false);
       fetchPenalties();
       alert('Payment saved successfully');
     } catch (error) {
       console.error('Error saving payment:', error);
-      alert('Error saving payment');
+      alert(`Error saving payment: ${error.response?.data?.message || error.message}`);
     }
   };
 
@@ -151,9 +166,11 @@ const ManagePenalty = () => {
   return (
     <div className="container mx-auto p-4 bg-white rounded shadow overflow-hidden">
       {loading ? (
-        <div className="flex justify-center items-center p-4">
-          <FontAwesomeIcon icon={faSpinner} spin size="lg" />
+        <div className="flex justify-center  h-[85vh] items-center">
+          <FontAwesomeIcon icon={faSpinner} spin size="lg" className='w-10 h-10' />
         </div>
+      ) : error ? (
+        <div className="text-red-600 text-center p-4">{error}</div>
       ) : (
         <>
           <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-4 gap-2">
@@ -162,17 +179,18 @@ const ManagePenalty = () => {
 
           <div className="bg-gray-50 p-4 rounded mb-4">
             <div className="grid grid-cols-1 sm:grid-cols-5 gap-2">
+              <div className="flex items-center gap-2 text-blue-600 font-medium w-full pl-8 py-2 border rounded text&amp;#45;sm"> Total Penalties: {penalties.length}</div>
               <div className="relative">
                 <input
                   type="text"
                   placeholder="Search by book or student..."
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
-                  className="w-full pl-8 pr-2 py-1 border rounded text-sm"
+                  className="w-full pl-8 pr-2 py-2 border rounded text&amp;#45;sm"
                 />
                 <FontAwesomeIcon
                   icon={faSearch}
-                  className="absolute left-2 top-2 text-gray-400 text-sm"
+                  className="absolute left-2 top-3.5 text-gray-400 text-sm"
                 />
               </div>
               <select
@@ -206,19 +224,20 @@ const ManagePenalty = () => {
                   <th className="px-2 py-2 text-left">Sr.</th>
                   <th className="px-2 py-2 text-left">📖 Book Title</th>
                   <th className="px-2 py-2 text-left">👨‍🎓 Student Name</th>
-                  <th className="px-2 py-2 text-left">🎓Course Name</th>
-                  <th className="px-2 py-2 text-left">⏳Days Late</th>
+                  <th className="px-2 py-2 text-left">🎓 Course Name</th>
+                  <th className="px-2 py-2 text-left">⏳ Days Late</th>
                   <th className="px-2 py-2 text-left">📅 Issued On</th>
-                  <th className="px-2 py-2 text-left">📌Due On</th>
+                  <th className="px-2 py-2 text-left">📌 Due On</th>
                   <th className="px-2 py-2 text-left">🔄 Penalty Status</th>
                   <th className="px-2 py-2 text-left">💰 Penalty Amount</th>
-                  <th className="px-2 py-2 text-left">⚙️Manage</th>
+                  <th className="px-2 py-2 text-left">💸 Paid Amount</th>
+                  <th className="px-2 py-2 text-left">⚙️ Manage</th>
                 </tr>
               </thead>
               <tbody className="bg-white divide-y divide-gray-200">
                 {penalties.length === 0 ? (
                   <tr>
-                    <td colSpan={10} className="px-2 py-2 text-center text-gray-500">
+                    <td colSpan={11} className="px-2 py-2 text-center text-gray-500">
                       No penalties found
                     </td>
                   </tr>
@@ -247,22 +266,23 @@ const ManagePenalty = () => {
                       <td className="px-2 py-2 text-center">
                         <span
                           className={`px-2 py-1 text-xs rounded-full ${
-                            penalty.Status === 'paid'
+                            penalty.PenaltyStatus === 'paid'
                               ? 'bg-green-100 text-green-800'
                               : 'bg-red-100 text-red-800'
                           }`}
                         >
-                          {penalty.Status}
+                          {penalty.PenaltyStatus}
                         </span>
                       </td>
                       <td className="px-2 py-2">{penalty.Amount} INR</td>
+                      <td className="px-2 py-2">{penalty.TotalPaid} INR</td>
                       <td className="px-2 py-2 whitespace-nowrap">
-                        {penalty.Status === 'unpaid' && (
+                        {penalty.PenaltyStatus === 'unpaid' && (
                           <button
                             onClick={() => handlePaymentClick(penalty)}
-                            className="text-red-600 hover:text-red-800 text-xs flex items-center gap-1"
+                            className="text-blue-600 hover:text-blue-800 text-xs flex items-center gap-1"
                           >
-                            <FontAwesomeIcon icon={faTrash} /> Pay Fine
+                            <FontAwesomeIcon icon={faMoneyBill} /> Pay Fine
                           </button>
                         )}
                       </td>
@@ -285,9 +305,11 @@ const ManagePenalty = () => {
             <p>Year: {selectedPenalty.courseYear || 'N/A'}</p>
             <p>Days Late: {calculateLateDays(selectedPenalty)} days</p>
             <p>
-              Penalty Status: <span className="text-red-600">Unpaid</span>
+              Penalty Status: <span className="text-red-600">{selectedPenalty.PenaltyStatus}</span>
             </p>
             <p>Total Amount: {selectedPenalty.Amount} INR</p>
+            <p>Paid Amount: {selectedPenalty.TotalPaid} INR</p>
+            <p>Remaining Amount: {(selectedPenalty.Amount - selectedPenalty.TotalPaid)} INR</p>
             <div className="mb-4 mt-4">
               <label className="block mb-1 text-sm">Payment Mode</label>
               <select
