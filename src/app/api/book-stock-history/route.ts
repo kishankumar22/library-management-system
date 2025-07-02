@@ -1,4 +1,3 @@
-// src/app/api/book-stock-history/route.ts
 import { NextRequest, NextResponse } from 'next/server';
 import { getConnection } from '@/app/lib/db';
 import logger from '@/app/lib/logger';
@@ -93,12 +92,12 @@ export async function PUT(req: NextRequest) {
   }
 }
 
-// ✅ POST: Add new copies to book and log history
+// ✅ POST: Add or remove copies to/from book and log history
 export async function POST(req: NextRequest) {
   try {
     const { BookId, CopiesAdded, Remarks } = await req.json();
 
-    if (!BookId || CopiesAdded <= 0) {
+    if (!BookId || Math.abs(CopiesAdded) <= 0) {
       return NextResponse.json({ error: 'BookId and valid CopiesAdded are required' }, { status: 400 });
     }
 
@@ -108,6 +107,31 @@ export async function POST(req: NextRequest) {
     try {
       await transaction.begin();
 
+      // Check if the book exists and get current stock
+      const bookCheck = await transaction.request()
+        .input('BookId', sql.Int, BookId)
+        .query(`
+          SELECT TotalCopies, AvailableCopies
+          FROM Books
+          WHERE BookId = @BookId
+        `);
+
+      if (bookCheck.recordset.length === 0) {
+        throw new Error('Book not found');
+      }
+
+      const { TotalCopies, AvailableCopies } = bookCheck.recordset[0];
+
+      // Validate stock for removal (negative CopiesAdded)
+      if (CopiesAdded < 0 && AvailableCopies < Math.abs(CopiesAdded)) {
+        throw new Error('Insufficient available copies to remove');
+      }
+
+      if (CopiesAdded < 0 && TotalCopies < Math.abs(CopiesAdded)) {
+        throw new Error('Insufficient total copies to remove');
+      }
+
+      // Update Books table
       await transaction.request()
         .input('BookId', sql.Int, BookId)
         .input('CopiesAdded', sql.Int, CopiesAdded)
@@ -118,6 +142,7 @@ export async function POST(req: NextRequest) {
           WHERE BookId = @BookId
         `);
 
+      // Insert into BookStockHistory
       await transaction.request()
         .input('BookId', sql.Int, BookId)
         .input('CopiesAdded', sql.Int, CopiesAdded)
@@ -130,15 +155,19 @@ export async function POST(req: NextRequest) {
         `);
 
       await transaction.commit();
-      logger.info(`Book copies added for BookId: ${BookId}`);
-      return NextResponse.json({ message: 'Book copies added successfully' });
-    } catch (txError) {
+      logger.info(`Book ${CopiesAdded > 0 ? 'added' : 'removed'} for BookId: ${BookId}`);
+      return NextResponse.json({ message: `Book ${CopiesAdded > 0 ? 'added' : 'removed'} successfully` });
+    } catch (txError: any) {
       await transaction.rollback();
-      logger.error('Transaction failed during book stock update', { error: txError.message });
-      return NextResponse.json({ message: 'Transaction failed' }, { status: 500 });
+      logger.error('Transaction failed during book stock update', {
+        error: txError.message,
+        stack: txError.stack,
+        details: { BookId, CopiesAdded, Remarks },
+      });
+      return NextResponse.json({ message: txError.message || 'Transaction failed' }, { status: 400 });
     }
   } catch (error: any) {
-    logger.error('Error adding book copies', { error: error.message, stack: error.stack });
-    return NextResponse.json({ message: 'Error adding book copies' }, { status: 500 });
+    logger.error('Error managing book copies', { error: error.message, stack: error.stack });
+    return NextResponse.json({ message: 'Error managing book copies' }, { status: 500 });
   }
 }

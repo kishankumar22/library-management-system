@@ -1,0 +1,86 @@
+2025-07-02 17:51:45 [ERROR] Error fetching library payment history
+RequestError: Validation failed for parameter 'IssueId'. Invalid number.
+    at C:\Users\Windows\Desktop\New Projetct\library-management-system\.next\server\chunks\node_modules_mssql_93e55d20._.js:3638:33
+    at Array.forEach (<anonymous>)
+    at Request.userCallback (C:\Users\Windows\Desktop\New Projetct\library-management-system\.next\server\chunks\node_modules_mssql_93e55d20._.js:3635:24)
+    at Request.callback (C:\Users\Windows\Desktop\New Projetct\library-management-system\.next\server\chunks\node_modules_tedious_lib_226c514c._.js:2315:22)
+    at C:\Users\Windows\Desktop\New Projetct\library-management-system\.next\server\chunks\node_modules_tedious_lib_connection_cdf92d37.js:1491:25
+    at process.processTicksAndRejections (node:internal/process/task_queues:85:11)
+2025-07-02 17:53:01 [ERROR] Error fetching library payment history
+RequestError: Validation failed for parameter 'IssueId'. Invalid number.
+    at C:\Users\Windows\Desktop\New Projetct\library-management-system\.next\server\chunks\node_modules_mssql_93e55d20._.js:3638:33
+    at Array.forEach (<anonymous>)
+    at Request.userCallback (C:\Users\Windows\Desktop\New Projetct\library-management-system\.next\server\chunks\node_modules_mssql_93e55d20._.js:3635:24)
+    at Request.callback (C:\Users\Windows\Desktop\New Projetct\library-management-system\.next\server\chunks\node_modules_tedious_lib_226c514c._.js:2315:22)
+    at C:\Users\Windows\Desktop\New Projetct\library-management-system\.next\server\chunks\node_modules_tedious_lib_connection_cdf92d37.js:1491:25
+    at process.processTicksAndRejections (node:internal/process/task_queues:85:11)
+2025-07-02 17:53:18 [ERROR] Missing required fields for payment
+2025-07-02 17:56:15 [ERROR] Error fetching library payment history
+RequestError: Validation failed for parameter 'IssueId'. Invalid number.
+    at C:\Users\Windows\Desktop\New Projetct\library-management-system\.next\server\chunks\node_modules_mssql_93e55d20._.js:3638:33
+    at Array.forEach (<anonymous>)
+    at Request.userCallback (C:\Users\Windows\Desktop\New Projetct\library-management-system\.next\server\chunks\node_modules_mssql_93e55d20._.js:3635:24)
+    at Request.callback (C:\Users\Windows\Desktop\New Projetct\library-management-system\.next\server\chunks\node_modules_tedious_lib_226c514c._.js:2315:22)
+    at C:\Users\Windows\Desktop\New Projetct\library-management-system\.next\server\chunks\node_modules_tedious_lib_connection_cdf92d37.js:1491:25
+    at process.processTicksAndRejections (node:internal/process/task_queues:85:11)
+2025-07-02 17:58:37 [ERROR] Error fetching library payment history
+RequestError: Validation failed for parameter 'IssueId'. Invalid number.
+    at C:\Users\Windows\Desktop\New Projetct\library-management-system\.next\server\chunks\node_modules_mssql_93e55d20._.js:3638:33
+    at Array.forEach (<anonymous>)
+    at Request.userCallback (C:\Users\Windows\Desktop\New Projetct\library-management-system\.next\server\chunks\node_modules_mssql_93e55d20._.js:3635:24)
+    at Request.callback (C:\Users\Windows\Desktop\New Projetct\library-management-system\.next\server\chunks\node_modules_tedious_lib_226c514c._.js:2315:22)
+    at C:\Users\Windows\Desktop\New Projetct\library-management-system\.next\server\chunks\node_modules_tedious_lib_connection_cdf92d37.js:1491:25
+    at process.processTicksAndRejections (node:internal/process/task_queues:85:11)
+2025-07-02 17:58:46 [ERROR] Missing required fields for payment
+2025-07-02 17:58:57 [ERROR] Missing required fields for payment
+2025-07-02 17:59:30 [ERROR] Error fetching library payment history
+RequestError: Validation failed for parameter 'IssueId'. Invalid number.
+    at C:\Users\Windows\Desktop\New Projetct\library-management-system\.next\server\chunks\node_modules_mssql_93e55d20._.js:3638:33
+    at Array.forEach (<anonymous>)
+    at Request.userCallback (C:\Users\Windows\Desktop\New Projetct\library-management-system\.next\server\chunks\node_modules_mssql_93e55d20._.js:3635:24)
+    at Request.callback (C:\Users\Windows\Desktop\New Projetct\library-management-system\.next\server\chunks\node_modules_tedious_lib_226c514c._.js:2315:22)
+    at C:\Users\Windows\Desktop\New Projetct\library-management-system\.next\server\chunks\node_modules_tedious_lib_connection_cdf92d37.js:1491:25
+    at process.processTicksAndRejections (node:internal/process/task_queues:85:11)
+2025-07-02 18:05:15 [ERROR] Error fetching library payment history
+RequestError: Validation failed for parameter 'IssueId'. Invalid number.
+    at C:\Users\Windows\Desktop\New Projetct\library-management-system\.next\server\chunks\node_modules_mssql_93e55d20._.js:3638:33
+    at Array.forEach (<anonymous>)
+    at Request.userCallback (C:\Users\Windows\Desktop\New Projetct\library-management-system\.next\server\chunks\node_modules_mssql_93e55d20._.js:3635:24)
+    at Request.callback (C:\Users\Windows\Desktop\New Projetct\library-management-system\.next\server\chunks\node_modules_tedious_lib_226c514c._.js:2315:22)
+    at C:\Users\Windows\Desktop\New Projetct\library-management-system\.next\server\chunks\node_modules_tedious_lib_connection_cdf92d37.js:1491:25
+    at process.processTicksAndRejections (node:internal/process/task_queues:85:11)
+2025-07-02 18:06:14 [ERROR] Error fetching library payment history
+RequestError: Validation failed for parameter 'IssueId'. Invalid number.
+    at C:\Users\Windows\Desktop\New Projetct\library-management-system\.next\server\chunks\node_modules_mssql_93e55d20._.js:3638:33
+    at Array.forEach (<anonymous>)
+    at Request.userCallback (C:\Users\Windows\Desktop\New Projetct\library-management-system\.next\server\chunks\node_modules_mssql_93e55d20._.js:3635:24)
+    at Request.callback (C:\Users\Windows\Desktop\New Projetct\library-management-system\.next\server\chunks\node_modules_tedious_lib_226c514c._.js:2315:22)
+    at C:\Users\Windows\Desktop\New Projetct\library-management-system\.next\server\chunks\node_modules_tedious_lib_connection_cdf92d37.js:1491:25
+    at process.processTicksAndRejections (node:internal/process/task_queues:85:11)
+2025-07-02 18:07:14 [ERROR] Error fetching library payment history
+RequestError: Validation failed for parameter 'IssueId'. Invalid number.
+    at C:\Users\Windows\Desktop\New Projetct\library-management-system\.next\server\chunks\node_modules_mssql_93e55d20._.js:3638:33
+    at Array.forEach (<anonymous>)
+    at Request.userCallback (C:\Users\Windows\Desktop\New Projetct\library-management-system\.next\server\chunks\node_modules_mssql_93e55d20._.js:3635:24)
+    at Request.callback (C:\Users\Windows\Desktop\New Projetct\library-management-system\.next\server\chunks\node_modules_tedious_lib_226c514c._.js:2315:22)
+    at C:\Users\Windows\Desktop\New Projetct\library-management-system\.next\server\chunks\node_modules_tedious_lib_connection_cdf92d37.js:1491:25
+    at process.processTicksAndRejections (node:internal/process/task_queues:85:11)
+2025-07-02 18:12:12 [ERROR] Missing required fields for payment
+2025-07-02 18:13:30 [ERROR] Missing required fields for payment
+2025-07-02 18:14:57 [ERROR] Transaction failed during payment creation
+RequestError: Cannot insert the value NULL into column 'StudentId', table 'jkconsultancyadmindb.dbo.LibraryPayment'; column does not allow nulls. INSERT fails.
+    at handleError (C:\Users\Windows\Desktop\New Projetct\library-management-system\.next\server\chunks\node_modules_mssql_93e55d20._.js:3584:23)
+    at Connection.emit (node:events:518:28)
+    at Connection.emit (C:\Users\Windows\Desktop\New Projetct\library-management-system\.next\server\chunks\node_modules_tedious_lib_connection_cdf92d37.js:879:22)
+    at RequestTokenHandler.onErrorMessage (C:\Users\Windows\Desktop\New Projetct\library-management-system\.next\server\chunks\node_modules_tedious_lib_token_778d00c4._.js:2122:25)
+    at Readable.<anonymous> (C:\Users\Windows\Desktop\New Projetct\library-management-system\.next\server\chunks\node_modules_tedious_lib_token_778d00c4._.js:1823:39)
+    at Readable.emit (node:events:518:28)
+    at addChunk (node:internal/streams/readable:561:12)
+    at readableAddChunkPushObjectMode (node:internal/streams/readable:538:3)
+    at Readable.push (node:internal/streams/readable:393:5)
+    at nextAsync (node:internal/streams/from:194:22)
+    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)
+2025-07-02 18:15:59 [ERROR] Missing required fields for payment
+2025-07-02 18:17:53 [ERROR] Missing required fields for payment
+2025-07-02 18:19:42 [ERROR] Missing required fields for payment
+2025-07-02 18:23:48 [ERROR] Missing required fields for payment

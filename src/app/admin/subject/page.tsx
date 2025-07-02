@@ -258,7 +258,7 @@ const SubjectsPage = () => {
                         onClick={() => setIsModalOpen(false)}
                         className="text-sm bg-gray-200 text-gray-800 py-1.5 px-3 rounded hover:bg-gray-300 flex items-center gap-1"
                       >
-                        <FontAwesomeIcon icon={faArrowLeft} size="xs" /> Cancel
+                        <FontAwesomeIcon icon={faTimes} size="xs" /> Cancel
                       </button>
                       <button
                         type="submit"
@@ -299,7 +299,7 @@ const SubjectsPage = () => {
                       onClick={() => setIsConfirmModalOpen(false)}
                       className="text-sm bg-gray-200 text-gray-800 py-1.5 px-3 rounded hover:bg-gray-300 flex items-center gap-1"
                     >
-                      <FontAwesomeIcon icon={faArrowLeft} size="xs" /> Cancel
+                      <FontAwesomeIcon icon={faTimes	} size="xs" /> Cancel
                     </button>
                     <button
                       onClick={confirmAction === 'delete' ? handleDelete : handleToggleActive}

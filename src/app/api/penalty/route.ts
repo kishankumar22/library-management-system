@@ -97,9 +97,9 @@ export async function PUT(req) {
 
 export async function POST(req) {
   try {
-    const { IssueId, StudentId, AmountPaid, PaymentMode, TransactionId, ReceiveBy, CreatedBy } = await req.json();
+    const { IssueId, StudentId, AmountPaid, PaymentMode, TransactionId, CreatedBy } = await req.json();
 
-    if (!IssueId || !StudentId || !AmountPaid || !PaymentMode || !ReceiveBy || !CreatedBy) {
+    if (!IssueId || !StudentId || !AmountPaid || !PaymentMode ||  !CreatedBy) {
       logger.error('Missing required fields for payment', { IssueId, StudentId, AmountPaid, PaymentMode });
       return NextResponse.json({ message: 'Missing required fields' }, { status: 400 });
     }
@@ -141,13 +141,12 @@ export async function POST(req) {
         .input('StudentId', sql.Int, StudentId)
         .input('AmountPaid', sql.Float, AmountPaid)
         .input('PaymentMode', sql.VarChar, PaymentMode)
-        .input('TransactionId', sql.VarChar, TransactionId || null)
-        .input('ReceiveBy', sql.NVarChar, ReceiveBy)
+        .input('TransactionId', sql.VarChar, TransactionId || null)       
         .input('CreatedBy', sql.NVarChar, CreatedBy)
         .input('CreatedOn', sql.DateTime, new Date())
         .query(`
-          INSERT INTO LibraryPayment (StudentId, IssueId, AmountPaid, PaymentMode, TransactionId, ReceiveBy, CreatedBy, CreatedOn)
-          VALUES (@StudentId, @IssueId, @AmountPaid, @PaymentMode, @TransactionId, @ReceiveBy, @CreatedBy, @CreatedOn)
+          INSERT INTO LibraryPayment (StudentId, IssueId, AmountPaid, PaymentMode, TransactionId,  CreatedBy, CreatedOn)
+          VALUES (@StudentId, @IssueId, @AmountPaid, @PaymentMode, @TransactionId, @CreatedBy, @CreatedOn)
         `);
 
       // Update Penalty status if fully paid

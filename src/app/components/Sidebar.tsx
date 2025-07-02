@@ -1,5 +1,5 @@
 'use client';
-
+import Image from 'next/image';
 import Link from 'next/link';
 import { useState, useEffect } from 'react';
 import { usePathname } from 'next/navigation';
@@ -16,7 +16,7 @@ import {
   AlertTriangle,
   BookDown,
 } from 'lucide-react';
-
+import defaultPic from '../../public/images/Library.png'; // fallback image
 interface SidebarProps {
   role: 'admin' | 'student';
 }
@@ -35,8 +35,8 @@ const Sidebar: React.FC<SidebarProps> = ({ role }) => {
     '/admin/book-issue': 'Book Issue',
     '/admin/book-report': 'Book Report',
     '/admin/issue-report': 'Issue Report',
-    '/admin/return-book': 'Return Book',
-    '/admin/penalty': 'Penaltie',
+    '/admin/library-payment': 'Library Payment',
+    '/admin/penalty': 'Penalty',
     '/student': 'Dashboard',
     '/student/my-account': 'My Account',
     '/student/my-report': 'My Report',
@@ -58,9 +58,9 @@ const Sidebar: React.FC<SidebarProps> = ({ role }) => {
     { name: 'Manage Publication', href: '/admin/publication', icon: NotebookPen },
     { name: 'Manage Book', href: '/admin/book', icon: Book },
     // { name: 'Student Report', href: '/admin/student-report', icon: FileText },
-    { name: 'Book Stock History', href: '/admin/book-stock-history', icon: BookCopy },
     { name: 'Book Issue', href: '/admin/book-issue', icon: BookDown },
-    // { name: 'Issue Report', href: '/admin/issue-report', icon: ClipboardList },
+    { name: 'Book Stock History', href: '/admin/book-stock-history', icon: BookCopy },
+    { name: 'Library Payment', href: '/admin/library-payment', icon: ClipboardList },
     // { name: 'Return Book', href: '/admin/return-book', icon: BookOpenCheck },
     { name: 'Manage Penalty', href: '/admin/penalty', icon: AlertTriangle },
   ];
@@ -91,7 +91,17 @@ const Sidebar: React.FC<SidebarProps> = ({ role }) => {
           isOpen ? 'translate-x-0' : '-translate-x-full'
         } md:translate-x-0 z-10 overflow-y-auto`}
       >
-        <h2 className="text-xl font-bold mb-6 hidden md:block">Library Management</h2>
+           <div className="hidden md:flex items-center space-x-3 mb-6">
+      <Image
+        src={defaultPic}
+        alt="Profile"
+        width={60}
+        height={60}
+        className="rounded-full object-cover"
+      />
+      <h2 className="text-xl font-bold text-white">Library Management</h2>
+    </div>
+
         <nav>
           <ul>
             {links.map(({ href, name, icon: Icon }) => (

@@ -6,9 +6,10 @@ import axios from 'axios';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import {
   faSpinner, faPlus, faBook, faUserGraduate, faCalendarAlt, faSearch, faEdit, faTrash,
-  faCalendarDays, faTimes, faTimesCircle
+  faCalendarDays, faTimes, faTimesCircle, faFileExcel
 } from '@fortawesome/free-solid-svg-icons';
 import { Book, BookIssue, Student, Publication, Course } from '@/types';
+import * as XLSX from 'xlsx';
 
 const BookIssuePage = () => {
   const [bookIssues, setBookIssues] = useState<BookIssue[]>([]);
@@ -300,19 +301,50 @@ const BookIssuePage = () => {
     setShowBookInput(false);
   };
 
+  const exportToExcel = () => {
+    if (filteredIssues.length === 0) {
+      toast.error('No data available for export');
+      return;
+    }
+    const wsData = filteredIssues.map((issue, index) => ({
+      'Sr. No': index + 1,
+      'Book Title': issue.BookTitle,
+      'Student Name': issue.StudentName,
+      'Course Name': issue.courseName || 'N/A',
+      'Days Left': `${Math.ceil((new Date(issue.DueDate).getTime() - new Date().getTime()) / (1000 * 60 * 60 * 24))} days ${Math.ceil((new Date(issue.DueDate).getTime() - new Date().getTime()) / (1000 * 60 * 60 * 24)) < 0 ? 'overdue' : 'left'}`,
+      'Issued On': new Date(issue.IssueDate).toLocaleDateString(),
+      'Due On': new Date(issue.DueDate).toLocaleDateString(),
+      'Status': issue.Status,
+    }));
+
+    const ws = XLSX.utils.json_to_sheet(wsData);
+    const wb = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(wb, ws, 'Book Issues');
+    const currentDate = new Date().toLocaleDateString().replace(/\//g, '-');
+    XLSX.writeFile(wb, `Book_Issues_${currentDate}.xlsx`);
+  };
+
   return (
     <div className="container mx-auto p-4">
       <div className="flex flex-col sm:flex-row justify-between items-center mb-4 gap-2 bg-gradient-to-r from-blue-50 to-white p-2 rounded-md">
         <h1 className="text-xl font-bold text-blue-800">Book Issue Manager</h1>
-        <button
-          onClick={() => {
-            resetFormFields();
-            setIsModalOpen(true);
-          }}
-          className="bg-blue-600 hover:bg-blue-800 text-white py-1 px-3 rounded text-sm flex items-center gap-1 transition duration-200"
-        >
-          <FontAwesomeIcon icon={faPlus} size="xs" /> Issue New Book
-        </button>
+        <div className="flex gap-2">
+          <button
+            onClick={() => {
+              resetFormFields();
+              setIsModalOpen(true);
+            }}
+            className="bg-blue-600 hover:bg-blue-800 text-white py-1 px-3 rounded text-sm flex items-center gap-1 transition duration-200"
+          >
+            <FontAwesomeIcon icon={faPlus} size="xs" /> Issue New Book
+          </button>
+          <button
+            onClick={exportToExcel}
+            className="bg-green-600 hover:bg-green-800 text-white py-1 px-3 rounded text-sm flex items-center gap-1 transition duration-200"
+          >
+            <FontAwesomeIcon icon={faFileExcel} size="xs" /> Export to Excel
+          </button>
+        </div>
       </div>
 
       <div className="bg-white rounded shadow p-3 mb-4">
@@ -382,6 +414,7 @@ const BookIssuePage = () => {
                   <th className="px-3 py-2 text-left text-blue-800">⏳ Days Left</th>
                   <th className="px-3 py-2 text-left text-blue-800">📅 Issued On</th>
                   <th className="px-3 py-2 text-left text-blue-800">📌 Due On</th>
+                  <th className="px-3 py-2 text-left text-blue-800">✔️ Return Date</th>
                   <th className="px-3 py-2 text-left text-blue-800">🔄 Current Status</th>
                   <th className="px-3 py-2 text-left text-blue-800">⚙️ Manage</th>
                 </tr>
@@ -408,6 +441,7 @@ const BookIssuePage = () => {
                         </td>
                         <td className="px-3 py-2">{new Date(issue.IssueDate).toLocaleDateString()}</td>
                         <td className="px-3 py-2">{new Date(issue.DueDate).toLocaleDateString()}</td>
+                        <td className="px-3 py-2">{new Date(issue.ReturnDate).toLocaleDateString()}</td>
                         <td className="px-3 py-2 text-center">
                           <span className={`px-2 py-1 text-xs rounded-full ${
                             issue.Status === 'issued' ? 'bg-blue-100 text-blue-800' :
@@ -417,19 +451,20 @@ const BookIssuePage = () => {
                             {issue.Status}
                           </span>
                         </td>
+                      
                         <td className="px-3 py-2 whitespace-nowrap">
                           {issue.Status === 'issued' && (
                             <div className="flex gap-2">
-                              <button onClick={() => openEditModal(issue)} className="text-yellow-600 hover:text-yellow-800 text-xs transition duration-200">
+                              <button onClick={() => openEditModal(issue)} className="text-white bg-yellow-500 p-1 rounded hover:text-yellow-800 text-xs transition duration-200">
                                 <FontAwesomeIcon icon={faEdit} /> Edit
                               </button>
-                              <button onClick={() => { setSelectedIssue(issue); setIsReturnModalOpen(true); }} className="text-green-600 hover:text-green-800 text-xs transition duration-200">
+                              <button onClick={() => { setSelectedIssue(issue); setIsReturnModalOpen(true); }} className="text-white bg-green-500 p-1 rounded hover:text-green-800 text-xs transition duration-200">
                                 Return
                               </button>
-                              <button onClick={() => { setSelectedIssue(issue); setIsRenewModalOpen(true); }} className="text-blue-600 hover:text-blue-800 text-xs transition duration-200">
+                              <button onClick={() => { setSelectedIssue(issue); setIsRenewModalOpen(true); }} className="text-white bg-blue-500 p-1 rounded hover:text-blue-800 text-xs transition duration-200">
                                 Renew
                               </button>
-                              <button onClick={() => { setSelectedIssue(issue); setIsDeleteModalOpen(true); }} className="text-red-600 hover:text-red-800 text-xs transition duration-200">
+                              <button onClick={() => { setSelectedIssue(issue); setIsDeleteModalOpen(true); }} className="text-red-600 hidden hover:text-red-800 text-xs transition duration-200">
                                 <FontAwesomeIcon icon={faTrash} /> Delete
                               </button>
                             </div>
@@ -493,30 +528,28 @@ const BookIssuePage = () => {
                       </div>
                       {showPublicationInput && (
                         <div className="relative">
-                  <ul className="absolute w-full bg-white border rounded mt-1 max-h-40 overflow-y-auto z-10">
-  <li className="p-1 bg-gray-100 font-medium">Select Publication</li>
-
-  {publications.filter(pub =>
-    pub.Name.toLowerCase().includes(publicationSearch.toLowerCase())
-  ).length === 0 ? (
-    <li className="p-1 text-gray-500 italic">No publication found</li>
-  ) : (
-    publications
-      .filter(pub =>
-        pub.Name.toLowerCase().includes(publicationSearch.toLowerCase())
-      )
-      .map(pub => (
-        <li
-          key={pub.PubId}
-          className="p-1 hover:bg-gray-100 cursor-pointer"
-          onClick={() => handlePublicationChange(pub.PubId)}
-        >
-          {pub.Name}
-        </li>
-      ))
-  )}
-</ul>
-
+                          <ul className="absolute w-full bg-white border rounded mt-1 max-h-40 overflow-y-auto z-10">
+                            <li className="p-1 bg-gray-100 font-medium">Select Publication</li>
+                            {publications.filter(pub =>
+                              pub.Name.toLowerCase().includes(publicationSearch.toLowerCase())
+                            ).length === 0 ? (
+                              <li className="p-1 text-gray-500 italic">No publication found</li>
+                            ) : (
+                              publications
+                                .filter(pub =>
+                                  pub.Name.toLowerCase().includes(publicationSearch.toLowerCase())
+                                )
+                                .map(pub => (
+                                  <li
+                                    key={pub.PubId}
+                                    className="p-1 hover:bg-gray-100 cursor-pointer"
+                                    onClick={() => handlePublicationChange(pub.PubId)}
+                                  >
+                                    {pub.Name}
+                                  </li>
+                                ))
+                            )}
+                          </ul>
                         </div>
                       )}
                     </div>
@@ -550,29 +583,28 @@ const BookIssuePage = () => {
                       </div>
                       {showBookInput && (
                         <div className="relative">
-                       <ul className="absolute w-full bg-white border rounded mt-1 max-h-40 overflow-y-auto z-10">
-  <li className="p-1 bg-gray-100 font-medium">Select Book</li>
-  {books.filter(book =>
-    book.Title.toLowerCase().includes(bookSearch.toLowerCase())
-  ).length === 0 ? (
-    <li className="p-1 text-gray-500 italic">No book found</li>
-  ) : (
-    books
-      .filter(book =>
-        book.Title.toLowerCase().includes(bookSearch.toLowerCase())
-      )
-      .map(book => (
-        <li
-          key={book.BookId}
-          className="p-1 hover:bg-gray-100 cursor-pointer"
-          onClick={() => handleBookChange(book.BookId)}
-        >
-          {book.Title}
-        </li>
-      ))
-  )}
-</ul>
-
+                          <ul className="absolute w-full bg-white border rounded mt-1 max-h-40 overflow-y-auto z-10">
+                            <li className="p-1 bg-gray-100 font-medium">Select Book</li>
+                            {books.filter(book =>
+                              book.Title.toLowerCase().includes(bookSearch.toLowerCase())
+                            ).length === 0 ? (
+                              <li className="p-1 text-gray-500 italic">No book found</li>
+                            ) : (
+                              books
+                                .filter(book =>
+                                  book.Title.toLowerCase().includes(bookSearch.toLowerCase())
+                                )
+                                .map(book => (
+                                  <li
+                                    key={book.BookId}
+                                    className="p-1 hover:bg-gray-100 cursor-pointer"
+                                    onClick={() => handleBookChange(book.BookId)}
+                                  >
+                                    {book.Title}
+                                  </li>
+                                ))
+                            )}
+                          </ul>
                         </div>
                       )}
                     </div>
@@ -650,28 +682,28 @@ const BookIssuePage = () => {
                       </div>
                       {showStudentInput && (
                         <div className="relative">
-                         <ul className="absolute w-full bg-white border rounded mt-1 max-h-40 overflow-y-auto z-10">
-  <li className="p-1 bg-gray-100 font-medium">Select Student</li>
-  {filteredStudents.filter(student =>
-    `${student.fName} ${student.lName}`.toLowerCase().includes(studentSearch.toLowerCase())
-  ).length === 0 ? (
-    <li className="p-1 text-gray-500 italic">No student found</li>
-  ) : (
-    filteredStudents
-      .filter(student =>
-        `${student.fName} ${student.lName}`.toLowerCase().includes(studentSearch.toLowerCase())
-      )
-      .map(student => (
-        <li
-          key={student.id}
-          className="p-1 hover:bg-gray-100 cursor-pointer"
-          onClick={() => handleStudentChange(student.id)}
-        >
-          {`${student.fName} ${student.lName}`}
-        </li>
-      ))
-  )}
-</ul>
+                          <ul className="absolute w-full bg-white border rounded mt-1 max-h-40 overflow-y-auto z-10">
+                            <li className="p-1 bg-gray-100 font-medium">Select Student</li>
+                            {filteredStudents.filter(student =>
+                              `${student.fName} ${student.lName}`.toLowerCase().includes(studentSearch.toLowerCase())
+                            ).length === 0 ? (
+                              <li className="p-1 text-gray-500 italic">No student found</li>
+                            ) : (
+                              filteredStudents
+                                .filter(student =>
+                                  `${student.fName} ${student.lName}`.toLowerCase().includes(studentSearch.toLowerCase())
+                                )
+                                .map(student => (
+                                  <li
+                                    key={student.id}
+                                    className="p-1 hover:bg-gray-100 cursor-pointer"
+                                    onClick={() => handleStudentChange(student.id)}
+                                  >
+                                    {`${student.fName} ${student.lName}`}
+                                  </li>
+                                ))
+                            )}
+                          </ul>
                         </div>
                       )}
                     </div>
@@ -780,30 +812,28 @@ const BookIssuePage = () => {
                       </div>
                       {showPublicationInput && (
                         <div className="relative">
-                      <ul className="absolute w-full bg-white border rounded mt-1 max-h-40 overflow-y-auto z-10">
-  <li className="p-1 bg-gray-100 font-medium">Select Publication</li>
-
-  {publications.filter(pub =>
-    pub.Name.toLowerCase().includes(publicationSearch.toLowerCase())
-  ).length === 0 ? (
-    <li className="p-1 text-gray-500 italic">No publication found</li>
-  ) : (
-    publications
-      .filter(pub =>
-        pub.Name.toLowerCase().includes(publicationSearch.toLowerCase())
-      )
-      .map(pub => (
-        <li
-          key={pub.PubId}
-          className="p-1 hover:bg-gray-100 cursor-pointer"
-          onClick={() => handlePublicationChange(pub.PubId)}
-        >
-          {pub.Name}
-        </li>
-      ))
-  )}
-</ul>
-
+                          <ul className="absolute w-full bg-white border rounded mt-1 max-h-40 overflow-y-auto z-10">
+                            <li className="p-1 bg-gray-100 font-medium">Select Publication</li>
+                            {publications.filter(pub =>
+                              pub.Name.toLowerCase().includes(publicationSearch.toLowerCase())
+                            ).length === 0 ? (
+                              <li className="p-1 text-gray-500 italic">No publication found</li>
+                            ) : (
+                              publications
+                                .filter(pub =>
+                                  pub.Name.toLowerCase().includes(publicationSearch.toLowerCase())
+                                )
+                                .map(pub => (
+                                  <li
+                                    key={pub.PubId}
+                                    className="p-1 hover:bg-gray-100 cursor-pointer"
+                                    onClick={() => handlePublicationChange(pub.PubId)}
+                                  >
+                                    {pub.Name}
+                                  </li>
+                                ))
+                            )}
+                          </ul>
                         </div>
                       )}
                     </div>
@@ -837,29 +867,28 @@ const BookIssuePage = () => {
                       </div>
                       {showBookInput && (
                         <div className="relative">
-                        <ul className="absolute w-full bg-white border rounded mt-1 max-h-40 overflow-y-auto z-10">
-  <li className="p-1 bg-gray-100 font-medium">Select Book</li>
-  {books.filter(book =>
-    book.Title.toLowerCase().includes(bookSearch.toLowerCase())
-  ).length === 0 ? (
-    <li className="p-1 text-gray-500 italic">No book found</li>
-  ) : (
-    books
-      .filter(book =>
-        book.Title.toLowerCase().includes(bookSearch.toLowerCase())
-      )
-      .map(book => (
-        <li
-          key={book.BookId}
-          className="p-1 hover:bg-gray-100 cursor-pointer"
-          onClick={() => handleBookChange(book.BookId)}
-        >
-          {book.Title}
-        </li>
-      ))
-  )}
-</ul>
-
+                          <ul className="absolute w-full bg-white border rounded mt-1 max-h-40 overflow-y-auto z-10">
+                            <li className="p-1 bg-gray-100 font-medium">Select Book</li>
+                            {books.filter(book =>
+                              book.Title.toLowerCase().includes(bookSearch.toLowerCase())
+                            ).length === 0 ? (
+                              <li className="p-1 text-gray-500 italic">No book found</li>
+                            ) : (
+                              books
+                                .filter(book =>
+                                  book.Title.toLowerCase().includes(bookSearch.toLowerCase())
+                                )
+                                .map(book => (
+                                  <li
+                                    key={book.BookId}
+                                    className="p-1 hover:bg-gray-100 cursor-pointer"
+                                    onClick={() => handleBookChange(book.BookId)}
+                                  >
+                                    {book.Title}
+                                  </li>
+                                ))
+                            )}
+                          </ul>
                         </div>
                       )}
                     </div>
@@ -937,29 +966,28 @@ const BookIssuePage = () => {
                       </div>
                       {showStudentInput && (
                         <div className="relative">
-                       <ul className="absolute w-full bg-white border rounded mt-1 max-h-40 overflow-y-auto z-10">
-  <li className="p-1 bg-gray-100 font-medium">Select Student</li>
-  {filteredStudents.filter(student =>
-    `${student.fName} ${student.lName}`.toLowerCase().includes(studentSearch.toLowerCase())
-  ).length === 0 ? (
-    <li className="p-1 text-gray-500 italic">No student found</li>
-  ) : (
-    filteredStudents
-      .filter(student =>
-        `${student.fName} ${student.lName}`.toLowerCase().includes(studentSearch.toLowerCase())
-      )
-      .map(student => (
-        <li
-          key={student.id}
-          className="p-1 hover:bg-gray-100 cursor-pointer"
-          onClick={() => handleStudentChange(student.id)}
-        >
-          {`${student.fName} ${student.lName}`}
-        </li>
-      ))
-  )}
-</ul>
-
+                          <ul className="absolute w-full bg-white border rounded mt-1 max-h-40 overflow-y-auto z-10">
+                            <li className="p-1 bg-gray-100 font-medium">Select Student</li>
+                            {filteredStudents.filter(student =>
+                              `${student.fName} ${student.lName}`.toLowerCase().includes(studentSearch.toLowerCase())
+                            ).length === 0 ? (
+                              <li className="p-1 text-gray-500 italic">No student found</li>
+                            ) : (
+                              filteredStudents
+                                .filter(student =>
+                                  `${student.fName} ${student.lName}`.toLowerCase().includes(studentSearch.toLowerCase())
+                                )
+                                .map(student => (
+                                  <li
+                                    key={student.id}
+                                    className="p-1 hover:bg-gray-100 cursor-pointer"
+                                    onClick={() => handleStudentChange(student.id)}
+                                  >
+                                    {`${student.fName} ${student.lName}`}
+                                  </li>
+                                ))
+                            )}
+                          </ul>
                         </div>
                       )}
                     </div>

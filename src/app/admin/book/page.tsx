@@ -6,7 +6,8 @@ import axios from 'axios';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import {
   faSpinner, faEye, faEyeSlash, faArrowLeft, faPlus, faEdit, faTrash, faSearch, faFilter,
-  faTimesCircle
+  faTimesCircle,
+  faTimes
 } from '@fortawesome/free-solid-svg-icons';
 import { Book } from '@/types';
 
@@ -627,7 +628,7 @@ const BooksPage = () => {
                         onClick={resetForm}
                         className="bg-gray-200 text-gray-800 hover:bg-gray-300 text-sm font-medium py-2 px-4 rounded-lg flex items-center gap-1"
                       >
-                        <FontAwesomeIcon icon={faArrowLeft} size="sm" /> Cancel
+                        <FontAwesomeIcon icon={faTimes	} size="sm" /> Cancel
                       </button>
                       <button
                         type="submit"
@@ -654,7 +655,7 @@ const BooksPage = () => {
                       onClick={() => setIsConfirmModalOpen(false)}
                       className="bg-gray-200 text-gray-800 hover:bg-gray-300 text-sm font-medium py-2 px-4 rounded-lg flex items-center gap-1"
                     >
-                      <FontAwesomeIcon icon={faArrowLeft} size="sm" /> Cancel
+                      <FontAwesomeIcon icon={faTimes	} size="sm" /> Cancel
                     </button>
                     <button
                       onClick={confirmAction === 'delete' ? handleDelete : handleToggleActive}
@@ -702,8 +703,10 @@ const BooksPage = () => {
                       </td>
                     </tr>
                   ) : (
-                    books.map((book, index) => (
-                      <tr key={book.BookId} className="hover:bg-gray-50">
+                   books
+      .filter(book => book.TotalCopies > 0)
+      .map((book, index) => (
+        <tr key={book.BookId} className="hover:bg-gray-50">
                         <td className="px-4 py-2 whitespace-nowrap text-sm">{index+1}</td>
                         <td className="px-4 py-2 whitespace-nowrap text-sm">
                           {book.BookPhoto ? (
@@ -721,7 +724,13 @@ const BooksPage = () => {
                         <td className="px-4 py-2 whitespace-nowrap text-sm">{book.SubjectName || '-'}</td>
                         <td className="px-4 py-2 whitespace-nowrap text-sm">{book.PublicationName || '-'}</td>
                         <td className="px-4 py-2 whitespace-nowrap text-sm">{book.Price ? `$${book.Price.toFixed(2)}` : '-'}</td>
-                        <td className="px-4 py-2 whitespace-nowrap text-sm">{book.AvailableCopies}/{book.TotalCopies}</td>
+ <td className="px-4 py-2 whitespace-nowrap text-sm leading-tight">
+  <div>📚 Total: {book.TotalCopies}</div>
+  <div>📗 Available: {book.AvailableCopies}</div>
+  <div>📕 Issued: {book.TotalCopies - book.AvailableCopies}</div>
+</td>
+
+
                         <td className="px-4 py-2 whitespace-nowrap text-sm">
                           <span className={`px-2 py-1 text-xs rounded-full ${book.IsActive ? 'bg-green-100 text-green-800' : 'bg-gray-100 text-gray-800'}`}>
                             {book.IsActive ? 'Active' : 'Inactive'}

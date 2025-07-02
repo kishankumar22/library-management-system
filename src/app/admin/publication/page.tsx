@@ -13,7 +13,8 @@ import {
   faEdit, 
   faTrash, 
   faSearch, 
-  faFilter 
+  faFilter, 
+  faTimes
 } from '@fortawesome/free-solid-svg-icons';
 import { Publication } from '@/types';
 
@@ -258,7 +259,7 @@ const PublicationsPage = () => {
                     onClick={() => setIsModalOpen(false)}
                     className="px-4 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50 transition duration-200 flex items-center gap-2"
                   >
-                    <FontAwesomeIcon icon={faArrowLeft} /> Cancel
+                    <FontAwesomeIcon icon={faTimes	} /> Cancel
                   </button>
                   <button
                     type="submit"
@@ -299,7 +300,7 @@ const PublicationsPage = () => {
                   onClick={() => setIsConfirmModalOpen(false)}
                   className="px-4 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50 transition duration-200 flex items-center gap-2"
                 >
-                  <FontAwesomeIcon icon={faArrowLeft} /> Cancel
+                  <FontAwesomeIcon icon={faTimes	} /> Cancel
                 </button>
                 <button
                   onClick={confirmAction === 'delete' ? handleDelete : handleToggleActive}
