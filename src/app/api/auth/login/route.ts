@@ -5,13 +5,14 @@ import bcrypt from 'bcryptjs';
 import { sendOtp } from '@/app/lib/sendOtp';
 import logger from '@/app/lib/logger';
 
+// Singleton OTP store for development (in-memory)
 const otpStore: { [key: string]: { otp: string; expires: number; role: string } } = {};
 
 export async function POST(req: NextRequest) {
   try {
     const { email, password, dob, step, rememberMe } = await req.json();
-    const normalizedEmail = email?.toLowerCase();
-    
+    const normalizedEmail = email?.toLowerCase()?.trim();
+
     console.log('Login Request:', { email: normalizedEmail, step, rememberMe });
 
     if (!normalizedEmail) {
@@ -25,7 +26,11 @@ export async function POST(req: NextRequest) {
     if (authHeader && authHeader.startsWith('Bearer ')) {
       try {
         const token = authHeader.split(' ')[1];
-        const decoded = jwt.verify(token, process.env.JWT_SECRET!) as { userId?: number; studentId?: number; role: string };
+        const decoded = jwt.verify(token, process.env.JWT_SECRET!) as {
+          userId?: number;
+          studentId?: number;
+          role: string;
+        };
         console.log('Validating token for:', { email: normalizedEmail, role: decoded.role });
         const userData = await getUserData(pool, normalizedEmail, decoded.role);
         if (userData) {
@@ -53,9 +58,9 @@ export async function POST(req: NextRequest) {
 
       if (adminResult.recordset.length > 0) {
         console.log('Admin user found');
-        return NextResponse.json({ 
+        return NextResponse.json({
           userType: 'admin',
-          message: 'Admin user found' 
+          message: 'Admin user found',
         });
       }
 
@@ -66,9 +71,9 @@ export async function POST(req: NextRequest) {
 
       if (studentResult.recordset.length > 0) {
         console.log('Student user found');
-        return NextResponse.json({ 
+        return NextResponse.json({
           userType: 'student',
-          message: 'Student user found' 
+          message: 'Student user found',
         });
       }
 
@@ -104,7 +109,11 @@ export async function POST(req: NextRequest) {
           expires: Date.now() + 10 * 60 * 1000, // 10 minutes
           role: 'admin',
         };
-        console.log('Stored OTP for admin:', { email: normalizedEmail, otp, expires: otpStore[normalizedEmail].expires });
+        console.log('Stored OTP for admin:', {
+          email: normalizedEmail,
+          otp,
+          expires: otpStore[normalizedEmail].expires,
+        });
 
         try {
           await sendOtp(normalizedEmail, otp);
@@ -139,7 +148,11 @@ export async function POST(req: NextRequest) {
           expires: Date.now() + 10 * 60 * 1000, // 10 minutes
           role: 'student',
         };
-        console.log('Stored OTP for student:', { email: normalizedEmail, otp, expires: otpStore[normalizedEmail].expires });
+        console.log('Stored OTP for student:', {
+          email: normalizedEmail,
+          otp,
+          expires: otpStore[normalizedEmail].expires,
+        });
 
         try {
           await sendOtp(normalizedEmail, otp);
@@ -151,7 +164,7 @@ export async function POST(req: NextRequest) {
         }
       }
 
-      console.log('User not found');
+      console.log('User not found');
       return NextResponse.json({ message: 'User not found' }, { status: 404 });
     }
 

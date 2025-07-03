@@ -1,2 +1,102 @@
-
-2025-07-02 18:26:45 [INFO] Payment created successfully for IssueId: 13, StudentId: 50
+2025-07-03 12:52:48 [INFO] SMTP connection verified for kishan143ku@gmail.com
+2025-07-03 12:52:51 [INFO] OTP sent successfully to kishankumar73001@gmail.com
+2025-07-03 14:14:16 [ERROR] Student 68 already has an issued book
+2025-07-03 14:20:41 [ERROR] Student 68 has already issued 5 books
+2025-07-03 14:21:20 [ERROR] Student 68 has already issued 5 books
+2025-07-03 14:21:56 [ERROR] Student 68 already has an issued book
+2025-07-03 14:22:52 [INFO] Book issued successfully: 3 to student 68
+2025-07-03 14:23:39 [INFO] Book issue updated successfully: 16
+2025-07-03 14:24:15 [INFO] Book issued successfully: 1 to student 68
+2025-07-03 14:30:43 [ERROR] Student 68 already has an issued book
+2025-07-03 14:30:47 [ERROR] Student 68 already has an issued book
+2025-07-03 14:33:03 [INFO] Book issue updated successfully: 17
+2025-07-03 14:55:01 [ERROR] Error fetching book issues
+RequestError: Conversion failed when converting date and/or time from character string.
+    at handleError (C:\Users\Windows\Desktop\New Projetct\library-management-system\.next\server\chunks\node_modules_mssql_93e55d20._.js:3584:23)
+    at Connection.emit (node:events:518:28)
+    at Connection.emit (C:\Users\Windows\Desktop\New Projetct\library-management-system\.next\server\chunks\node_modules_tedious_lib_connection_cdf92d37.js:879:22)
+    at RequestTokenHandler.onErrorMessage (C:\Users\Windows\Desktop\New Projetct\library-management-system\.next\server\chunks\node_modules_tedious_lib_token_778d00c4._.js:2122:25)
+    at Readable.<anonymous> (C:\Users\Windows\Desktop\New Projetct\library-management-system\.next\server\chunks\node_modules_tedious_lib_token_778d00c4._.js:1823:39)
+    at Readable.emit (node:events:518:28)
+    at addChunk (node:internal/streams/readable:561:12)
+    at readableAddChunkPushObjectMode (node:internal/streams/readable:538:3)
+    at Readable.push (node:internal/streams/readable:393:5)
+    at nextAsync (node:internal/streams/from:194:22)
+    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)
+2025-07-03 14:55:06 [ERROR] Error fetching book issues
+RequestError: Conversion failed when converting date and/or time from character string.
+    at handleError (C:\Users\Windows\Desktop\New Projetct\library-management-system\.next\server\chunks\node_modules_mssql_93e55d20._.js:3584:23)
+    at Connection.emit (node:events:518:28)
+    at Connection.emit (C:\Users\Windows\Desktop\New Projetct\library-management-system\.next\server\chunks\node_modules_tedious_lib_connection_cdf92d37.js:879:22)
+    at RequestTokenHandler.onErrorMessage (C:\Users\Windows\Desktop\New Projetct\library-management-system\.next\server\chunks\node_modules_tedious_lib_token_778d00c4._.js:2122:25)
+    at Readable.<anonymous> (C:\Users\Windows\Desktop\New Projetct\library-management-system\.next\server\chunks\node_modules_tedious_lib_token_778d00c4._.js:1823:39)
+    at Readable.emit (node:events:518:28)
+    at addChunk (node:internal/streams/readable:561:12)
+    at readableAddChunkPushObjectMode (node:internal/streams/readable:538:3)
+    at Readable.push (node:internal/streams/readable:393:5)
+    at nextAsync (node:internal/streams/from:194:22)
+    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)
+2025-07-03 14:55:27 [ERROR] Error fetching book issues
+RequestError: Conversion failed when converting date and/or time from character string.
+    at handleError (C:\Users\Windows\Desktop\New Projetct\library-management-system\.next\server\chunks\node_modules_mssql_93e55d20._.js:3584:23)
+    at Connection.emit (node:events:518:28)
+    at Connection.emit (C:\Users\Windows\Desktop\New Projetct\library-management-system\.next\server\chunks\node_modules_tedious_lib_connection_cdf92d37.js:879:22)
+    at RequestTokenHandler.onErrorMessage (C:\Users\Windows\Desktop\New Projetct\library-management-system\.next\server\chunks\node_modules_tedious_lib_token_778d00c4._.js:2122:25)
+    at Readable.<anonymous> (C:\Users\Windows\Desktop\New Projetct\library-management-system\.next\server\chunks\node_modules_tedious_lib_token_778d00c4._.js:1823:39)
+    at Readable.emit (node:events:518:28)
+    at addChunk (node:internal/streams/readable:561:12)
+    at readableAddChunkPushObjectMode (node:internal/streams/readable:538:3)
+    at Readable.push (node:internal/streams/readable:393:5)
+    at nextAsync (node:internal/streams/from:194:22)
+    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)
+2025-07-03 14:56:57 [ERROR] Error fetching book issues
+RequestError: Conversion failed when converting date and/or time from character string.
+    at handleError (C:\Users\Windows\Desktop\New Projetct\library-management-system\.next\server\chunks\node_modules_mssql_93e55d20._.js:3584:23)
+    at Connection.emit (node:events:518:28)
+    at Connection.emit (C:\Users\Windows\Desktop\New Projetct\library-management-system\.next\server\chunks\node_modules_tedious_lib_connection_cdf92d37.js:879:22)
+    at RequestTokenHandler.onErrorMessage (C:\Users\Windows\Desktop\New Projetct\library-management-system\.next\server\chunks\node_modules_tedious_lib_token_778d00c4._.js:2122:25)
+    at Readable.<anonymous> (C:\Users\Windows\Desktop\New Projetct\library-management-system\.next\server\chunks\node_modules_tedious_lib_token_778d00c4._.js:1823:39)
+    at Readable.emit (node:events:518:28)
+    at addChunk (node:internal/streams/readable:561:12)
+    at readableAddChunkPushObjectMode (node:internal/streams/readable:538:3)
+    at Readable.push (node:internal/streams/readable:393:5)
+    at nextAsync (node:internal/streams/from:194:22)
+    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)
+2025-07-03 15:00:06 [ERROR] Book 1 is already issued to student 68
+2025-07-03 15:15:24 [ERROR] Book 1 is already issued to student 68
+2025-07-03 15:17:10 [INFO] Book issued successfully: 3 to student 68
+2025-07-03 15:18:43 [ERROR] Book 3 is already issued to student 68
+2025-07-03 15:18:53 [ERROR] Book 3 is already issued to student 68
+2025-07-03 15:20:14 [ERROR] Book 1 is already issued to student 68
+2025-07-03 15:20:17 [ERROR] Book 1 is already issued to student 68
+2025-07-03 15:20:19 [ERROR] Book 1 is already issued to student 68
+2025-07-03 15:20:33 [INFO] Book issue deleted successfully: 17
+2025-07-03 15:20:37 [INFO] Book issue deleted successfully: 16
+2025-07-03 15:20:39 [INFO] Book issue deleted successfully: 18
+2025-07-03 15:20:42 [ERROR] Book not in issued state: 15
+2025-07-03 15:20:45 [ERROR] Book not in issued state: 15
+2025-07-03 15:20:48 [ERROR] Book not in issued state: 15
+2025-07-03 15:20:55 [ERROR] Book not in issued state: 15
+2025-07-03 15:21:08 [ERROR] Book not in issued state: 15
+2025-07-03 15:21:12 [ERROR] Book not in issued state: 15
+2025-07-03 15:21:32 [ERROR] Book not in issued state: 15
+2025-07-03 15:41:51 [ERROR] Book 3 is already issued to student 68
+2025-07-03 17:38:59 [INFO] Book issued successfully: 3 to student 68
+2025-07-03 17:47:56 [ERROR] This book is overdue and cannot be issued again until returned: Book 3, Student 68
+2025-07-03 17:47:59 [ERROR] This book is overdue and cannot be issued again until returned: Book 3, Student 68
+2025-07-03 17:48:17 [ERROR] This book is overdue and cannot be issued again until returned: Book 3, Student 68
+2025-07-03 17:48:20 [ERROR] This book is overdue and cannot be issued again until returned: Book 3, Student 68
+2025-07-03 17:48:21 [ERROR] This book is overdue and cannot be issued again until returned: Book 3, Student 68
+2025-07-03 17:48:22 [ERROR] This book is overdue and cannot be issued again until returned: Book 3, Student 68
+2025-07-03 17:48:35 [ERROR] This book is overdue and cannot be issued again until returned: Book 3, Student 68
+2025-07-03 17:48:38 [ERROR] This book is overdue and cannot be issued again until returned: Book 3, Student 68
+2025-07-03 17:48:44 [ERROR] This book is overdue and cannot be issued again until returned: Book 3, Student 68
+2025-07-03 17:49:39 [ERROR] This book is overdue and cannot be issued again until returned: Book 3, Student 68
+2025-07-03 17:51:52 [ERROR] This book is overdue and cannot be issued again until returned: Book 3, Student 68
+2025-07-03 17:52:30 [ERROR] This book is overdue and cannot be issued again until returned: Book 3, Student 68
+2025-07-03 17:52:32 [ERROR] This book is overdue and cannot be issued again until returned: Book 3, Student 68
+2025-07-03 17:52:34 [ERROR] This book is overdue and cannot be issued again until returned: Book 3, Student 68
+2025-07-03 17:54:58 [ERROR] This book is overdue and cannot be issued again until returned: Book 3, Student 68
+2025-07-03 17:55:02 [ERROR] This book is overdue and cannot be issued again until returned: Book 3, Student 68
+2025-07-03 17:57:13 [ERROR] This book is overdue and cannot be issued again until returned: Book 3, Student 68
+2025-07-03 18:04:24 [INFO] Book issue updated successfully: 19

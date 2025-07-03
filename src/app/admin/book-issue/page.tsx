@@ -5,8 +5,10 @@ import { toast } from 'react-toastify';
 import axios from 'axios';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import {
-  faSpinner, faPlus, faBook, faUserGraduate, faCalendarAlt, faSearch, faEdit, faTrash,
-  faCalendarDays, faTimes, faTimesCircle, faFileExcel
+  faSpinner, faPlus, faSearch, faEdit, faTrash,
+  faCalendarDays, faTimes, faTimesCircle, faFileExcel,
+  faUndo,
+  faRedo,
 } from '@fortawesome/free-solid-svg-icons';
 import { Book, BookIssue, Student, Publication, Course } from '@/types';
 import * as XLSX from 'xlsx';
@@ -49,6 +51,7 @@ const BookIssuePage = () => {
   const [publicationSearch, setPublicationSearch] = useState('');
   const [studentSearch, setStudentSearch] = useState('');
   const [bookSearch, setBookSearch] = useState('');
+  const [overdueBooks, setOverdueBooks] = useState<BookIssue[]>([]);
   const modalRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -86,11 +89,14 @@ const BookIssuePage = () => {
       ]);
 
       setBookIssues(issuesRes.data);
+      console.log(issuesRes.data);
       setBooks(booksRes.data);
       setStudents(studentsRes.data);
-      setFilteredStudents(studentsRes.data.filter((student, index, self) => 
-        index === self.findIndex((s) => s.id === student.id)
-      )); // Distinct students by id
+      setFilteredStudents(
+        studentsRes.data.filter((student: { id: any; }, index: any, self: any[]) =>
+          index === self.findIndex((s: { id: any; }) => s.id === student.id)
+        )
+      );
       setPublications(publicationsRes.data);
       setCourses(coursesRes.data);
     } catch (error) {
@@ -105,9 +111,11 @@ const BookIssuePage = () => {
 
   const handlePublicationChange = (pubId: number) => {
     setFormData(prev => ({ ...prev, PublicationId: pubId, BookId: 0 }));
-    setFilteredStudents(students.filter((student, index, self) => 
-      index === self.findIndex((s) => s.id === student.id)
-    ).filter(s => s.courseId === courses.find(c => c.id === pubId)?.id || 0));
+    setFilteredStudents(
+      students
+        .filter((student, index, self) => index === self.findIndex((s) => s.id === student.id))
+        .filter(s => s.courseId === courses.find(c => c.id === pubId)?.id || 0)
+    );
     setBooks(books.filter(b => b.PublicationId === pubId));
     setSelectedBook(null);
     setPublicationSearch(publications.find(p => p.PubId === pubId)?.Name || '');
@@ -124,16 +132,29 @@ const BookIssuePage = () => {
 
   const handleCourseChange = (courseId: number) => {
     setFormData(prev => ({ ...prev, CourseId: courseId, StudentId: 0 }));
-    setFilteredStudents(students.filter((student, index, self) => 
-      index === self.findIndex((s) => s.id === student.id)
-    ).filter(s => s.courseId === courseId));
+    setFilteredStudents(
+      students
+        .filter((student, index, self) => index === self.findIndex((s) => s.id === student.id))
+        .filter(s => s.courseId === courseId)
+    );
     setStudentSearch('');
   };
 
-  const handleStudentChange = (studentId: number) => {
+  const handleStudentChange = async (studentId: number) => {
     const student = filteredStudents.find(s => s.id === studentId);
-    setFormData(prev => ({ ...prev, StudentId: studentId, CourseId: student?.courseId || 0 }));
-    setStudentSearch(`${student?.fName} ${student?.lName}` || '');
+    if (!student) return;
+
+    // Check for overdue books without toast
+    const overdue = bookIssues.filter(
+      issue =>
+        issue.StudentId === studentId &&
+        issue.Status === 'issued' &&
+        new Date(issue.DueDate) < new Date()
+    );
+    setOverdueBooks(overdue);
+
+    setFormData(prev => ({ ...prev, StudentId: studentId, CourseId: student.courseId || 0 }));
+    setStudentSearch(`${student.fName} ${student.lName}` || '');
     setShowStudentInput(false);
   };
 
@@ -143,25 +164,33 @@ const BookIssuePage = () => {
     return dueDate.toISOString().split('T')[0];
   };
 
-  const handleIssueBook = async () => {
-    if (isSubmitting || !formData.BookId || !formData.StudentId || !formData.Days) {
-      toast.error('Please fill all required fields');
-      return;
-    }
-    setIsSubmitting(true);
-    try {
-      await axios.post('/api/book-issue', formData);
-      toast.success('Book issued successfully');
-      setIsModalOpen(false);
-      resetFormFields();
-      await fetchData();
-    } catch (error) {
-      console.error('Error issuing book:', error);
-      toast.error('Failed to issue book');
-    } finally {
-      setIsSubmitting(false);
-    }
-  };
+ const handleIssueBook = async () => {
+  if (isSubmitting) return;
+
+  const { BookId, StudentId, Days } = formData;
+
+  if (!BookId || !StudentId || !Days) {
+    toast.error('Please fill all required fields');
+    return;
+  }
+
+  setIsSubmitting(true);
+
+  try {
+    const response = await axios.post('/api/book-issue', formData);
+    toast.success(response.data.message || 'Book issued successfully');
+    // Close modal and refresh data
+    setIsModalOpen(false);
+    resetFormFields();
+    await fetchData();
+  } catch (error: any) {
+    console.error('Issue Book Error:', error);
+    toast.error(error.response?.data?.message || 'Failed to issue book');
+  } finally {
+    setIsSubmitting(false);
+  }
+};
+
 
   const handleEditBook = async () => {
     if (isSubmitting || !selectedIssue?.IssueId || !formData.BookId || !formData.StudentId || !formData.Days) {
@@ -170,14 +199,14 @@ const BookIssuePage = () => {
     }
     setIsSubmitting(true);
     try {
-      await axios.patch(`/api/book-issue?id=${selectedIssue.IssueId}`, formData);
-      toast.success('Book issue updated successfully');
+      const response = await axios.patch(`/api/book-issue?id=${selectedIssue.IssueId}`, formData);
+      toast.success(response.data.message || 'Book issue updated successfully');
       setIsEditModalOpen(false);
       setSelectedIssue(null);
       await fetchData();
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error updating book issue:', error);
-      toast.error('Failed to update book issue');
+      toast.error(error.response?.data?.message || 'Failed to update book issue');
     } finally {
       setIsSubmitting(false);
     }
@@ -191,20 +220,20 @@ const BookIssuePage = () => {
       const today = new Date();
       const isLate = today > dueDate;
 
-      await axios.put(`/api/book-issue?id=${selectedIssue.IssueId}`, {
+      const response = await axios.put(`/api/book-issue?id=${selectedIssue.IssueId}`, {
         status: 'returned',
         remarks: returnRemarks,
         fineAmount: isLate ? fineAmount : 0,
       });
-      toast.success('Book returned successfully');
+      toast.success(response.data.message || 'Book returned successfully');
       setIsReturnModalOpen(false);
       setReturnRemarks('');
       setFineAmount(0);
       setSelectedIssue(null);
       await fetchData();
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error returning book:', error);
-      toast.error('Failed to return book');
+      toast.error(error.response?.data?.message || 'Failed to return book');
     } finally {
       setIsSubmitting(false);
     }
@@ -214,15 +243,15 @@ const BookIssuePage = () => {
     if (isSubmitting || !selectedIssue || !renewDays) return;
     setIsSubmitting(true);
     try {
-      await axios.put(`/api/book-issue?id=${selectedIssue.IssueId}`, { status: 'renewed', renewDays });
-      toast.success('Book renewed successfully');
+      const response = await axios.put(`/api/book-issue?id=${selectedIssue.IssueId}`, { status: 'renewed', renewDays });
+      toast.success(response.data.message || 'Book renewed successfully');
       setIsRenewModalOpen(false);
       setRenewDays(7);
       setSelectedIssue(null);
       await fetchData();
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error renewing book:', error);
-      toast.error('Failed to renew book');
+      toast.error(error.response?.data?.message || 'Failed to renew book');
     } finally {
       setIsSubmitting(false);
     }
@@ -232,14 +261,14 @@ const BookIssuePage = () => {
     if (isSubmitting || !selectedIssue) return;
     setIsSubmitting(true);
     try {
-      await axios.delete(`/api/book-issue?id=${selectedIssue.IssueId}`);
-      toast.success('Book issue deleted successfully');
+      const response = await axios.delete(`/api/book-issue?id=${selectedIssue.IssueId}`);
+      toast.success(response.data.message || 'Book issue deleted successfully');
       setIsDeleteModalOpen(false);
       setSelectedIssue(null);
       await fetchData();
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error deleting book issue:', error);
-      toast.error('Failed to delete book issue');
+      toast.error(error.response?.data?.message || 'Failed to delete book issue');
     } finally {
       setIsSubmitting(false);
     }
@@ -260,9 +289,12 @@ const BookIssuePage = () => {
       PublicationId: book?.PublicationId || 0,
       CourseId: student?.courseId || 0,
     });
-    setFilteredStudents(students.filter((student, index, self) => 
-      index === self.findIndex((s) => s.id === student.id)
-    ).filter(s => s.courseId === student?.courseId || 0));
+    setFilteredStudents(
+      students
+        .filter((student, index, self) => index === self.findIndex((s) => s.id === student.id))
+        .filter(s => s.courseId === student?.courseId || 0)
+    );
+    setBooks(books.filter(b => b.PublicationId === book?.PublicationId || 0)); // Reset books based on current publication
     setPublicationSearch(publications.find(p => p.PubId === book?.PublicationId)?.Name || '');
     setStudentSearch(`${student?.fName} ${student?.lName}` || '');
     setBookSearch(book?.Title || '');
@@ -299,6 +331,8 @@ const BookIssuePage = () => {
     setShowPublicationInput(false);
     setShowStudentInput(false);
     setShowBookInput(false);
+    setOverdueBooks([]);
+    setBooks(books); // Reset to all books
   };
 
   const exportToExcel = () => {
@@ -314,6 +348,7 @@ const BookIssuePage = () => {
       'Days Left': `${Math.ceil((new Date(issue.DueDate).getTime() - new Date().getTime()) / (1000 * 60 * 60 * 24))} days ${Math.ceil((new Date(issue.DueDate).getTime() - new Date().getTime()) / (1000 * 60 * 60 * 24)) < 0 ? 'overdue' : 'left'}`,
       'Issued On': new Date(issue.IssueDate).toLocaleDateString(),
       'Due On': new Date(issue.DueDate).toLocaleDateString(),
+      'Return Date': issue.ReturnDate ? new Date(issue.ReturnDate).toLocaleDateString() : 'N/A',
       'Status': issue.Status,
     }));
 
@@ -422,11 +457,20 @@ const BookIssuePage = () => {
               <tbody className="bg-white divide-y divide-gray-200">
                 {filteredIssues.length === 0 ? (
                   <tr>
-                    <td colSpan={9} className="px-3 py-2 text-center text-gray-500">No book issues found</td>
+                    <td colSpan={10} className="px-3 py-2 text-center text-gray-500">No book issues found</td>
                   </tr>
                 ) : (
                   filteredIssues.map((issue, index) => {
                     const daysLeft = Math.ceil((new Date(issue.DueDate).getTime() - new Date().getTime()) / (1000 * 60 * 60 * 24));
+   const returnDate =
+  Array.isArray(issue.ReturnDate) && issue.ReturnDate[0]
+    ? new Date(issue.ReturnDate[0]).toLocaleDateString()
+    : issue.ReturnDate && !isNaN(new Date(issue.ReturnDate).getTime())
+      ? new Date(issue.ReturnDate).toLocaleDateString()
+      : 'N/A';
+
+
+
                     return (
                       <tr key={issue.IssueId} className="hover:bg-gray-50">
                         <td className="px-3 py-2">{index + 1}</td>
@@ -441,7 +485,9 @@ const BookIssuePage = () => {
                         </td>
                         <td className="px-3 py-2">{new Date(issue.IssueDate).toLocaleDateString()}</td>
                         <td className="px-3 py-2">{new Date(issue.DueDate).toLocaleDateString()}</td>
-                        <td className="px-3 py-2">{new Date(issue.ReturnDate).toLocaleDateString()}</td>
+                        <td className="px-3 py-2">{returnDate}</td>
+
+
                         <td className="px-3 py-2 text-center">
                           <span className={`px-2 py-1 text-xs rounded-full ${
                             issue.Status === 'issued' ? 'bg-blue-100 text-blue-800' :
@@ -451,7 +497,6 @@ const BookIssuePage = () => {
                             {issue.Status}
                           </span>
                         </td>
-                      
                         <td className="px-3 py-2 whitespace-nowrap">
                           {issue.Status === 'issued' && (
                             <div className="flex gap-2">
@@ -459,10 +504,20 @@ const BookIssuePage = () => {
                                 <FontAwesomeIcon icon={faEdit} /> Edit
                               </button>
                               <button onClick={() => { setSelectedIssue(issue); setIsReturnModalOpen(true); }} className="text-white bg-green-500 p-1 rounded hover:text-green-800 text-xs transition duration-200">
-                                Return
+                                <FontAwesomeIcon icon={faUndo} /> Return
                               </button>
                               <button onClick={() => { setSelectedIssue(issue); setIsRenewModalOpen(true); }} className="text-white bg-blue-500 p-1 rounded hover:text-blue-800 text-xs transition duration-200">
-                                Renew
+                                <FontAwesomeIcon icon={faRedo} /> Renew
+                              </button>
+                              <button onClick={() => { setSelectedIssue(issue); setIsDeleteModalOpen(true); }} className="text-red-600 hidden hover:text-red-800 text-xs transition duration-200">
+                                <FontAwesomeIcon icon={faTrash} /> Delete
+                              </button>
+                            </div>
+                          )}
+                          {issue.Status === 'overdue' && (
+                            <div className="flex gap-2">
+                              <button onClick={() => { setSelectedIssue(issue); setIsReturnModalOpen(true); }} className="text-white bg-green-500 p-1 rounded hover:text-green-800 text-xs transition duration-200">
+                                <FontAwesomeIcon icon={faUndo} /> Return
                               </button>
                               <button onClick={() => { setSelectedIssue(issue); setIsDeleteModalOpen(true); }} className="text-red-600 hidden hover:text-red-800 text-xs transition duration-200">
                                 <FontAwesomeIcon icon={faTrash} /> Delete
@@ -517,7 +572,7 @@ const BookIssuePage = () => {
                               e.stopPropagation();
                               setPublicationSearch('');
                               setFormData(prev => ({ ...prev, PublicationId: 0 }));
-                              setBooks(books);
+                              setBooks(books); // Reset to all books
                               setSelectedBook(null);
                             }}
                             className="text-red-500 hover:text-red-700"
@@ -673,6 +728,7 @@ const BookIssuePage = () => {
                               e.stopPropagation();
                               setStudentSearch('');
                               setFormData(prev => ({ ...prev, StudentId: 0 }));
+                              setOverdueBooks([]);
                             }}
                             className="text-red-500 hover:text-red-700"
                           >
@@ -708,6 +764,11 @@ const BookIssuePage = () => {
                       )}
                     </div>
                   </div>
+                  {overdueBooks.length > 0 && (
+                    <div className="mt-2 p-2 bg-yellow-100 border border-yellow-400 rounded text-sm text-yellow-800">
+                      <strong>Warning:</strong> This student has overdue books: {overdueBooks.map(issue => issue.BookTitle).join(', ')}
+                    </div>
+                  )}
                 </div>
 
                 <div className="bg-gray-50 p-3 rounded">
@@ -801,7 +862,7 @@ const BookIssuePage = () => {
                               e.stopPropagation();
                               setPublicationSearch('');
                               setFormData(prev => ({ ...prev, PublicationId: 0 }));
-                              setBooks(books);
+                              setBooks(books); // Reset to all books
                               setSelectedBook(null);
                             }}
                             className="text-red-500 hover:text-red-700"
@@ -957,6 +1018,7 @@ const BookIssuePage = () => {
                               e.stopPropagation();
                               setStudentSearch('');
                               setFormData(prev => ({ ...prev, StudentId: 0 }));
+                              setOverdueBooks([]);
                             }}
                             className="text-red-500 hover:text-red-700"
                           >
@@ -992,6 +1054,11 @@ const BookIssuePage = () => {
                       )}
                     </div>
                   </div>
+                  {overdueBooks.length > 0 && (
+                    <div className="mt-2 p-2 bg-yellow-100 border border-yellow-400 rounded text-sm text-yellow-800">
+                      <strong>Warning:</strong> This student has overdue books: {overdueBooks.map(issue => issue.BookTitle).join(', ')}
+                    </div>
+                  )}
                 </div>
 
                 <div className="bg-gray-50 p-3 rounded">

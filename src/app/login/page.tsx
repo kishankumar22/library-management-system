@@ -54,7 +54,7 @@ const LoginPage = () => {
     try {
       const response = await axios.post(
         '/api/auth/login',
-        { email: email.toLowerCase(), step: 'verify' },
+        { email: email.toLowerCase().trim(), step: 'verify' },
         { headers: { Authorization: `Bearer ${token}`, 'X-Remember-Me': rememberMe } }
       );
 
@@ -64,7 +64,7 @@ const LoginPage = () => {
         setUserType(data.userType);
         localStorage.setItem('token', data.token);
         localStorage.setItem('role', data.userType);
-        localStorage.setItem('rememberedUser', email.toLowerCase());
+        localStorage.setItem('rememberedUser', email.toLowerCase().trim());
         localStorage.setItem('UserDetails', JSON.stringify(data || {}));
         toast.success('Auto-login successful');
         router.push(data.userType === 'admin' ? '/admin' : '/student');
@@ -91,7 +91,7 @@ const LoginPage = () => {
     setIsLoading(true);
     try {
       const response = await axios.post('/api/auth/login', {
-        email: email.toLowerCase(),
+        email: email.toLowerCase().trim(),
         step: 'email',
       });
 
@@ -127,7 +127,7 @@ const LoginPage = () => {
     setIsLoading(true);
     try {
       const body = {
-        email: email.toLowerCase(),
+        email: email.toLowerCase().trim(),
         step: 'verify',
         ...(userType === 'admin' ? { password } : { dob }),
         rememberMe,
@@ -149,8 +149,8 @@ const LoginPage = () => {
           });
         } else if (data.token) {
           if (rememberMe) {
-            localStorage.setItem('rememberedUser', email.toLowerCase());
-            setRememberedUser(email.toLowerCase());
+            localStorage.setItem('rememberedUser', email.toLowerCase().trim());
+            setRememberedUser(email.toLowerCase().trim());
           } else {
             localStorage.removeItem('rememberedUser');
             setRememberedUser(null);
@@ -178,22 +178,30 @@ const LoginPage = () => {
   // Handle OTP verification
   const handleOtpVerification = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (!otp || otp.length !== 6) {
+      toast.error('Please enter a valid 6-digit OTP');
+      return;
+    }
     setIsLoading(true);
     try {
-      const response = await axios.post('/api/auth/otp', {
-        email: email.toLowerCase(),
-        otp: otp.trim(),
-        role: userType,
-      }, {
-        headers: { 'X-Remember-Me': rememberMe },
-      });
+      const response = await axios.post(
+        '/api/auth/otp',
+        {
+          email: email.toLowerCase().trim(),
+          otp: otp.trim(),
+          role: userType,
+        },
+        {
+          headers: { 'X-Remember-Me': rememberMe },
+        }
+      );
 
       const data = response.data;
       console.log('OTP Verification Response:', data);
       if (response.status === 200 && data.token) {
         if (rememberMe) {
-          localStorage.setItem('rememberedUser', email.toLowerCase());
-          setRememberedUser(email.toLowerCase());
+          localStorage.setItem('rememberedUser', email.toLowerCase().trim());
+          setRememberedUser(email.toLowerCase().trim());
         } else {
           localStorage.removeItem('rememberedUser');
           setRememberedUser(null);
@@ -225,7 +233,7 @@ const LoginPage = () => {
     setIsLoading(true);
     try {
       const body = {
-        email: email.toLowerCase(),
+        email: email.toLowerCase().trim(),
         step: 'verify',
         ...(userType === 'admin' ? { password } : { dob }),
         rememberMe,

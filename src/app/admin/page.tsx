@@ -96,7 +96,7 @@ export default function AdminPage() {
           axios.get('/api/book-stock-history'),
         ]);
 
-        const monthlyIssues = issuesRes.data.reduce((acc, issue) => {
+        const monthlyIssues = issuesRes.data.reduce((acc: { [x: string]: any; }, issue: { IssueDate: string | number | Date; }) => {
           const month = new Date(issue.IssueDate).toLocaleString('default', { month: 'long' });
           acc[month] = (acc[month] || 0) + 1;
           return acc;
@@ -109,11 +109,17 @@ export default function AdminPage() {
         const uniquePenalties = Array.from(
           new Map(filteredPenalties.map((item: Penalty) => [item.PenaltyId, item])).values()
         ).slice(0, 5) as Penalty[];
+        
+        const uniqueStudents = Array.from(
+          new Set(issuesRes.data.map((issue: Issue) => issue.StudentName))
+        ).slice(0, 5);
+
+
 
         setDashboardData({
           totalBooks: booksRes.data.length,
           availableBooks: availableBooksRes.data.length,
-          totalStudents: studentsRes.data.length,
+          totalStudents: uniqueStudents.length,
           totalPublications: publicationsRes.data.length,
           totalCourses: coursesRes.data.length,
           totalPenalties: penaltiesRes.data.length,
@@ -219,47 +225,40 @@ export default function AdminPage() {
         </div>
 
         {/* Stats Grid */}
-        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4 mb-4">
+        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-2 lg:grid-cols-4 gap-4  mb-4">
           <StatCard
-            title="Total Books"
-            value={dashboardData.totalBooks}
+            title="Total Books / Available Books"
+            value={`${dashboardData.totalBooks} / ${dashboardData.availableBooks}`}
             icon={Book}
-            gradient="from-blue-500 to-blue-600"
+            gradient="from-blue-500 to-blue-500"
             textColor="text-white"
-            href="http://localhost:3001/admin/book"
+            href="/admin/book"
           />
+   
           <StatCard
-            title="Available Books"
-            value={dashboardData.availableBooks}
-            icon={BookOpen}
-            gradient="from-emerald-500 to-emerald-600"
-            textColor="text-white"
-            href="http://localhost:3001/admin/book"
-          />
-          <StatCard
-            title="Total Students"
+            title="Total Issued  Students"
             value={dashboardData.totalStudents}
             icon={Users}
             gradient="from-purple-500 to-purple-600"
             textColor="text-white"
-            href="http://localhost:3001/admin/subject"
+            href="/admin/subject"
           />
           <StatCard
-            title="Publications"
-            value={dashboardData.totalPublications}
+            title="Publications / Total Books"
+            value={`${dashboardData.totalPublications} / ${dashboardData.totalBooks}`}
             icon={Building2}
             gradient="from-amber-500 to-amber-600"
             textColor="text-white"
-            href="http://localhost:3001/admin/publication"
+            href="/admin/publication"
           />
-          <StatCard
+          {/* <StatCard
             title="Total Courses"
             value={dashboardData.totalCourses}
             icon={Calendar}
             gradient="from-rose-500 to-rose-600"
             textColor="text-white"
-            href="http://localhost:3001/admin/subject"
-          />
+            href="/admin/subject"
+          /> */}
           <StatCard
             title="Active Penalties"
             value={dashboardData.totalPenalties}

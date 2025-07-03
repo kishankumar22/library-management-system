@@ -60,9 +60,9 @@ const Sidebar: React.FC<SidebarProps> = ({ role }) => {
     // { name: 'Student Report', href: '/admin/student-report', icon: FileText },
     { name: 'Book Issue', href: '/admin/book-issue', icon: BookDown },
     { name: 'Book Stock History', href: '/admin/book-stock-history', icon: BookCopy },
-    { name: 'Library Payment', href: '/admin/library-payment', icon: ClipboardList },
     // { name: 'Return Book', href: '/admin/return-book', icon: BookOpenCheck },
     { name: 'Manage Penalty', href: '/admin/penalty', icon: AlertTriangle },
+    { name: 'Payment History', href: '/admin/library-payment', icon: ClipboardList },
   ];
 
   const studentLinks = [
@@ -91,16 +91,26 @@ const Sidebar: React.FC<SidebarProps> = ({ role }) => {
           isOpen ? 'translate-x-0' : '-translate-x-full'
         } md:translate-x-0 z-10 overflow-y-auto`}
       >
-           <div className="hidden md:flex items-center space-x-3 mb-6">
-      <Image
-        src={defaultPic}
-        alt="Profile"
-        width={60}
-        height={60}
-        className="rounded-full object-cover"
-      />
-      <h2 className="text-xl font-bold text-white">Library Management</h2>
-    </div>
+<div className="hidden md:flex items-center gap-3 mb-6 px-2">
+  <div className="w-12 h-12 rounded-full overflow-hidden bg-white shadow-md">
+    <Image
+      src={defaultPic}
+      alt="JK Library Logo"
+      width={48}
+      height={48}
+      className="object-contain w-full h-full"
+      priority
+    />
+  </div>
+  <div className="flex flex-col leading-snug">
+    <h2 className="text-xl font-bold text-white">
+      JK <span className="text-yellow-400">Library</span>
+    </h2>
+    <span className="text-sm text-gray-300">Management</span>
+  </div>
+</div>
+
+
 
         <nav>
           <ul>

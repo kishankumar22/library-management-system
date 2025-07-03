@@ -30,7 +30,7 @@ export default function StudentLayout({ children }: { children: React.ReactNode 
     <div className="min-h-screen bg-gray-50">
       <Sidebar role="student" />
       <div className="flex flex-col min-h-screen md:ml-64"> {/* Sidebar offset */}
-        <Header user={{ name: 'Student User', profilePic: '/images/default-profile.png' }} onLogout={handleLogout} />
+        <Header />
         <Breadcrumb />
         <main className="flex-1 p-4 overflow-auto">{children}</main>
       </div>

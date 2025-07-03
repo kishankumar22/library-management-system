@@ -11,7 +11,7 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ message: 'Missing required fields' }, { status: 400 });
     }
 
-    const normalizedEmail = email.toLowerCase();
+    const normalizedEmail = email.toLowerCase().trim();
     const storedOtp = otpStore[normalizedEmail];
     console.log('OTP Verification - Request:', { email: normalizedEmail, otp, role });
     console.log('Stored OTP:', storedOtp);
@@ -30,6 +30,7 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ message: 'Invalid role for OTP' }, { status: 401 });
     }
 
+    // Clear OTP after successful verification
     delete otpStore[normalizedEmail];
 
     const pool = await getConnection();
