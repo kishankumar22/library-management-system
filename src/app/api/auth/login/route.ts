@@ -164,7 +164,7 @@ export async function POST(req: NextRequest) {
         }
       }
 
-      console.log('User not found');
+      console.log('User not found');
       return NextResponse.json({ message: 'User not found' }, { status: 404 });
     }
 
@@ -183,25 +183,31 @@ async function getUserData(pool: any, email: string, role: string) {
         .request()
         .input('email', email)
         .query('SELECT * FROM [User] WHERE email = @email');
+
       if (result.recordset.length > 0) {
         const user = result.recordset[0];
-        return { user_id: user.user_id, name: user.name, profilePic: user.profile_pic_url };
+        return user; // return full user record (all columns)
       }
-    } else {
+
+    } else if (role === 'student') {
       const result = await pool
         .request()
         .input('email', email)
         .query('SELECT * FROM Student WHERE email = @email');
+
       if (result.recordset.length > 0) {
         const student = result.recordset[0];
-        return { id: student.id, name: `${student.fName} ${student.lName}`, profilePic: student.studentImage };
+        return student; // return full student record (all columns)
       }
     }
+
     return null;
+
   } catch (error: any) {
     logger.error(`Error fetching user data: ${error.message}`);
     return null;
   }
 }
+
 
 export { otpStore };

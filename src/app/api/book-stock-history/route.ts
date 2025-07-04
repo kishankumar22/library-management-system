@@ -56,7 +56,7 @@ export async function PUT(req: NextRequest) {
   try {
     const { searchParams } = new URL(req.url);
     const id = searchParams.get('id');
-    const { Remarks } = await req.json();
+    const { Remarks,ModifiedBy  } = await req.json();
 
     if (!id) {
       return NextResponse.json({ message: 'BookStockHistoryId is required' }, { status: 400 });
@@ -76,7 +76,8 @@ export async function PUT(req: NextRequest) {
       .input('Id', sql.Int, id)
       .input('Remarks', sql.VarChar(255), Remarks || '')
       .input('ModifiedOn', sql.DateTime, new Date())
-      .input('ModifiedBy', sql.NVarChar, 'Kishan Kumar')
+      .input('ModifiedBy', sql.NVarChar, ModifiedBy || 'system')
+
       .query(`
         UPDATE BookStockHistory
         SET Remarks = @Remarks,
@@ -95,7 +96,7 @@ export async function PUT(req: NextRequest) {
 // ✅ POST: Add or remove copies to/from book and log history
 export async function POST(req: NextRequest) {
   try {
-    const { BookId, CopiesAdded, Remarks } = await req.json();
+    const { BookId, CopiesAdded, Remarks, CreatedBy } = await req.json();
 
     if (!BookId || Math.abs(CopiesAdded) <= 0) {
       return NextResponse.json({ error: 'BookId and valid CopiesAdded are required' }, { status: 400 });
@@ -146,7 +147,7 @@ export async function POST(req: NextRequest) {
       await transaction.request()
         .input('BookId', sql.Int, BookId)
         .input('CopiesAdded', sql.Int, CopiesAdded)
-        .input('CreatedBy', sql.NVarChar, 'Kishan Kumar')
+        .input('CreatedBy', sql.NVarChar, CreatedBy || 'system')
         .input('CreatedOn', sql.DateTime, new Date())
         .input('Remarks', sql.VarChar(255), Remarks || '')
         .query(`

@@ -1,4 +1,5 @@
 'use client';
+import { useUser } from '@/app/hooks/useUser';
 
 import React, { useState, useEffect, useMemo } from 'react';
 import axios from 'axios';
@@ -33,6 +34,7 @@ const ManagePenalty = () => {
     ReceivedDate: new Date().toISOString().split('T')[0],
   });
   const [paymentHistory, setPaymentHistory] = useState([]);
+  const user = useUser();
 
   useEffect(() => {
     fetchPenalties();
@@ -143,19 +145,20 @@ const ManagePenalty = () => {
     }
 
     try {
-      await axios.post(
-        '/api/penalty',
-        {
-          IssueId: selectedPenalty.IssueId,
-          StudentId: selectedPenalty.StudentId,
-          AmountPaid: amountToPay,
-          PaymentMode: paymentData.PaymentMode,
-          TransactionId: paymentData.TransactionId || null,
-          ReceiveBy: 'Kishan Kumar',
-          CreatedBy: 'Kishan Kumar',
-        },
-        { timeout: 30000 }
-      );
+await axios.post(
+  '/api/penalty',
+  {
+    IssueId: selectedPenalty.IssueId,
+    StudentId: selectedPenalty.StudentId,
+    AmountPaid: amountToPay,
+    PaymentMode: paymentData.PaymentMode,
+    TransactionId: paymentData.TransactionId || null,
+    ReceiveBy: user?.name || 'Admin',
+    CreatedBy: user?.name || 'Admin',
+  },
+  { timeout: 30000 }
+);
+
       setIsPaymentModalOpen(false);
       fetchPenalties();
       alert('Payment saved successfully');
@@ -476,5 +479,4 @@ const ManagePenalty = () => {
     </div>
   );
 };
-
 export default ManagePenalty;

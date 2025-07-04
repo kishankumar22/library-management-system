@@ -1,17 +1,139 @@
-2025-07-03 12:52:48 [INFO] SMTP connection verified for kishan143ku@gmail.com
-2025-07-03 12:52:51 [INFO] OTP sent successfully to kishankumar73001@gmail.com
-2025-07-03 14:14:16 [ERROR] Student 68 already has an issued book
-2025-07-03 14:20:41 [ERROR] Student 68 has already issued 5 books
-2025-07-03 14:21:20 [ERROR] Student 68 has already issued 5 books
-2025-07-03 14:21:56 [ERROR] Student 68 already has an issued book
-2025-07-03 14:22:52 [INFO] Book issued successfully: 3 to student 68
-2025-07-03 14:23:39 [INFO] Book issue updated successfully: 16
-2025-07-03 14:24:15 [INFO] Book issued successfully: 1 to student 68
-2025-07-03 14:30:43 [ERROR] Student 68 already has an issued book
-2025-07-03 14:30:47 [ERROR] Student 68 already has an issued book
-2025-07-03 14:33:03 [INFO] Book issue updated successfully: 17
-2025-07-03 14:55:01 [ERROR] Error fetching book issues
-RequestError: Conversion failed when converting date and/or time from character string.
+2025-07-04 13:01:35 [INFO] Subject ANATOMY added successfully
+2025-07-04 13:02:17 [INFO] Publication ARIHANT added successfully
+2025-07-04 13:05:26 [INFO] POST Middleware executed, file:
+2025-07-04 13:05:26 [INFO] File detected in formData: Community Phrmacy.jpg
+2025-07-04 13:05:26 [WARN] No file uploaded
+2025-07-04 13:05:26 [INFO] Book added: COMMUNITY PHARMACY
+2025-07-04 13:08:08 [INFO] Book issued successfully: 1 to student 65
+2025-07-04 13:09:08 [INFO] Book returned successfully: 1
+2025-07-04 13:10:08 [INFO] Book added for BookId: 1
+2025-07-04 13:39:11 [INFO] PUT FormData processed
+2025-07-04 13:39:11 [INFO] File detected in formData: Community Phrmacy.jpg
+2025-07-04 13:39:11 [INFO] Manually saved file at: C:\Users\Windows\Desktop\New Projetct\library-management-system\public\Books\Community Phrmacy.jpg
+2025-07-04 13:39:11 [INFO] New file saved at: /Books/Community Phrmacy.jpg
+2025-07-04 13:39:11 [INFO] Book updated: COMMUNITY PHARMACY
+2025-07-04 13:51:27 [INFO] File detected in formData: Career.jpg, size: 102457
+2025-07-04 13:51:27 [INFO] File saved at: C:\Users\Windows\Desktop\New Projetct\library-management-system\public\Books\Career.jpg
+2025-07-04 13:51:27 [INFO] New file saved at: /Books/Career.jpg
+2025-07-04 13:51:27 [INFO] Book updated: COMMUNITY PHARMACY
+2025-07-04 13:57:19 [INFO] PUT FormData processed
+2025-07-04 13:57:19 [INFO] File detected in formData: Community Phrmacy.jpg
+2025-07-04 13:57:19 [INFO] Manually saved file at: C:\Users\Windows\Desktop\New Projetct\library-management-system\public\Books\Community Phrmacy.jpg
+2025-07-04 13:57:19 [INFO] New file saved at: /Books/Community Phrmacy.jpg
+2025-07-04 13:57:19 [INFO] Book updated: COMMUNITY PHARMACY
+2025-07-04 13:58:00 [INFO] File detected in formData: Career.jpg
+2025-07-04 13:58:06 [INFO] File detected in formData: Career.jpg
+2025-07-04 13:58:06 [INFO] Manually saved file at: C:\Users\Windows\Desktop\New Projetct\library-management-system\public\Books\Career.jpg
+2025-07-04 13:58:06 [INFO] File saved at: /Books/Career.jpg
+2025-07-04 13:58:06 [INFO] Book added: COMMUNITY PHARMACY V1
+2025-07-04 13:58:23 [ERROR] Error deleting book: RequestError: The DELETE statement conflicted with the REFERENCE constraint "FK_BookIssue_Book". The conflict occurred in database "jkconsultancyadmindb", table "dbo.BookIssue", column 'BookId'.
+2025-07-04 13:58:25 [ERROR] Failed to delete photo: Error: ENOENT: no such file or directory, unlink 'C:\Users\Windows\Desktop\New Projetct\library-management-system\public\Books\Community Phrmacy.jpg'
+2025-07-04 13:58:25 [ERROR] Error deleting book: RequestError: The DELETE statement conflicted with the REFERENCE constraint "FK_BookIssue_Book". The conflict occurred in database "jkconsultancyadmindb", table "dbo.BookIssue", column 'BookId'.
+2025-07-04 13:58:28 [INFO] Book deleted: 2
+2025-07-04 13:58:31 [ERROR] Failed to delete photo: Error: ENOENT: no such file or directory, unlink 'C:\Users\Windows\Desktop\New Projetct\library-management-system\public\Books\Community Phrmacy.jpg'
+2025-07-04 13:58:31 [ERROR] Error deleting book: RequestError: The DELETE statement conflicted with the REFERENCE constraint "FK_BookIssue_Book". The conflict occurred in database "jkconsultancyadmindb", table "dbo.BookIssue", column 'BookId'.
+2025-07-04 13:59:47 [INFO] Subject A DICTIONARY OF BOTONY added successfully
+2025-07-04 14:00:12 [INFO] Publication NIRALI PRAKASHAN added successfully
+2025-07-04 14:02:09 [INFO] File detected in formData: Community Phrmacy.jpg
+2025-07-04 14:02:09 [INFO] Manually saved file at: C:\Users\Windows\Desktop\New Projetct\library-management-system\public\Books\Community Phrmacy.jpg
+2025-07-04 14:02:09 [INFO] File saved at: /Books/Community Phrmacy.jpg
+2025-07-04 14:02:09 [INFO] Book added:    psycology facts
+2025-07-04 14:04:07 [INFO] Book issued successfully: 3 to student 68
+2025-07-04 14:06:37 [INFO] Subject ATLAS OF ANATOMY added successfully
+2025-07-04 14:06:59 [INFO] Publication ARYA PUBLICATIONS added successfully
+2025-07-04 14:07:09 [INFO] Publication JSS PUBLICATIONS added successfully
+2025-07-04 14:07:24 [INFO] Subject CATALOGUE added successfully
+2025-07-04 14:07:32 [ERROR] Error deleting book: RequestError: The DELETE statement conflicted with the REFERENCE constraint "FK_BookIssue_Book". The conflict occurred in database "jkconsultancyadmindb", table "dbo.BookIssue", column 'BookId'.
+2025-07-04 14:07:35 [ERROR] Failed to delete photo: Error: ENOENT: no such file or directory, unlink 'C:\Users\Windows\Desktop\New Projetct\library-management-system\public\Books\Community Phrmacy.jpg'
+2025-07-04 14:07:35 [ERROR] Error deleting book: RequestError: The DELETE statement conflicted with the REFERENCE constraint "FK_BookIssue_Book". The conflict occurred in database "jkconsultancyadmindb", table "dbo.BookIssue", column 'BookId'.
+2025-07-04 14:07:37 [ERROR] Failed to delete photo: Error: ENOENT: no such file or directory, unlink 'C:\Users\Windows\Desktop\New Projetct\library-management-system\public\Books\Community Phrmacy.jpg'
+2025-07-04 14:07:37 [ERROR] Error deleting book: RequestError: The DELETE statement conflicted with the REFERENCE constraint "FK_BookIssue_Book". The conflict occurred in database "jkconsultancyadmindb", table "dbo.BookIssue", column 'BookId'.
+2025-07-04 14:09:17 [INFO] File detected in formData: pic8.png
+2025-07-04 14:09:17 [INFO] Manually saved file at: C:\Users\Windows\Desktop\New Projetct\library-management-system\public\Books\pic8.png
+2025-07-04 14:09:17 [INFO] File saved at: /Books/pic8.png
+2025-07-04 14:09:17 [INFO] Book added:    psycology facts
+2025-07-04 14:09:49 [INFO] PUT FormData processed
+2025-07-04 14:09:49 [INFO] File detected in formData: pddu.jpg
+2025-07-04 14:09:49 [INFO] Manually saved file at: C:\Users\Windows\Desktop\New Projetct\library-management-system\public\Books\pddu.jpg
+2025-07-04 14:09:49 [INFO] New file saved at: /Books/pddu.jpg
+2025-07-04 14:09:49 [INFO] Book updated:    psycology facts
+2025-07-04 14:10:14 [INFO] PUT FormData processed
+2025-07-04 14:10:14 [INFO] File detected in formData: pic1.png
+2025-07-04 14:10:14 [INFO] Manually saved file at: C:\Users\Windows\Desktop\New Projetct\library-management-system\public\Books\pic1.png
+2025-07-04 14:10:14 [INFO] New file saved at: /Books/pic1.png
+2025-07-04 14:10:14 [ERROR] Failed to delete old photo: Error: ENOENT: no such file or directory, unlink 'C:\Users\Windows\Desktop\New Projetct\library-management-system\public\Books\Community Phrmacy.jpg'
+2025-07-04 14:10:14 [INFO] Book updated:    psycology facts
+2025-07-04 14:10:40 [INFO] PUT FormData processed
+2025-07-04 14:10:40 [INFO] File detected in formData: Community Phrmacy.jpg
+2025-07-04 14:10:40 [INFO] Manually saved file at: C:\Users\Windows\Desktop\New Projetct\library-management-system\public\Books\Community Phrmacy.jpg
+2025-07-04 14:10:40 [INFO] New file saved at: /Books/Community Phrmacy.jpg
+2025-07-04 14:10:40 [INFO] Book updated: COMMUNITY PHARMACY
+2025-07-04 14:11:06 [INFO] PUT FormData processed
+2025-07-04 14:11:06 [INFO] File detected in formData: Career.jpg
+2025-07-04 14:11:06 [INFO] Manually saved file at: C:\Users\Windows\Desktop\New Projetct\library-management-system\public\Books\Career.jpg
+2025-07-04 14:11:06 [INFO] New file saved at: /Books/Career.jpg
+2025-07-04 14:11:06 [ERROR] Failed to delete old photo: Error: ENOENT: no such file or directory, unlink 'C:\Users\Windows\Desktop\New Projetct\library-management-system\public\Books\Community Phrmacy.jpg'
+2025-07-04 14:11:06 [INFO] Book updated: COMMUNITY PHARMACY
+2025-07-04 14:16:42 [INFO] Book renewed successfully: 2 for 1 days
+2025-07-04 14:19:12 [INFO] Book removed for BookId: 3
+2025-07-04 14:21:19 [ERROR] Book not in issued state: 2
+2025-07-04 14:21:23 [ERROR] Book not in issued state: 2
+2025-07-04 14:21:25 [ERROR] Book not in issued state: 2
+2025-07-04 14:21:31 [ERROR] Book not in issued state: 2
+2025-07-04 14:21:38 [ERROR] Book not in issued state: 2
+2025-07-04 14:21:47 [ERROR] Book not in issued state: 2
+2025-07-04 14:21:50 [ERROR] Book not in issued state: 2
+2025-07-04 14:23:01 [ERROR] Book not in issued state: 2
+2025-07-04 14:25:41 [ERROR] Book not in issued state: 2
+2025-07-04 14:25:43 [ERROR] Book not in issued state: 2
+2025-07-04 14:25:52 [ERROR] Book not in issued state: 2
+2025-07-04 14:25:59 [ERROR] Book not in issued state: 2
+2025-07-04 14:26:06 [ERROR] Book not in issued state: 2
+2025-07-04 14:30:16 [INFO] Book returned successfully: 2
+2025-07-04 14:33:29 [INFO] Book returned successfully: 2
+2025-07-04 14:42:28 [INFO] Book returned successfully: 2
+2025-07-04 14:46:51 [INFO] Book returned successfully: 2
+2025-07-04 14:50:00 [INFO] Book returned successfully: 2
+2025-07-04 15:00:40 [INFO] Book returned successfully: 2 by Kishan Kumar
+2025-07-04 15:02:35 [INFO] Book returned successfully: 2 by Kishan Kumar
+2025-07-04 15:04:15 [INFO] Book issued successfully: 1 to student 68 by Kishan Kumar
+2025-07-04 15:04:46 [ERROR] This book is already issued to the student: Book 1, Student 68
+2025-07-04 15:13:00 [INFO] Book returned successfully: 2 by Kishan Kumar
+2025-07-04 15:27:19 [INFO] Book returned successfully: 2 by Kishan Kumar
+2025-07-04 15:28:04 [INFO] Book returned successfully: 2 by Kishan Kumar
+2025-07-04 15:32:39 [INFO] Book returned successfully: 2 by Kishan Kumar
+2025-07-04 15:32:44 [INFO] Book returned successfully: 3 by Kishan Kumar
+2025-07-04 15:34:42 [ERROR] Payment exceeds penalty amount for IssueId: 2
+2025-07-04 15:34:48 [ERROR] Payment exceeds penalty amount for IssueId: 2
+2025-07-04 15:35:07 [INFO] Payment created successfully for IssueId: 2, StudentId: 68
+2025-07-04 15:40:33 [ERROR] Payment exceeds penalty amount for IssueId: 2
+2025-07-04 15:40:48 [ERROR] Payment exceeds penalty amount for IssueId: 2
+2025-07-04 15:41:27 [ERROR] Payment exceeds penalty amount for IssueId: 2
+2025-07-04 15:41:34 [ERROR] Payment exceeds penalty amount for IssueId: 2
+2025-07-04 15:41:49 [INFO] Payment created successfully for IssueId: 2, StudentId: 68
+2025-07-04 15:49:23 [ERROR] Book not in issued state: 2
+2025-07-04 15:50:19 [ERROR] Book not in issued state: 2
+2025-07-04 15:56:30 [INFO] Book returned successfully: 2
+2025-07-04 15:56:45 [INFO] Payment created successfully for IssueId: 2, StudentId: 68
+2025-07-04 15:58:58 [INFO] Book returned successfully: 2
+2025-07-04 16:00:00 [INFO] Book returned successfully: 2
+2025-07-04 16:04:54 [INFO] Book issued successfully: 1 to student 68
+2025-07-04 16:05:12 [INFO] Book returned successfully: 1
+2025-07-04 16:05:57 [INFO] Book issued successfully: 1 to student 68
+2025-07-04 16:06:11 [INFO] Book issue updated successfully: 2
+2025-07-04 16:07:49 [INFO] Book returned successfully: 2
+2025-07-04 16:18:38 [INFO] Book returned successfully: 2
+2025-07-04 16:19:34 [INFO] Book returned successfully: 2
+2025-07-04 16:20:54 [INFO] Book returned successfully: 2
+2025-07-04 16:21:20 [INFO] Book returned successfully: 2
+2025-07-04 16:22:19 [INFO] Book returned successfully: 2
+2025-07-04 16:26:12 [INFO] Book returned successfully: 2
+2025-07-04 16:27:55 [INFO] Payment created successfully for IssueId: 2, StudentId: 68
+2025-07-04 16:34:11 [INFO] Payment created successfully for IssueId: 2, StudentId: 68
+2025-07-04 16:42:28 [INFO] Book returned successfully: 2
+2025-07-04 16:42:59 [INFO] Payment created successfully for IssueId: 2, StudentId: 68
+2025-07-04 16:52:32 [ERROR] Transaction failed during payment creation
+RequestError: Invalid column name 'ReceivedDate'.
     at handleError (C:\Users\Windows\Desktop\New Projetct\library-management-system\.next\server\chunks\node_modules_mssql_93e55d20._.js:3584:23)
     at Connection.emit (node:events:518:28)
     at Connection.emit (C:\Users\Windows\Desktop\New Projetct\library-management-system\.next\server\chunks\node_modules_tedious_lib_connection_cdf92d37.js:879:22)
@@ -23,8 +145,8 @@ RequestError: Conversion failed when converting date and/or time from character 
     at Readable.push (node:internal/streams/readable:393:5)
     at nextAsync (node:internal/streams/from:194:22)
     at process.processTicksAndRejections (node:internal/process/task_queues:105:5)
-2025-07-03 14:55:06 [ERROR] Error fetching book issues
-RequestError: Conversion failed when converting date and/or time from character string.
+2025-07-04 16:52:42 [ERROR] Transaction failed during payment creation
+RequestError: Invalid column name 'ReceivedDate'.
     at handleError (C:\Users\Windows\Desktop\New Projetct\library-management-system\.next\server\chunks\node_modules_mssql_93e55d20._.js:3584:23)
     at Connection.emit (node:events:518:28)
     at Connection.emit (C:\Users\Windows\Desktop\New Projetct\library-management-system\.next\server\chunks\node_modules_tedious_lib_connection_cdf92d37.js:879:22)
@@ -36,67 +158,25 @@ RequestError: Conversion failed when converting date and/or time from character 
     at Readable.push (node:internal/streams/readable:393:5)
     at nextAsync (node:internal/streams/from:194:22)
     at process.processTicksAndRejections (node:internal/process/task_queues:105:5)
-2025-07-03 14:55:27 [ERROR] Error fetching book issues
-RequestError: Conversion failed when converting date and/or time from character string.
-    at handleError (C:\Users\Windows\Desktop\New Projetct\library-management-system\.next\server\chunks\node_modules_mssql_93e55d20._.js:3584:23)
-    at Connection.emit (node:events:518:28)
-    at Connection.emit (C:\Users\Windows\Desktop\New Projetct\library-management-system\.next\server\chunks\node_modules_tedious_lib_connection_cdf92d37.js:879:22)
-    at RequestTokenHandler.onErrorMessage (C:\Users\Windows\Desktop\New Projetct\library-management-system\.next\server\chunks\node_modules_tedious_lib_token_778d00c4._.js:2122:25)
-    at Readable.<anonymous> (C:\Users\Windows\Desktop\New Projetct\library-management-system\.next\server\chunks\node_modules_tedious_lib_token_778d00c4._.js:1823:39)
-    at Readable.emit (node:events:518:28)
-    at addChunk (node:internal/streams/readable:561:12)
-    at readableAddChunkPushObjectMode (node:internal/streams/readable:538:3)
-    at Readable.push (node:internal/streams/readable:393:5)
-    at nextAsync (node:internal/streams/from:194:22)
-    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)
-2025-07-03 14:56:57 [ERROR] Error fetching book issues
-RequestError: Conversion failed when converting date and/or time from character string.
-    at handleError (C:\Users\Windows\Desktop\New Projetct\library-management-system\.next\server\chunks\node_modules_mssql_93e55d20._.js:3584:23)
-    at Connection.emit (node:events:518:28)
-    at Connection.emit (C:\Users\Windows\Desktop\New Projetct\library-management-system\.next\server\chunks\node_modules_tedious_lib_connection_cdf92d37.js:879:22)
-    at RequestTokenHandler.onErrorMessage (C:\Users\Windows\Desktop\New Projetct\library-management-system\.next\server\chunks\node_modules_tedious_lib_token_778d00c4._.js:2122:25)
-    at Readable.<anonymous> (C:\Users\Windows\Desktop\New Projetct\library-management-system\.next\server\chunks\node_modules_tedious_lib_token_778d00c4._.js:1823:39)
-    at Readable.emit (node:events:518:28)
-    at addChunk (node:internal/streams/readable:561:12)
-    at readableAddChunkPushObjectMode (node:internal/streams/readable:538:3)
-    at Readable.push (node:internal/streams/readable:393:5)
-    at nextAsync (node:internal/streams/from:194:22)
-    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)
-2025-07-03 15:00:06 [ERROR] Book 1 is already issued to student 68
-2025-07-03 15:15:24 [ERROR] Book 1 is already issued to student 68
-2025-07-03 15:17:10 [INFO] Book issued successfully: 3 to student 68
-2025-07-03 15:18:43 [ERROR] Book 3 is already issued to student 68
-2025-07-03 15:18:53 [ERROR] Book 3 is already issued to student 68
-2025-07-03 15:20:14 [ERROR] Book 1 is already issued to student 68
-2025-07-03 15:20:17 [ERROR] Book 1 is already issued to student 68
-2025-07-03 15:20:19 [ERROR] Book 1 is already issued to student 68
-2025-07-03 15:20:33 [INFO] Book issue deleted successfully: 17
-2025-07-03 15:20:37 [INFO] Book issue deleted successfully: 16
-2025-07-03 15:20:39 [INFO] Book issue deleted successfully: 18
-2025-07-03 15:20:42 [ERROR] Book not in issued state: 15
-2025-07-03 15:20:45 [ERROR] Book not in issued state: 15
-2025-07-03 15:20:48 [ERROR] Book not in issued state: 15
-2025-07-03 15:20:55 [ERROR] Book not in issued state: 15
-2025-07-03 15:21:08 [ERROR] Book not in issued state: 15
-2025-07-03 15:21:12 [ERROR] Book not in issued state: 15
-2025-07-03 15:21:32 [ERROR] Book not in issued state: 15
-2025-07-03 15:41:51 [ERROR] Book 3 is already issued to student 68
-2025-07-03 17:38:59 [INFO] Book issued successfully: 3 to student 68
-2025-07-03 17:47:56 [ERROR] This book is overdue and cannot be issued again until returned: Book 3, Student 68
-2025-07-03 17:47:59 [ERROR] This book is overdue and cannot be issued again until returned: Book 3, Student 68
-2025-07-03 17:48:17 [ERROR] This book is overdue and cannot be issued again until returned: Book 3, Student 68
-2025-07-03 17:48:20 [ERROR] This book is overdue and cannot be issued again until returned: Book 3, Student 68
-2025-07-03 17:48:21 [ERROR] This book is overdue and cannot be issued again until returned: Book 3, Student 68
-2025-07-03 17:48:22 [ERROR] This book is overdue and cannot be issued again until returned: Book 3, Student 68
-2025-07-03 17:48:35 [ERROR] This book is overdue and cannot be issued again until returned: Book 3, Student 68
-2025-07-03 17:48:38 [ERROR] This book is overdue and cannot be issued again until returned: Book 3, Student 68
-2025-07-03 17:48:44 [ERROR] This book is overdue and cannot be issued again until returned: Book 3, Student 68
-2025-07-03 17:49:39 [ERROR] This book is overdue and cannot be issued again until returned: Book 3, Student 68
-2025-07-03 17:51:52 [ERROR] This book is overdue and cannot be issued again until returned: Book 3, Student 68
-2025-07-03 17:52:30 [ERROR] This book is overdue and cannot be issued again until returned: Book 3, Student 68
-2025-07-03 17:52:32 [ERROR] This book is overdue and cannot be issued again until returned: Book 3, Student 68
-2025-07-03 17:52:34 [ERROR] This book is overdue and cannot be issued again until returned: Book 3, Student 68
-2025-07-03 17:54:58 [ERROR] This book is overdue and cannot be issued again until returned: Book 3, Student 68
-2025-07-03 17:55:02 [ERROR] This book is overdue and cannot be issued again until returned: Book 3, Student 68
-2025-07-03 17:57:13 [ERROR] This book is overdue and cannot be issued again until returned: Book 3, Student 68
-2025-07-03 18:04:24 [INFO] Book issue updated successfully: 19
+2025-07-04 16:53:32 [INFO] Payment created successfully for IssueId: 2, StudentId: 68
+2025-07-04 17:03:32 [INFO] Book issue updated successfully: 2
+2025-07-04 17:10:34 [INFO] Book returned successfully: 2
+2025-07-04 17:19:02 [INFO] Book issue updated successfully: 2
+2025-07-04 17:21:19 [INFO] Book issue updated successfully: 2
+2025-07-04 17:23:59 [INFO] Book renewed successfully: 2 for 7 days
+2025-07-04 17:24:50 [INFO] Book returned successfully: 2
+2025-07-04 17:26:38 [INFO] Book renewed successfully: 1 for 1 days
+2025-07-04 17:27:15 [INFO] Book issue updated successfully: 1
+2025-07-04 17:27:35 [INFO] Book returned successfully: 1
+2025-07-04 17:30:04 [INFO] Book issue updated successfully: 1
+2025-07-04 17:30:34 [INFO] Book returned successfully: 1
+2025-07-04 17:30:57 [INFO] Book issue updated successfully: 1
+2025-07-04 17:37:06 [INFO] Book renewed successfully: 1 for 7 days
+2025-07-04 17:37:49 [INFO] Book returned successfully: 1
+2025-07-04 17:38:31 [INFO] Book renewed successfully: 2 for 1 days
+2025-07-04 17:38:47 [INFO] Book renewed successfully: 2 for 7 days
+2025-07-04 17:38:58 [INFO] Book returned successfully: 2
+2025-07-04 17:39:41 [INFO] Book renewed successfully: 2 for 1 days
+2025-07-04 17:39:51 [INFO] Book returned successfully: 2
+2025-07-04 18:16:24 [INFO] SMTP connection verified for kishan143ku@gmail.com
+2025-07-04 18:16:27 [INFO] OTP sent successfully to kishankumar73001@gmail.com

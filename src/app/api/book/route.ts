@@ -30,7 +30,6 @@ const storage = multer.diskStorage({
         cb(null, `${uniqueName}${ext}`);
       }
     };
-
     checkFile();
   },
 });
@@ -127,10 +126,7 @@ export async function GET(req: NextRequest) {
 
 export async function POST(req: NextRequest) {
   try {
-    await runMiddleware(req, NextResponse.next(), uploadMiddleware);
-    logger.info('POST Middleware executed, file:', (req as any).file);
-
-    const body = await parseFormData(req);
+    const { body, file } = await parseFormData(req);
     const {
       IsbnNumber, Title, Author, Details, CourseId, Price, SubjectId, PublicationId,
       TotalCopies, Edition, Language, PublishedYear, CreatedBy, Barcode
@@ -163,10 +159,14 @@ export async function POST(req: NextRequest) {
     }
 
     let bookPhotoPath = '';
-    const file = (req as any).file;
     if (file) {
-      bookPhotoPath = `/Books/${file.filename}`;
-      logger.info(`File saved at: ${bookPhotoPath}`);
+      const uploadResult = await handleManualFileUpload(file);
+      if (uploadResult) {
+        bookPhotoPath = `/Books/${uploadResult.filename}`;
+        logger.info(`File saved at: ${bookPhotoPath}`);
+      } else {
+        logger.warn('File upload failed');
+      }
     } else {
       logger.warn('No file uploaded');
     }
@@ -186,7 +186,7 @@ export async function POST(req: NextRequest) {
       .input('Language', Language || null)
       .input('PublishedYear', PublishedYear ? parseInt(PublishedYear) : null)
       .input('CreatedBy', CreatedBy || 'admin')
-      .input('BookPhoto', bookPhotoPath)
+      .input('BookPhoto', bookPhotoPath || null)
       .input('Barcode', Barcode || null)
       .query(`
         INSERT INTO Books (
@@ -201,7 +201,7 @@ export async function POST(req: NextRequest) {
     logger.info(`Book added: ${Title}`);
     return NextResponse.json({ message: 'Book added successfully' });
   } catch (error: any) {
-    logger.error(`Error adding book: ${error.message}`);
+    logger.error(`Error adding book: ${error.message}`, { stack: error.stack });
     return NextResponse.json({ message: error.message || 'Internal server error' }, { status: 500 });
   }
 }
@@ -334,16 +334,19 @@ export async function DELETE(req: NextRequest) {
 
 export async function PATCH(req: NextRequest) {
   try {
-    const { BookId, IsActive } = await req.json();
-    if (!BookId || IsActive === undefined) {
-      return NextResponse.json({ message: 'BookId and IsActive are required' }, { status: 400 });
+    const { BookId, IsActive, ModifiedBy } = await req.json();
+
+    // ✅ Input validation
+    if (!BookId || typeof IsActive !== 'boolean') {
+      return NextResponse.json({ message: 'BookId and IsActive (true/false) are required' }, { status: 400 });
     }
 
     const pool = await getConnection();
+
     await pool.request()
       .input('BookId', BookId)
       .input('IsActive', IsActive)
-      .input('ModifiedBy', 'admin')
+      .input('ModifiedBy', ModifiedBy || 'system') // fallback to 'system' if not provided
       .input('ModifiedOn', new Date().toISOString())
       .query(`
         UPDATE Books SET
@@ -353,26 +356,30 @@ export async function PATCH(req: NextRequest) {
         WHERE BookId = @BookId
       `);
 
-    logger.info(`Book ${IsActive ? 'activated' : 'deactivated'}: ${BookId}`);
-    return NextResponse.json({ message: `Book ${IsActive ? 'activated' : 'deactivated'} successfully` });
-  } catch (error) {
-    logger.error(`Error toggling book status: ${error}`);
+    const statusText = IsActive ? 'activated' : 'deactivated';
+    logger.info(`Book ${statusText} | ID: ${BookId} | ModifiedBy: ${ModifiedBy || 'system'}`);
+
+    return NextResponse.json({ message: `Book ${statusText} successfully` });
+  } catch (error: any) {
+    logger.error(`Error toggling book status: ${error.message}`);
     return NextResponse.json({ message: 'Internal server error' }, { status: 500 });
   }
 }
 
 // Helper function to parse form data
-async function parseFormData(req: NextRequest): Promise<{ [key: string]: string }> {
+async function parseFormData(req: NextRequest): Promise<{ body: { [key: string]: string }, file: File | null }> {
   const formData = await req.formData();
   const body: { [key: string]: string } = {};
+  let file: File | null = null;
   for (const [key, value] of formData.entries()) {
     if (typeof value === 'string') {
       body[key] = value;
     } else if (key === 'BookPhoto' && value instanceof File) {
+      file = value;
       logger.info(`File detected in formData: ${value.name}`);
     }
   }
-  return body;
+  return { body, file };
 }
 
 // Manual file upload function

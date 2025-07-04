@@ -1,4 +1,6 @@
 'use client';
+import { useUser } from '@/app/hooks/useUser';
+
 
 import { useEffect, useState, useRef } from 'react';
 import { toast } from 'react-toastify';
@@ -7,8 +9,7 @@ import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { 
   faSpinner, 
   faEye, 
-  faEyeSlash, 
-  faArrowLeft, 
+  faEyeSlash,
   faPlus, 
   faEdit, 
   faTrash, 
@@ -33,6 +34,7 @@ const PublicationsPage = () => {
   const [statusFilter, setStatusFilter] = useState<'all' | 'active' | 'inactive'>('all');
   const [loading, setLoading] = useState(true);
   const [tableLoading, setTableLoading] = useState(false);
+ const user = useUser();
 
   const modalRef = useRef<HTMLDivElement>(null);
   const confirmModalRef = useRef<HTMLDivElement>(null);
@@ -86,42 +88,49 @@ const PublicationsPage = () => {
       .toUpperCase();
   };
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    const formattedName = sanitizeAndFormatName(name);
-    if (!formattedName) {
-      toast.error('Please enter a valid publication name');
-      return;
-    }
-    if (formattedName.length > 100) {
-      toast.error('Publication name cannot exceed 100 characters');
-      return;
-    }
+ const handleSubmit = async (e: React.FormEvent) => {
+  e.preventDefault();
 
-    try {
-      const payload = {
-        Name: formattedName,
-        IsActive: true,
-        CreatedBy: 'admin',
-        CreatedOn: new Date().toISOString(), // Default for new records
-        ...(editingId && { PubId: editingId, ModifiedBy: 'admin', ModifiedOn: new Date().toISOString() }),
-      };
+  const formattedName = sanitizeAndFormatName(name);
+  if (!formattedName) {
+    toast.error('Please enter a valid publication name');
+    return;
+  }
+  if (formattedName.length > 100) {
+    toast.error('Publication name cannot exceed 100 characters');
+    return;
+  }
 
-      const res = await axios({
-        method: editingId ? 'put' : 'post',
-        url: '/api/publication',
-        data: payload,
-      });
+  try {
+    const timestamp = new Date().toISOString();
+    const payload = {
+      Name: formattedName,
+      IsActive: true,
+      CreatedBy: user?.name || 'system',
+      CreatedOn: timestamp,
+      ...(editingId && {
+        PubId: editingId,
+        ModifiedBy: user?.name || 'system',
+        ModifiedOn: timestamp,
+      }),
+    };
 
-      toast.success(editingId ? 'Publication updated' : 'Publication added');
-      setName('');
-      setEditingId(null);
-      setIsModalOpen(false);
-      fetchPublications();
-    } catch (error) {
-      toast.error('An error occurred');
-    }
-  };
+    const res = await axios({
+      method: editingId ? 'put' : 'post',
+      url: '/api/publication',
+      data: payload,
+    });
+
+    toast.success(editingId ? 'Publication updated' : 'Publication added');
+    setName('');
+    setEditingId(null);
+    setIsModalOpen(false);
+    fetchPublications();
+  } catch (error) {
+    toast.error('An error occurred');
+  }
+};
+
 
   const handleEdit = (publication: Publication) => {
     setName(publication.Name);
@@ -129,39 +138,48 @@ const PublicationsPage = () => {
     setIsModalOpen(true);
   };
 
-  const handleDelete = async () => {
-    if (!confirmId) return;
-    try {
-      await axios.delete('/api/publication', { data: { PubId: confirmId } });
-      toast.success('Publication deleted');
-      setIsConfirmModalOpen(false);
-      fetchPublications();
-    } catch (error) {
-      toast.error('An error occurred');
-    }
-  };
+ const handleDelete = async () => {
+  if (!confirmId) return;
+  try {
+    await axios.delete('/api/publication', { data: { PubId: confirmId } });
+    toast.success('Publication deleted successfully');
+    setIsConfirmModalOpen(false);
+    fetchPublications();
+  } catch (error: any) {
+    const status = error.response?.status;
+    const message =
+      status === 409
+        ? error.response?.data?.message
+        : error.response?.data?.message || 'Failed to delete publication';
+    toast.error(message);
+  }
+};
 
-  const handleToggleActive = async () => {
-    if (!confirmId || confirmStatus === null) return;
-    try {
-      const publication = publications.find(p => p.PubId === confirmId);
-      if (!publication) throw new Error('Publication not found');
 
-      await axios.put('/api/publication', {
-        PubId: confirmId,
-        Name: publication.Name,
-        IsActive: !confirmStatus,
-        ModifiedBy: 'admin',
-        ModifiedOn: new Date().toISOString(),
-      });
-      toast.success(`Publication ${confirmStatus ? 'deactivated' : 'activated'}`);
-      setIsConfirmModalOpen(false);
-      fetchPublications();
-    } catch (error: any) {
-      const errorMsg = error.response?.data?.message || 'An error occurred';
-      toast.error(errorMsg);
-    }
-  };
+ const handleToggleActive = async () => {
+  if (!confirmId || confirmStatus === null) return;
+
+  try {
+    const publication = publications.find(p => p.PubId === confirmId);
+    if (!publication) throw new Error('Publication not found');
+
+    await axios.put('/api/publication', {
+      PubId: confirmId,
+      Name: publication.Name,
+      IsActive: !confirmStatus,
+      ModifiedBy: user?.name || 'system',
+      ModifiedOn: new Date().toISOString(),
+    });
+
+    toast.success(`Publication ${confirmStatus ? 'deactivated' : 'activated'}`);
+    setIsConfirmModalOpen(false);
+    fetchPublications();
+  } catch (error: any) {
+    const errorMsg = error.response?.data?.message || 'An error occurred';
+    toast.error(errorMsg);
+  }
+};
+
 
   const openConfirmModal = (action: 'delete' | 'toggle', id: number, status?: boolean) => {
     setConfirmAction(action);

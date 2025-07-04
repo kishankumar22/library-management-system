@@ -1,5 +1,5 @@
 'use client';
-
+import { useUser } from '@/app/hooks/useUser';
 import { useState, useEffect, useRef } from 'react';
 import { toast } from 'react-toastify';
 import axios from 'axios';
@@ -53,6 +53,7 @@ const BookIssuePage = () => {
   const [bookSearch, setBookSearch] = useState('');
   const [overdueBooks, setOverdueBooks] = useState<BookIssue[]>([]);
   const modalRef = useRef<HTMLDivElement>(null);
+ const user = useUser();
 
   useEffect(() => {
     fetchData();
@@ -164,7 +165,7 @@ const BookIssuePage = () => {
     return dueDate.toISOString().split('T')[0];
   };
 
- const handleIssueBook = async () => {
+const handleIssueBook = async () => {
   if (isSubmitting) return;
 
   const { BookId, StudentId, Days } = formData;
@@ -177,9 +178,15 @@ const BookIssuePage = () => {
   setIsSubmitting(true);
 
   try {
-    const response = await axios.post('/api/book-issue', formData);
+    const payload = {
+      ...formData,
+      CreatedBy: user?.name || 'system',
+      CreatedOn: new Date().toISOString(),
+    };
+
+    const response = await axios.post('/api/book-issue', payload);
     toast.success(response.data.message || 'Book issued successfully');
-    // Close modal and refresh data
+
     setIsModalOpen(false);
     resetFormFields();
     await fetchData();
@@ -192,25 +199,36 @@ const BookIssuePage = () => {
 };
 
 
-  const handleEditBook = async () => {
-    if (isSubmitting || !selectedIssue?.IssueId || !formData.BookId || !formData.StudentId || !formData.Days) {
-      toast.error('Please fill all required fields');
-      return;
-    }
-    setIsSubmitting(true);
-    try {
-      const response = await axios.patch(`/api/book-issue?id=${selectedIssue.IssueId}`, formData);
-      toast.success(response.data.message || 'Book issue updated successfully');
-      setIsEditModalOpen(false);
-      setSelectedIssue(null);
-      await fetchData();
-    } catch (error: any) {
-      console.error('Error updating book issue:', error);
-      toast.error(error.response?.data?.message || 'Failed to update book issue');
-    } finally {
-      setIsSubmitting(false);
-    }
-  };
+
+ const handleEditBook = async () => {
+  if (isSubmitting || !selectedIssue?.IssueId || !formData.BookId || !formData.StudentId || !formData.Days) {
+    toast.error('Please fill all required fields');
+    return;
+  }
+
+  setIsSubmitting(true);
+
+  try {
+    const payload = {
+      ...formData,
+      ModifiedBy: user?.name || 'system',
+      ModifiedOn: new Date().toISOString(),
+    };
+
+    const response = await axios.patch(`/api/book-issue?id=${selectedIssue.IssueId}`, payload);
+    toast.success(response.data.message || 'Book issue updated successfully');
+
+    setIsEditModalOpen(false);
+    setSelectedIssue(null);
+    await fetchData();
+  } catch (error: any) {
+    console.error('Error updating book issue:', error);
+    toast.error(error.response?.data?.message || 'Failed to update book issue');
+  } finally {
+    setIsSubmitting(false);
+  }
+};
+
 
   const handleReturnBook = async () => {
     if (isSubmitting || !selectedIssue) return;
@@ -220,11 +238,13 @@ const BookIssuePage = () => {
       const today = new Date();
       const isLate = today > dueDate;
 
-      const response = await axios.put(`/api/book-issue?id=${selectedIssue.IssueId}`, {
-        status: 'returned',
-        remarks: returnRemarks,
-        fineAmount: isLate ? fineAmount : 0,
-      });
+    const response = await axios.put(`/api/book-issue?id=${selectedIssue.IssueId}`, {
+  status: 'returned',
+  remarks: returnRemarks,
+  fineAmount: isLate ? fineAmount : 0,
+  ModifiedBy: user.name, // <-- add this
+});
+
       toast.success(response.data.message || 'Book returned successfully');
       setIsReturnModalOpen(false);
       setReturnRemarks('');
@@ -239,23 +259,32 @@ const BookIssuePage = () => {
     }
   };
 
-  const handleRenewBook = async () => {
-    if (isSubmitting || !selectedIssue || !renewDays) return;
-    setIsSubmitting(true);
-    try {
-      const response = await axios.put(`/api/book-issue?id=${selectedIssue.IssueId}`, { status: 'renewed', renewDays });
-      toast.success(response.data.message || 'Book renewed successfully');
-      setIsRenewModalOpen(false);
-      setRenewDays(7);
-      setSelectedIssue(null);
-      await fetchData();
-    } catch (error: any) {
-      console.error('Error renewing book:', error);
-      toast.error(error.response?.data?.message || 'Failed to renew book');
-    } finally {
-      setIsSubmitting(false);
-    }
-  };
+const handleRenewBook = async () => {
+  if (isSubmitting || !selectedIssue || !renewDays) return;
+  setIsSubmitting(true);
+
+  try {
+    const response = await axios.put(`/api/book-issue?id=${selectedIssue.IssueId}`, {
+      status: 'renewed',
+      renewDays,
+      ModifiedBy: user?.name || 'system',
+      ModifiedOn: new Date().toISOString(),
+    });
+
+    toast.success(response.data.message || 'Book renewed successfully');
+    setIsRenewModalOpen(false);
+    setRenewDays(7);
+    setSelectedIssue(null);
+    await fetchData();
+  } catch (error: any) {
+    console.error('Error renewing book:', error);
+    toast.error(error.response?.data?.message || 'Failed to renew book');
+  } finally {
+    setIsSubmitting(false);
+  }
+};
+
+
 
   const handleDeleteBook = async () => {
     if (isSubmitting || !selectedIssue) return;
@@ -371,13 +400,13 @@ const BookIssuePage = () => {
             }}
             className="bg-blue-600 hover:bg-blue-800 text-white py-1 px-3 rounded text-sm flex items-center gap-1 transition duration-200"
           >
-            <FontAwesomeIcon icon={faPlus} size="xs" /> Issue New Book
+            <FontAwesomeIcon icon={faPlus} size="xs" className='w-4 h-4' /> Issue New Book
           </button>
           <button
             onClick={exportToExcel}
             className="bg-green-600 hover:bg-green-800 text-white py-1 px-3 rounded text-sm flex items-center gap-1 transition duration-200"
           >
-            <FontAwesomeIcon icon={faFileExcel} size="xs" /> Export to Excel
+            <FontAwesomeIcon icon={faFileExcel} size="xs" className='w-4 h-4' /> Export to Excel
           </button>
         </div>
       </div>
@@ -1115,59 +1144,74 @@ const BookIssuePage = () => {
         </div>
       )}
 
-      {isReturnModalOpen && selectedIssue && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-2 z-50">
-          <div className="bg-white rounded shadow w-full max-w-xs relative">
-            <button
-              onClick={() => { setIsReturnModalOpen(false); setSelectedIssue(null); }}
-              className="absolute top-2 right-2 text-red-600 hover:text-red-800 transition duration-200"
-            >
-              <FontAwesomeIcon icon={faTimes} size="lg" />
-            </button>
-            <div className="p-4">
-              <h2 className="text-lg font-bold mb-2 text-green-800">Return Book</h2>
-              <p className="mb-3 text-sm">Return <strong>{selectedIssue.BookTitle}</strong> issued to <strong>{selectedIssue.StudentName}</strong>?</p>
-              <div className="mb-3">
-                <label className="block text-xs font-medium mb-1 text-gray-700">Remarks (Optional)</label>
-                <textarea
-                  className="w-full p-1 border rounded text-sm"
-                  rows={2}
-                  value={returnRemarks}
-                  onChange={(e) => setReturnRemarks(e.target.value)}
-                />
-              </div>
-              {new Date() > new Date(selectedIssue.DueDate) && (
-                <div className="mb-3">
-                  <label className="block text-xs font-medium mb-1 text-gray-700">Fine Amount</label>
-                  <input
-                    type="number"
-                    min="0"
-                    className="w-full p-1 border rounded text-sm"
-                    value={fineAmount}
-                    onChange={(e) => setFineAmount(Number(e.target.value))}
-                    placeholder="Enter fine amount"
-                  />
-                </div>
-              )}
-              <div className="flex justify-end gap-2">
-                <button
-                  onClick={() => { setIsReturnModalOpen(false); setSelectedIssue(null); }}
-                  className="px-3 py-1 border border-gray-300 rounded text-gray-700 text-sm hover:bg-gray-100 transition duration-200"
-                >
-                  Cancel
-                </button>
-                <button
-                  onClick={handleReturnBook}
-                  className="px-3 py-1 bg-green-600 text-white rounded text-sm hover:bg-green-800 transition duration-200"
-                  disabled={isSubmitting}
-                >
-                  {isSubmitting ? 'Returning...' : 'Return'}
-                </button>
-              </div>
-            </div>
-          </div>
+ {isReturnModalOpen && selectedIssue && (
+  <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-2 z-50">
+    <div className="bg-white rounded shadow w-full max-w-xs relative">
+      <button
+        onClick={() => { setIsReturnModalOpen(false); setSelectedIssue(null); }}
+        className="absolute top-2 right-2 text-red-600 hover:text-red-800 transition duration-200"
+      >
+        <FontAwesomeIcon icon={faTimes} size="lg" />
+      </button>
+      <div className="p-4">
+        <h2 className="text-lg font-bold mb-2 text-green-800">Return Book</h2>
+        <p className="mb-3 text-sm">
+          Return <strong>{selectedIssue.BookTitle}</strong> issued to <strong>{selectedIssue.StudentName}</strong>?
+        </p>
+
+        {/* Remarks */}
+        <div className="mb-3">
+          <label className="block text-xs font-medium mb-1 text-gray-700">Remarks (Optional)</label>
+          <textarea
+            className="w-full p-1 border rounded text-sm"
+            rows={2}
+            value={returnRemarks}
+            onChange={(e) => setReturnRemarks(e.target.value)}
+          />
         </div>
-      )}
+
+        {/* Fine Field for Overdue */}
+        {new Date() > new Date(selectedIssue.DueDate) && (
+          <div className="mb-3">
+            <label className="block text-xs font-medium mb-1 text-gray-700">Fine Amount</label>
+            <input
+              type="number"
+              className="w-full p-1 border rounded text-sm"
+              value={fineAmount}
+              onChange={(e) => setFineAmount(Number(e.target.value))}
+              placeholder="Enter fine amount"
+              min={0}
+            />
+            {fineAmount <= 1 && (
+              <p className="text-xs text-red-600 mt-1">Fine must be greater than 1 to return overdue book</p>
+            )}
+          </div>
+        )}
+
+        <div className="flex justify-end gap-2">
+          <button
+            onClick={() => { setIsReturnModalOpen(false); setSelectedIssue(null); }}
+            className="px-3 py-1 border border-gray-300 rounded text-gray-700 text-sm hover:bg-gray-100 transition duration-200"
+          >
+            Cancel
+          </button>
+
+          {/* ✅ Conditionally show "Return" button */}
+          {!(new Date() > new Date(selectedIssue.DueDate)) || fineAmount > 1 ? (
+            <button
+              onClick={handleReturnBook}
+              className="px-3 py-1 bg-green-600 text-white rounded text-sm hover:bg-green-800 transition duration-200"
+              disabled={isSubmitting}
+            >
+              {isSubmitting ? 'Returning...' : 'Return'}
+            </button>
+          ) : null}
+        </div>
+      </div>
+    </div>
+  </div>
+)}
+
 
       {isRenewModalOpen && selectedIssue && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-2 z-50">

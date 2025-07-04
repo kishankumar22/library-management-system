@@ -1,5 +1,6 @@
 'use client';
 
+import { useUser } from '@/app/hooks/useUser';
 import { useEffect, useState, useRef } from 'react';
 import { toast } from 'react-toastify';
 import axios from 'axios';
@@ -44,6 +45,8 @@ const BooksPage = () => {
   const [showPublicationInput, setShowPublicationInput] = useState(false);
   const [subjectSearch, setSubjectSearch] = useState('');
   const [publicationSearch, setPublicationSearch] = useState('');
+  const user = useUser();
+  //  console.log(user?.name, user?.profilePic);
 
   const modalRef = useRef<HTMLDivElement>(null);
   const confirmModalRef = useRef<HTMLDivElement>(null);
@@ -130,41 +133,59 @@ const BooksPage = () => {
     return Object.keys(newErrors).length === 0;
   };
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!validateForm()) return;
+const handleSubmit = async (e: React.FormEvent) => {
+  e.preventDefault();
+  if (!validateForm()) return;
 
-    try {
-      const form = new FormData();
-      Object.entries(formData).forEach(([key, value]) => {
-        if (value !== null && value !== '') {
-          if (key === 'BookPhoto' && value instanceof File) {
-            form.append(key, value);
-            console.log(`Appending file for ${editingId ? 'edit' : 'add'}: ${value.name}`);
-          } else {
-            form.append(key, value as string);
-          }
+  try {
+    const form = new FormData();
+
+    Object.entries(formData).forEach(([key, value]) => {
+      if (value !== null && value !== '') {
+        if (key === 'BookPhoto' && value instanceof File) {
+          form.append(key, value);
+          console.log(`Appending file for ${editingId ? 'edit' : 'add'}: ${value.name}, size: ${value.size}`);
+        } else {
+          form.append(key, value as string);
         }
-      });
-      if (editingId) form.append('BookId', editingId.toString());
+      }
+    });
 
-      const url = '/api/book';
-      const method = editingId ? 'put' : 'post';
-      const res = await axios({
-        method,
-        url,
-        data: form,
-        headers: { 'Content-Type': 'multipart/form-data' },
-      });
-
-      toast.success(editingId ? 'Book updated' : 'Book added');
-      resetForm();
-      fetchBooks();
-    } catch (error: any) {
-      const errorMsg = error.response?.data?.message || 'An error occurred';
-      toast.error(errorMsg);
+    // ✅ Add CreatedBy/ModifiedBy
+    if (!editingId && user?.name) {
+      form.append('CreatedBy', user.name);
+    } else if (editingId && user?.name) {
+      form.append('ModifiedBy', user.name);
     }
-  };
+
+    if (editingId) {
+      form.append('BookId', editingId.toString());
+    }
+
+    console.log('FormData contents:');
+    for (const [key, value] of form.entries()) {
+      console.log(`${key}: ${value instanceof File ? value.name : value}`);
+    }
+
+    const url = '/api/book';
+    const method = editingId ? 'put' : 'post';
+    const res = await axios({
+      method,
+      url,
+      data: form,
+      headers: { 'Content-Type': 'multipart/form-data' },
+    });
+
+    toast.success(editingId ? 'Book updated' : 'Book added');
+    resetForm();
+    fetchBooks();
+  } catch (error: any) {
+    const errorMsg = error.response?.data?.message || 'An error occurred';
+    console.error('Submission error:', errorMsg, error);
+    toast.error(errorMsg);
+  }
+};
+
 
   const handleEdit = (book: Book) => {
     setFormData({
@@ -201,20 +222,23 @@ const BooksPage = () => {
     }
   };
 
-  const handleToggleActive = async () => {
-    if (!confirmId || confirmStatus === null) return;
-    try {
-      await axios.patch('/api/book', {
-        BookId: confirmId,
-        IsActive: !confirmStatus,
-      });
-      toast.success(`Book ${confirmStatus ? 'deactivated' : 'activated'}`);
-      setIsConfirmModalOpen(false);
-      fetchBooks();
-    } catch (error) {
-      toast.error('An error occurred');
-    }
-  };
+const handleToggleActive = async () => {
+  if (!confirmId || confirmStatus === null) return;
+
+  try {
+    await axios.patch('/api/book', {
+      BookId: confirmId,
+      IsActive: !confirmStatus,
+      ModifiedBy: user?.name || 'Admin', // ✅ Add ModifiedBy
+    });
+
+    toast.success(`Book ${confirmStatus ? 'deactivated' : 'activated'}`);
+    setIsConfirmModalOpen(false);
+    fetchBooks();
+  } catch (error) {
+    toast.error('An error occurred');
+  }
+};
 
   const openConfirmModal = (action: 'delete' | 'toggle', id: number, status?: boolean) => {
     setConfirmAction(action);

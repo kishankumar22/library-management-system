@@ -1,4 +1,7 @@
 'use client';
+import { useUser } from '@/app/hooks/useUser';
+
+
 
 import { useEffect, useState, useRef } from 'react';
 import { toast } from 'react-toastify';
@@ -21,6 +24,7 @@ const SubjectsPage = () => {
   const [statusFilter, setStatusFilter] = useState<'all' | 'active' | 'inactive'>('all');
   const [initialLoading, setInitialLoading] = useState(true); // Initial full-page loader
   const [tableLoading, setTableLoading] = useState(false); // Table-specific loader
+  const user = useUser();
 
   const modalRef = useRef<HTMLDivElement>(null);
   const confirmModalRef = useRef<HTMLDivElement>(null);
@@ -74,42 +78,49 @@ const SubjectsPage = () => {
       .toUpperCase();
   };
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    const formattedName = sanitizeAndFormatName(name);
-    if (!formattedName) {
-      toast.error('Please enter a valid subject name');
-      return;
-    }
-    if (formattedName.length > 100) {
-      toast.error('Subject name cannot exceed 100 characters');
-      return;
-    }
-    try {
-      const payload = {
-        Name: formattedName,
-        IsActive: true,
-        CreatedBy: 'admin',
-        CreatedOn: new Date().toISOString(),
-        ...(editingId && { SubId: editingId, ModifiedBy: 'admin', ModifiedOn: new Date().toISOString() }),
-      };
+const handleSubmit = async (e: React.FormEvent) => {
+  e.preventDefault();
+  const formattedName = sanitizeAndFormatName(name);
 
-      const res = await axios({
-        method: editingId ? 'put' : 'post',
-        url: '/api/subject',
-        data: payload,
-      });
+  if (!formattedName) {
+    toast.error('Please enter a valid subject name');
+    return;
+  }
+  if (formattedName.length > 100) {
+    toast.error('Subject name cannot exceed 100 characters');
+    return;
+  }
 
-      toast.success(editingId ? 'Subject updated' : 'Subject added');
-      setName('');
-      setEditingId(null);
-      setIsModalOpen(false);
-      fetchSubjects();
-    } catch (error: any) {
-      const errorMsg = error.response?.data?.message || 'An error occurred';
-      toast.error(errorMsg);
-    }
-  };
+  try {
+    const timestamp = new Date().toISOString();
+    const payload = {
+      Name: formattedName,
+      IsActive: true,
+      CreatedBy: user?.name || 'system',
+      CreatedOn: timestamp,
+      ...(editingId && {
+        SubId: editingId,
+        ModifiedBy: user?.name || 'system',
+        ModifiedOn: timestamp,
+      }),
+    };
+
+    const res = await axios({
+      method: editingId ? 'put' : 'post',
+      url: '/api/subject',
+      data: payload,
+    });
+
+    toast.success(editingId ? 'Subject updated' : 'Subject added');
+    setName('');
+    setEditingId(null);
+    setIsModalOpen(false);
+    fetchSubjects();
+  } catch (error: any) {
+    const errorMsg = error.response?.data?.message || 'An error occurred';
+    toast.error(errorMsg);
+  }
+};
 
   const handleEdit = (subject: Subject) => {
     setName(subject.Name);
@@ -117,39 +128,49 @@ const SubjectsPage = () => {
     setIsModalOpen(true);
   };
 
-  const handleDelete = async () => {
-    if (!confirmId) return;
-    try {
-      await axios.delete('/api/subject', { data: { SubId: confirmId } });
-      toast.success('Subject deleted');
-      setIsConfirmModalOpen(false);
-      fetchSubjects();
-    } catch (error) {
-      toast.error('An error occurred');
-    }
-  };
+ const handleDelete = async () => {
+  if (!confirmId) return;
+  try {
+    await axios.delete('/api/subject', {
+      data: { SubId: confirmId },
+    });
+    toast.success('Subject deleted successfully');
+    setIsConfirmModalOpen(false);
+    fetchSubjects();
+  } catch (error: any) {
+    const msg =
+      error.response?.status === 409
+        ? error.response?.data?.message || 'Subject is linked to books and cannot be deleted.'
+        : error.response?.data?.message || 'An error occurred while deleting subject';
+    toast.error(msg);
+  }
+};
+
 
   const handleToggleActive = async () => {
-    if (!confirmId || confirmStatus === null) return;
-    try {
-      const subject = subjects.find(s => s.SubId === confirmId);
-      if (!subject) throw new Error('Subject not found');
+  if (!confirmId || confirmStatus === null) return;
 
-      await axios.put('/api/subject', {
-        SubId: confirmId,
-        Name: subject.Name,
-        IsActive: !confirmStatus,
-        ModifiedBy: 'admin',
-        ModifiedOn: new Date().toISOString(),
-      });
-      toast.success(`Subject ${confirmStatus ? 'deactivated' : 'activated'}`);
-      setIsConfirmModalOpen(false);
-      fetchSubjects();
-    } catch (error: any) {
-      const errorMsg = error.response?.data?.message || 'An error occurred';
-      toast.error(errorMsg);
-    }
-  };
+  try {
+    const subject = subjects.find(s => s.SubId === confirmId);
+    if (!subject) throw new Error('Subject not found');
+
+    await axios.put('/api/subject', {
+      SubId: confirmId,
+      Name: subject.Name,
+      IsActive: !confirmStatus,
+      ModifiedBy: user?.name || 'system',
+      ModifiedOn: new Date().toISOString(),
+    });
+
+    toast.success(`Subject ${confirmStatus ? 'deactivated' : 'activated'}`);
+    setIsConfirmModalOpen(false);
+    fetchSubjects();
+  } catch (error: any) {
+    const errorMsg = error.response?.data?.message || 'An error occurred';
+    toast.error(errorMsg);
+  }
+};
+
 
   const openConfirmModal = (action: 'delete' | 'toggle', id: number, status?: boolean) => {
     setConfirmAction(action);

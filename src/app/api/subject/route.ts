@@ -53,6 +53,7 @@ export async function POST(req: NextRequest) {
       .input('CreatedBy', CreatedBy)
       .input('CreatedOn', CreatedOn || new Date().toISOString())
       .query('INSERT INTO Subject (Name, IsActive, CreatedBy, CreatedOn) VALUES (TRIM(@Name), @IsActive, @CreatedBy, @CreatedOn)');
+      logger.info(`Subject ${formattedName} added successfully`);
     return NextResponse.json({ message: 'Subject added' });
   } catch (error) {
     logger.error(`Error adding subject: ${error}`);
@@ -97,14 +98,38 @@ export async function PUT(req: NextRequest) {
   }
 }
 
+
 export async function DELETE(req: NextRequest) {
   try {
     const { SubId } = await req.json();
+
+    if (!SubId) {
+      return NextResponse.json({ message: 'SubId is required' }, { status: 400 });
+    }
+
     const pool = await getConnection();
-    await pool.request().input('SubId', SubId).query('DELETE FROM Subject WHERE SubId = @SubId');
-    return NextResponse.json({ message: 'Subject deleted' });
-  } catch (error) {
-    logger.error(`Error deleting subject: ${error}`);
+
+    await pool.request()
+      .input('SubId', SubId)
+      .query('DELETE FROM Subject WHERE SubId = @SubId');
+    logger.info(`Subject with SubId ${SubId} deleted successfully`);
+    return NextResponse.json({ message: 'Subject deleted successfully' });
+  } catch (error: any) {
+    const sqlError = error?.originalError || error;
+
+    // 🔍 Detect foreign key conflict (cannot delete because books reference this subject)
+    if (
+      sqlError?.message?.includes('REFERENCE') &&
+      sqlError?.message?.includes('FK_Books_Subject')
+    ) {
+      logger.error(`Error deleting subject: ${error.message}`, { stack: error.stack });
+      return NextResponse.json(
+        { message: 'Cannot delete subject as it is associated with one or more books.' },
+        { status: 409 } // Conflict
+      );
+    }
+
+    logger.error(`Error deleting subject: ${error.message}`, { stack: error.stack });
     return NextResponse.json({ message: 'Internal server error' }, { status: 500 });
   }
 }

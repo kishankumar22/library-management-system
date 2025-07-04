@@ -1,4 +1,7 @@
 'use client';
+import { useUser } from '@/app/hooks/useUser';
+
+
 
 import { useState, useEffect, useRef } from 'react';
 import { toast } from 'react-toastify';
@@ -33,6 +36,7 @@ const BookStockHistoryPage = () => {
   const [bookSearch, setBookSearch] = useState('');
   const [showBookInput, setShowBookInput] = useState(false);
   const [actionType, setActionType] = useState<string | null>(null); // No default value
+  const user = useUser();
 
   const modalRef = useRef<HTMLDivElement>(null);
   const filterPublicationInputRef = useRef<HTMLInputElement>(null);
@@ -122,7 +126,7 @@ const BookStockHistoryPage = () => {
     setIsSubmitting(true);
     try {
       const adjustedCopies = actionType === 'In' ? Math.abs(formData.CopiesAdded) : -Math.abs(formData.CopiesAdded);
-      await axios.post('/api/book-stock-history', { ...formData, CopiesAdded: adjustedCopies });
+      await axios.post('/api/book-stock-history', { ...formData, CopiesAdded: adjustedCopies, CreatedBy: user.name });
       toast.success(`Book ${actionType === 'In' ? 'added' : 'removed'} successfully`);
       setIsModalOpen(false);
       resetFormFields();

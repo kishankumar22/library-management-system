@@ -64,7 +64,7 @@ export async function GET(req: NextRequest) {
 
 export async function POST(req: NextRequest) {
   try {
-    const { BookId, StudentId, Days, Remarks } = await req.json();
+    const { BookId, StudentId, Days, Remarks ,CreatedBy} = await req.json();
 
     if (!BookId || !StudentId || !Days) {
       logger.error('Missing required fields for book issue', { BookId, StudentId, Days });
@@ -118,7 +118,8 @@ export async function POST(req: NextRequest) {
       .input('DueDate', sql.Date, dueDateStr)
       .input('Status', sql.VarChar, 'issued')
       .input('Remarks', sql.NVarChar, Remarks || 'Added New Book')
-      .input('CreatedBy', sql.NVarChar, 'admin')
+      .input('CreatedBy', sql.NVarChar, CreatedBy || 'system')
+
       .query(`
         INSERT INTO BookIssue (BookId, StudentId, IssueDate, DueDate, Status, CreatedBy, Remarks)
         VALUES (@BookId, @StudentId, @IssueDate, @DueDate, @Status, @CreatedBy, @Remarks)
@@ -142,7 +143,7 @@ export async function PUT(req: NextRequest) {
   try {
     const { searchParams } = new URL(req.url);
     const issueId = searchParams.get('id');
-    const { status, remarks, fineAmount, renewDays } = await req.json();
+    const { status, remarks, fineAmount, renewDays ,ModifiedBy } = await req.json();
 
     if (!issueId) {
       logger.error('Issue ID is required');
@@ -163,7 +164,7 @@ export async function PUT(req: NextRequest) {
     const currentIssue = issueResult.recordset[0];
 
     if (status === 'returned') {
-      if (currentIssue.Status !== 'issued') {
+      if (currentIssue.Status !== 'issued' && currentIssue.Status !== 'overdue') {
         logger.error(`Book not in issued state: ${issueId}`);
         return NextResponse.json({ message: 'Book is not currently issued' }, { status: 400 });
       }
@@ -182,7 +183,7 @@ export async function PUT(req: NextRequest) {
           .input('ReturnDate', sql.VarChar, returnDate)
           .input('Status', sql.VarChar, 'returned')
           .input('Remarks', sql.NVarChar, remarks || null)
-          .input('ModifiedBy', sql.NVarChar, 'admin')
+          .input('ModifiedBy', sql.NVarChar, ModifiedBy || 'system')
           .query(`
             UPDATE BookIssue 
             SET ReturnDate = @ReturnDate, 
@@ -263,7 +264,7 @@ export async function PATCH(req: NextRequest) {
   try {
     const { searchParams } = new URL(req.url);
     const issueId = searchParams.get('id');
-    const { BookId, StudentId, Days, Remarks } = await req.json();
+    const { BookId, StudentId, Days, Remarks, ModifiedBy } = await req.json();
 
     if (!issueId) {
       logger.error('Issue ID is required');
@@ -286,11 +287,12 @@ export async function PATCH(req: NextRequest) {
       return NextResponse.json({ message: 'Issue not found' }, { status: 404 });
     }
 
-    const currentIssue = issueResult.recordset[0];
-    if (currentIssue.Status !== 'issued') {
-      logger.error(`Book not in issued state: ${issueId}`);
-      return NextResponse.json({ message: 'Book is not currently issued' }, { status: 400 });
-    }
+ const currentIssue = issueResult.recordset[0];
+if (currentIssue.Status !== 'issued' && currentIssue.Status !== 'overdue') {
+  logger.error(`Book not in returnable state: ${issueId}`);
+  return NextResponse.json({ message: 'Book is not currently eligible for return' }, { status: 400 });
+}
+
 
     let originalBookId = currentIssue.BookId;
     if (BookId !== originalBookId) {
@@ -312,23 +314,26 @@ export async function PATCH(req: NextRequest) {
       const dueDate = new Date();
       dueDate.setDate(dueDate.getDate() + Days);
 
-      await transaction.request()
-        .input('IssueId', sql.Int, issueId)
-        .input('BookId', sql.Int, BookId)
-        .input('StudentId', sql.Int, StudentId)
-        .input('IssueDate', sql.VarChar, issueDate)
-        .input('DueDate', sql.VarChar, dueDate.toISOString())
-        .input('Remarks', sql.NVarChar, Remarks || null)
-        .query(`
-          UPDATE BookIssue 
-          SET BookId = @BookId,
-              StudentId = @StudentId,
-              IssueDate = @IssueDate,
-              DueDate = @DueDate,
-              Remarks = @Remarks,
-              ModifiedOn = GETDATE()
-          WHERE IssueId = @IssueId
-        `);
+     await transaction.request()
+  .input('IssueId', sql.Int, issueId)
+  .input('BookId', sql.Int, BookId)
+  .input('StudentId', sql.Int, StudentId)
+  .input('IssueDate', sql.VarChar, issueDate)
+  .input('DueDate', sql.VarChar, dueDate.toISOString())
+  .input('Remarks', sql.NVarChar, Remarks || null)
+  .input('ModifiedBy', sql.NVarChar, ModifiedBy || 'system')
+  .query(`
+    UPDATE BookIssue 
+    SET BookId = @BookId,
+        StudentId = @StudentId,
+        IssueDate = @IssueDate,
+        DueDate = @DueDate,
+        Remarks = @Remarks,
+        ModifiedBy = @ModifiedBy,
+        ModifiedOn = GETDATE()
+    WHERE IssueId = @IssueId
+  `);
+
 
       if (BookId !== originalBookId) {
         await transaction.request()
