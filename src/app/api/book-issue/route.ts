@@ -25,6 +25,7 @@ export async function GET(req: NextRequest) {
         bi.*, 
         b.Title AS BookTitle, 
         s.fName + ' ' + s.lName AS StudentName,
+        s.id,s.email,
         c.courseName,
         bi.ReturnDate
       FROM BookIssue bi

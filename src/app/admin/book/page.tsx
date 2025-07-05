@@ -6,9 +6,8 @@ import { toast } from 'react-toastify';
 import axios from 'axios';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import {
-  faSpinner, faEye, faEyeSlash, faArrowLeft, faPlus, faEdit, faTrash, faSearch, faFilter,
-  faTimesCircle,
-  faTimes
+  faSpinner, faPlus, faEdit, faTrash, faSearch, faFilter,faTimesCircle,faTimes,faToggleOff,
+  faToggleOn
 } from '@fortawesome/free-solid-svg-icons';
 import { Book } from '@/types';
 
@@ -687,7 +686,7 @@ const handleToggleActive = async () => {
                         confirmAction === 'delete' ? 'bg-red-600 hover:bg-red-700' : confirmStatus ? 'bg-amber-600 hover:bg-amber-700' : 'bg-green-600 hover:bg-green-700'
                       }`}
                     >
-                      <FontAwesomeIcon icon={confirmAction === 'delete' ? faTrash : confirmStatus ? faEyeSlash : faEye} size="sm" />
+                      <FontAwesomeIcon icon={confirmAction === 'delete' ? faTrash : confirmStatus ? faToggleOff : faToggleOn} size="sm" />
                       {confirmAction === 'delete' ? 'Delete' : confirmStatus ? 'Deactivate' : 'Activate'}
                     </button>
                   </div>
@@ -747,7 +746,7 @@ const handleToggleActive = async () => {
                         <td className="px-4 py-2 whitespace-nowrap text-sm">{book.courseName || '-'}</td>
                         <td className="px-4 py-2 whitespace-nowrap text-sm">{book.SubjectName || '-'}</td>
                         <td className="px-4 py-2 whitespace-nowrap text-sm">{book.PublicationName || '-'}</td>
-                        <td className="px-4 py-2 whitespace-nowrap text-sm">{book.Price ? `$${book.Price.toFixed(2)}` : '-'}</td>
+                        <td className="px-4 py-2 whitespace-nowrap text-sm">{book.Price ? `₹ ${book.Price.toFixed(2)}` : '-'}</td>
  <td className="px-4 py-2 whitespace-nowrap text-sm leading-tight">
   <div>📚 Total: {book.TotalCopies}</div>
   <div>📗 Available: {book.AvailableCopies}</div>
@@ -782,7 +781,7 @@ const handleToggleActive = async () => {
                               className={`p-2 rounded ${book.IsActive ? 'text-amber-600 hover:text-amber-800' : 'text-green-600 hover:text-green-800'}`}
                               title={book.IsActive ? 'Deactivate' : 'Activate'}
                             >
-                              <FontAwesomeIcon icon={book.IsActive ? faEyeSlash : faEye} size="sm" />
+                              <FontAwesomeIcon icon={book.IsActive ? faToggleOff : faToggleOn} size="sm" />
                             </button>
                           </div>
                         </td>

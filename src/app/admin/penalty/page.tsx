@@ -46,10 +46,10 @@ const ManagePenalty = () => {
       setError(null);
       const response = await axios.get('/api/penalty', { timeout: 30000 });
       const filteredPenalties = response.data.filter(
-        (penalty) => new Date(penalty.ReturnDate) > new Date(penalty.DueDate)
+        (penalty: { ReturnDate: string | number | Date; DueDate: string | number | Date; }) => new Date(penalty.ReturnDate) > new Date(penalty.DueDate)
       );
       const uniquePenalties = Array.from(
-        new Map(filteredPenalties.map((item) => [item.PenaltyId, item])).values()
+        new Map(filteredPenalties.map((item: { PenaltyId: any; }) => [item.PenaltyId, item])).values()
       );
       setAllPenalties(uniquePenalties);
       applyFilters(uniquePenalties);
@@ -61,7 +61,7 @@ const ManagePenalty = () => {
     }
   };
 
-  const applyFilters = (data) => {
+  const applyFilters = (data: any[]) => {
     const { searchTerm, statusFilter, startDate, endDate } = filters;
     let filtered = [...data];
 
@@ -92,12 +92,12 @@ const ManagePenalty = () => {
     applyFilters(allPenalties);
   }, [filters, allPenalties]);
 
-  const handleFilterChange = (e) => {
+  const handleFilterChange = (e: { target: { name: any; value: any; }; }) => {
     const { name, value } = e.target;
     setFilters((prev) => ({ ...prev, [name]: value }));
   };
 
-  const handlePaymentClick = async (penalty) => {
+  const handlePaymentClick = async (penalty: { Amount: number; TotalPaid: number; IssueId: any; }) => {
     setSelectedPenalty(penalty);
     setPaymentData({
       PaymentMode: 'Cash',
@@ -171,12 +171,12 @@ await axios.post(
     }
   };
 
-  const handleInputChange = (e) => {
+  const handleInputChange = (e: { target: { name: any; value: any; }; }) => {
     const { name, value } = e.target;
     setPaymentData((prev) => ({ ...prev, [name]: value }));
   };
 
-  const calculateLateDays = (issue) => {
+  const calculateLateDays = (issue: { ReturnDate: string | number | Date; DueDate: string | number | Date; }) => {
     const returnDate = new Date(issue.ReturnDate);
     const dueDate = new Date(issue.DueDate);
     return Math.max(0, Math.ceil((returnDate.getTime() - dueDate.getTime()) / (1000 * 60 * 60 * 24)));

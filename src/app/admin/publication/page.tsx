@@ -15,7 +15,9 @@ import {
   faTrash, 
   faSearch, 
   faFilter, 
-  faTimes
+  faTimes,
+  faToggleOff,
+  faToggleOn
 } from '@fortawesome/free-solid-svg-icons';
 import { Publication } from '@/types';
 
@@ -330,7 +332,7 @@ const PublicationsPage = () => {
                         : 'bg-green-600 hover:bg-green-700'
                   }`}
                 >
-                  <FontAwesomeIcon icon={confirmAction === 'delete' ? faTrash : confirmStatus ? faEyeSlash : faEye} /> 
+                  <FontAwesomeIcon icon={confirmAction === 'delete' ? faTrash : confirmStatus ? faToggleOff : faToggleOn} /> 
                   {confirmAction === 'delete' ? 'Delete' : confirmStatus ? 'Deactivate' : 'Activate'}
                 </button>
               </div>
@@ -430,7 +432,7 @@ const PublicationsPage = () => {
                           }`}
                           title={publication.IsActive ? 'Deactivate' : 'Activate'}
                         >
-                          <FontAwesomeIcon icon={publication.IsActive ? faEyeSlash : faEye} />
+                          <FontAwesomeIcon icon={publication.IsActive ? faToggleOff : faToggleOn} />
                         </button>
                       </div>
                     </td>

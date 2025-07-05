@@ -10,7 +10,7 @@ export async function GET(req: NextRequest) {
 
         const pool = await getConnection();
         let query = `
-            SELECT DISTINCT s.id, s.fName, s.lName, s.mobileNumber, s.courseId, 
+            SELECT DISTINCT s.id, s.fName, s.lName, s.email, s.mobileNumber, s.courseId, studentImage,
                    c.courseName, sad.courseYear
             FROM Student s
             LEFT JOIN Course c ON s.courseId = c.id

@@ -70,7 +70,7 @@ const Sidebar: React.FC<SidebarProps> = ({ role }) => {
     { name: 'My Account', href: '/student/my-account', icon: GraduationCap },
     { name: 'My Report', href: '/student/my-report', icon: FileText },
     { name: 'Penalty Report', href: '/student/penalty-report', icon: AlertTriangle },
-    { name: 'Book Report', href: '/student/book-report', icon: BookCopy },
+    // { name: 'Book Report', href: '/student/book-report', icon: BookCopy },
   ];
 
   const links = role === 'admin' ? adminLinks : studentLinks;

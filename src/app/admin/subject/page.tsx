@@ -7,7 +7,7 @@ import { useEffect, useState, useRef } from 'react';
 import { toast } from 'react-toastify';
 import axios from 'axios';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faSpinner,  faEye,faEyeSlash,faArrowLeft,  faPlus,faEdit, faTrash, faSearch,  faFilter, faTimes }
+import { faSpinner,  faEye,faEyeSlash,faArrowLeft,  faPlus,faEdit, faTrash, faSearch,  faFilter, faTimes, faToggleOff, faToggleOn }
  from '@fortawesome/free-solid-svg-icons';
 import { Subject } from '@/types';
 
@@ -333,7 +333,7 @@ const handleSubmit = async (e: React.FormEvent) => {
                       }`}
                     >
                       <FontAwesomeIcon 
-                        icon={confirmAction === 'delete' ? faTrash : confirmStatus ? faEyeSlash : faEye} 
+                        icon={confirmAction === 'delete' ? faTrash : confirmStatus ? faToggleOff : faToggleOn} 
                         size="xs" 
                       /> 
                       {confirmAction === 'delete' ? 'Delete' : confirmStatus ? 'Deactivate' : 'Activate'}
@@ -417,7 +417,7 @@ const handleSubmit = async (e: React.FormEvent) => {
                               }`}
                               title={subject.IsActive ? 'Deactivate' : 'Activate'}
                             >
-                              <FontAwesomeIcon icon={subject.IsActive ? faEyeSlash : faEye} size="sm" />
+                              <FontAwesomeIcon icon={subject.IsActive ? faToggleOn : faToggleOff} size="lg" />
                             </button>
                           </div>
                         </td>

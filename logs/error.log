@@ -1,11 +1,5 @@
-2025-07-04 15:40:33 [ERROR] Payment exceeds penalty amount for IssueId: 2
-2025-07-04 15:40:48 [ERROR] Payment exceeds penalty amount for IssueId: 2
-2025-07-04 15:41:27 [ERROR] Payment exceeds penalty amount for IssueId: 2
-2025-07-04 15:41:34 [ERROR] Payment exceeds penalty amount for IssueId: 2
-2025-07-04 15:49:23 [ERROR] Book not in issued state: 2
-2025-07-04 15:50:19 [ERROR] Book not in issued state: 2
-2025-07-04 16:52:32 [ERROR] Transaction failed during payment creation
-RequestError: Invalid column name 'ReceivedDate'.
+2025-07-05 12:30:02 [ERROR] Error fetching students Incorrect syntax near '.'.
+RequestError: Incorrect syntax near '.'.
     at handleError (C:\Users\Windows\Desktop\New Projetct\library-management-system\.next\server\chunks\node_modules_mssql_93e55d20._.js:3584:23)
     at Connection.emit (node:events:518:28)
     at Connection.emit (C:\Users\Windows\Desktop\New Projetct\library-management-system\.next\server\chunks\node_modules_tedious_lib_connection_cdf92d37.js:879:22)
@@ -17,8 +11,8 @@ RequestError: Invalid column name 'ReceivedDate'.
     at Readable.push (node:internal/streams/readable:393:5)
     at nextAsync (node:internal/streams/from:194:22)
     at process.processTicksAndRejections (node:internal/process/task_queues:105:5)
-2025-07-04 16:52:42 [ERROR] Transaction failed during payment creation
-RequestError: Invalid column name 'ReceivedDate'.
+2025-07-05 12:33:58 [ERROR] Error fetching students Incorrect syntax near '.'.
+RequestError: Incorrect syntax near '.'.
     at handleError (C:\Users\Windows\Desktop\New Projetct\library-management-system\.next\server\chunks\node_modules_mssql_93e55d20._.js:3584:23)
     at Connection.emit (node:events:518:28)
     at Connection.emit (C:\Users\Windows\Desktop\New Projetct\library-management-system\.next\server\chunks\node_modules_tedious_lib_connection_cdf92d37.js:879:22)
@@ -30,3 +24,159 @@ RequestError: Invalid column name 'ReceivedDate'.
     at Readable.push (node:internal/streams/readable:393:5)
     at nextAsync (node:internal/streams/from:194:22)
     at process.processTicksAndRejections (node:internal/process/task_queues:105:5)
+2025-07-05 15:04:06 [ERROR] Error fetching library payment history
+RequestError: Column 'jkconsultancyadmindb.dbo.Penalty.Remarks' is invalid in the select list because it is not contained in either an aggregate function or the GROUP BY clause.
+    at handleError (C:\Users\Windows\Desktop\New Projetct\library-management-system\.next\server\chunks\node_modules_mssql_93e55d20._.js:3584:23)
+    at Connection.emit (node:events:518:28)
+    at Connection.emit (C:\Users\Windows\Desktop\New Projetct\library-management-system\.next\server\chunks\node_modules_tedious_lib_connection_cdf92d37.js:879:22)
+    at RequestTokenHandler.onErrorMessage (C:\Users\Windows\Desktop\New Projetct\library-management-system\.next\server\chunks\node_modules_tedious_lib_token_778d00c4._.js:2122:25)
+    at Readable.<anonymous> (C:\Users\Windows\Desktop\New Projetct\library-management-system\.next\server\chunks\node_modules_tedious_lib_token_778d00c4._.js:1823:39)
+    at Readable.emit (node:events:518:28)
+    at addChunk (node:internal/streams/readable:561:12)
+    at readableAddChunkPushObjectMode (node:internal/streams/readable:538:3)
+    at Readable.push (node:internal/streams/readable:393:5)
+    at nextAsync (node:internal/streams/from:194:22)
+    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)
+2025-07-05 15:04:50 [ERROR] Error fetching library payment history
+RequestError: Column 'jkconsultancyadmindb.dbo.Penalty.Remarks' is invalid in the select list because it is not contained in either an aggregate function or the GROUP BY clause.
+    at handleError (C:\Users\Windows\Desktop\New Projetct\library-management-system\.next\server\chunks\node_modules_mssql_93e55d20._.js:3584:23)
+    at Connection.emit (node:events:518:28)
+    at Connection.emit (C:\Users\Windows\Desktop\New Projetct\library-management-system\.next\server\chunks\node_modules_tedious_lib_connection_cdf92d37.js:879:22)
+    at RequestTokenHandler.onErrorMessage (C:\Users\Windows\Desktop\New Projetct\library-management-system\.next\server\chunks\node_modules_tedious_lib_token_778d00c4._.js:2122:25)
+    at Readable.<anonymous> (C:\Users\Windows\Desktop\New Projetct\library-management-system\.next\server\chunks\node_modules_tedious_lib_token_778d00c4._.js:1823:39)
+    at Readable.emit (node:events:518:28)
+    at addChunk (node:internal/streams/readable:561:12)
+    at readableAddChunkPushObjectMode (node:internal/streams/readable:538:3)
+    at Readable.push (node:internal/streams/readable:393:5)
+    at nextAsync (node:internal/streams/from:194:22)
+    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)
+2025-07-05 15:54:50 [ERROR] Error deleting subject: The DELETE statement conflicted with the REFERENCE constraint "FK_Books_Subject". The conflict occurred in database "jkconsultancyadmindb", table "dbo.Books", column 'SubjectId'.
+RequestError: The DELETE statement conflicted with the REFERENCE constraint "FK_Books_Subject". The conflict occurred in database "jkconsultancyadmindb", table "dbo.Books", column 'SubjectId'.
+    at handleError (C:\Users\Windows\Desktop\New Projetct\library-management-system\.next\server\chunks\node_modules_mssql_93e55d20._.js:3584:23)
+    at Connection.emit (node:events:518:28)
+    at Connection.emit (C:\Users\Windows\Desktop\New Projetct\library-management-system\.next\server\chunks\node_modules_tedious_lib_connection_cdf92d37.js:879:22)
+    at RequestTokenHandler.onErrorMessage (C:\Users\Windows\Desktop\New Projetct\library-management-system\.next\server\chunks\node_modules_tedious_lib_token_778d00c4._.js:2122:25)
+    at Readable.<anonymous> (C:\Users\Windows\Desktop\New Projetct\library-management-system\.next\server\chunks\node_modules_tedious_lib_token_778d00c4._.js:1823:39)
+    at Readable.emit (node:events:518:28)
+    at addChunk (node:internal/streams/readable:561:12)
+    at readableAddChunkPushObjectMode (node:internal/streams/readable:538:3)
+    at Readable.push (node:internal/streams/readable:393:5)
+    at nextAsync (node:internal/streams/from:194:22)
+    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)
+2025-07-05 16:40:44 [ERROR] Error deleting book: RequestError: The DELETE statement conflicted with the REFERENCE constraint "FK_BookIssue_Book". The conflict occurred in database "jkconsultancyadmindb", table "dbo.BookIssue", column 'BookId'.
+2025-07-05 16:40:46 [ERROR] Error deleting book: RequestError: The DELETE statement conflicted with the REFERENCE constraint "FK_BookIssue_Book". The conflict occurred in database "jkconsultancyadmindb", table "dbo.BookIssue", column 'BookId'.
+2025-07-05 16:40:47 [ERROR] Error deleting book: RequestError: The DELETE statement conflicted with the REFERENCE constraint "FK_BookIssue_Book". The conflict occurred in database "jkconsultancyadmindb", table "dbo.BookIssue", column 'BookId'.
+2025-07-05 16:40:52 [ERROR] Error deleting book: RequestError: The DELETE statement conflicted with the REFERENCE constraint "FK_BookHistory_Books". The conflict occurred in database "jkconsultancyadmindb", table "dbo.BookStockHistory", column 'BookId'.
+2025-07-05 16:41:10 [ERROR] Error deleting book: RequestError: The DELETE statement conflicted with the REFERENCE constraint "FK_BookHistory_Books". The conflict occurred in database "jkconsultancyadmindb", table "dbo.BookStockHistory", column 'BookId'.
+2025-07-05 16:43:21 [ERROR] Error deleting book: RequestError: The DELETE statement conflicted with the REFERENCE constraint "FK_BookIssue_Book". The conflict occurred in database "jkconsultancyadmindb", table "dbo.BookIssue", column 'BookId'.
+2025-07-05 16:45:41 [ERROR] Error deleting book: RequestError: The DELETE statement conflicted with the REFERENCE constraint "FK_BookHistory_Books". The conflict occurred in database "jkconsultancyadmindb", table "dbo.BookStockHistory", column 'BookId'.
+2025-07-05 17:18:17 [ERROR] Error deleting book: RequestError: The DELETE statement conflicted with the REFERENCE constraint "FK_BookHistory_Books". The conflict occurred in database "jkconsultancyadmindb", table "dbo.BookStockHistory", column 'BookId'.
+2025-07-05 17:20:53 [ERROR] Error deleting book: RequestError: The DELETE statement conflicted with the REFERENCE constraint "FK_BookHistory_Books". The conflict occurred in database "jkconsultancyadmindb", table "dbo.BookStockHistory", column 'BookId'.
+2025-07-05 17:21:01 [ERROR] Error deleting subject: The DELETE statement conflicted with the REFERENCE constraint "FK_Books_Subject". The conflict occurred in database "jkconsultancyadmindb", table "dbo.Books", column 'SubjectId'.
+RequestError: The DELETE statement conflicted with the REFERENCE constraint "FK_Books_Subject". The conflict occurred in database "jkconsultancyadmindb", table "dbo.Books", column 'SubjectId'.
+    at handleError (C:\Users\Windows\Desktop\New Projetct\library-management-system\.next\server\chunks\node_modules_mssql_93e55d20._.js:3584:23)
+    at Connection.emit (node:events:518:28)
+    at Connection.emit (C:\Users\Windows\Desktop\New Projetct\library-management-system\.next\server\chunks\node_modules_tedious_lib_connection_cdf92d37.js:879:22)
+    at RequestTokenHandler.onErrorMessage (C:\Users\Windows\Desktop\New Projetct\library-management-system\.next\server\chunks\node_modules_tedious_lib_token_778d00c4._.js:2122:25)
+    at Readable.<anonymous> (C:\Users\Windows\Desktop\New Projetct\library-management-system\.next\server\chunks\node_modules_tedious_lib_token_778d00c4._.js:1823:39)
+    at Readable.emit (node:events:518:28)
+    at addChunk (node:internal/streams/readable:561:12)
+    at readableAddChunkPushObjectMode (node:internal/streams/readable:538:3)
+    at Readable.push (node:internal/streams/readable:393:5)
+    at nextAsync (node:internal/streams/from:194:22)
+    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)
+2025-07-05 17:21:12 [ERROR] Error deleting book: RequestError: The DELETE statement conflicted with the REFERENCE constraint "FK_BookHistory_Books". The conflict occurred in database "jkconsultancyadmindb", table "dbo.BookStockHistory", column 'BookId'.
+2025-07-05 17:27:54 [ERROR] Error deleting subject: The DELETE statement conflicted with the REFERENCE constraint "FK_Books_Subject". The conflict occurred in database "jkconsultancyadmindb", table "dbo.Books", column 'SubjectId'.
+RequestError: The DELETE statement conflicted with the REFERENCE constraint "FK_Books_Subject". The conflict occurred in database "jkconsultancyadmindb", table "dbo.Books", column 'SubjectId'.
+    at handleError (C:\Users\Windows\Desktop\New Projetct\library-management-system\.next\server\chunks\node_modules_mssql_93e55d20._.js:3584:23)
+    at Connection.emit (node:events:518:28)
+    at Connection.emit (C:\Users\Windows\Desktop\New Projetct\library-management-system\.next\server\chunks\node_modules_tedious_lib_connection_cdf92d37.js:879:22)
+    at RequestTokenHandler.onErrorMessage (C:\Users\Windows\Desktop\New Projetct\library-management-system\.next\server\chunks\node_modules_tedious_lib_token_778d00c4._.js:2122:25)
+    at Readable.<anonymous> (C:\Users\Windows\Desktop\New Projetct\library-management-system\.next\server\chunks\node_modules_tedious_lib_token_778d00c4._.js:1823:39)
+    at Readable.emit (node:events:518:28)
+    at addChunk (node:internal/streams/readable:561:12)
+    at readableAddChunkPushObjectMode (node:internal/streams/readable:538:3)
+    at Readable.push (node:internal/streams/readable:393:5)
+    at nextAsync (node:internal/streams/from:194:22)
+    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)
+2025-07-05 17:28:36 [ERROR] Error deleting subject: The DELETE statement conflicted with the REFERENCE constraint "FK_Books_Subject". The conflict occurred in database "jkconsultancyadmindb", table "dbo.Books", column 'SubjectId'.
+RequestError: The DELETE statement conflicted with the REFERENCE constraint "FK_Books_Subject". The conflict occurred in database "jkconsultancyadmindb", table "dbo.Books", column 'SubjectId'.
+    at handleError (C:\Users\Windows\Desktop\New Projetct\library-management-system\.next\server\chunks\node_modules_mssql_93e55d20._.js:3584:23)
+    at Connection.emit (node:events:518:28)
+    at Connection.emit (C:\Users\Windows\Desktop\New Projetct\library-management-system\.next\server\chunks\node_modules_tedious_lib_connection_cdf92d37.js:879:22)
+    at RequestTokenHandler.onErrorMessage (C:\Users\Windows\Desktop\New Projetct\library-management-system\.next\server\chunks\node_modules_tedious_lib_token_778d00c4._.js:2122:25)
+    at Readable.<anonymous> (C:\Users\Windows\Desktop\New Projetct\library-management-system\.next\server\chunks\node_modules_tedious_lib_token_778d00c4._.js:1823:39)
+    at Readable.emit (node:events:518:28)
+    at addChunk (node:internal/streams/readable:561:12)
+    at readableAddChunkPushObjectMode (node:internal/streams/readable:538:3)
+    at Readable.push (node:internal/streams/readable:393:5)
+    at nextAsync (node:internal/streams/from:194:22)
+    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)
+2025-07-05 17:31:30 [ERROR] Error deleting subject: The DELETE statement conflicted with the REFERENCE constraint "FK_Books_Subject". The conflict occurred in database "jkconsultancyadmindb", table "dbo.Books", column 'SubjectId'.
+RequestError: The DELETE statement conflicted with the REFERENCE constraint "FK_Books_Subject". The conflict occurred in database "jkconsultancyadmindb", table "dbo.Books", column 'SubjectId'.
+    at handleError (C:\Users\Windows\Desktop\New Projetct\library-management-system\.next\server\chunks\node_modules_mssql_93e55d20._.js:3584:23)
+    at Connection.emit (node:events:518:28)
+    at Connection.emit (C:\Users\Windows\Desktop\New Projetct\library-management-system\.next\server\chunks\node_modules_tedious_lib_connection_cdf92d37.js:879:22)
+    at RequestTokenHandler.onErrorMessage (C:\Users\Windows\Desktop\New Projetct\library-management-system\.next\server\chunks\node_modules_tedious_lib_token_778d00c4._.js:2122:25)
+    at Readable.<anonymous> (C:\Users\Windows\Desktop\New Projetct\library-management-system\.next\server\chunks\node_modules_tedious_lib_token_778d00c4._.js:1823:39)
+    at Readable.emit (node:events:518:28)
+    at addChunk (node:internal/streams/readable:561:12)
+    at readableAddChunkPushObjectMode (node:internal/streams/readable:538:3)
+    at Readable.push (node:internal/streams/readable:393:5)
+    at nextAsync (node:internal/streams/from:194:22)
+    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)
+2025-07-05 17:33:17 [ERROR] Error deleting book: RequestError: The DELETE statement conflicted with the REFERENCE constraint "FK_BookHistory_Books". The conflict occurred in database "jkconsultancyadmindb", table "dbo.BookStockHistory", column 'BookId'.
+2025-07-05 18:05:34 [ERROR] Error deleting subject: The DELETE statement conflicted with the REFERENCE constraint "FK_Books_Subject". The conflict occurred in database "jkconsultancyadmindb", table "dbo.Books", column 'SubjectId'.
+RequestError: The DELETE statement conflicted with the REFERENCE constraint "FK_Books_Subject". The conflict occurred in database "jkconsultancyadmindb", table "dbo.Books", column 'SubjectId'.
+    at handleError (C:\Users\Windows\Desktop\New Projetct\library-management-system\.next\server\chunks\node_modules_mssql_93e55d20._.js:3584:23)
+    at Connection.emit (node:events:518:28)
+    at Connection.emit (C:\Users\Windows\Desktop\New Projetct\library-management-system\.next\server\chunks\node_modules_tedious_lib_connection_cdf92d37.js:879:22)
+    at RequestTokenHandler.onErrorMessage (C:\Users\Windows\Desktop\New Projetct\library-management-system\.next\server\chunks\node_modules_tedious_lib_token_778d00c4._.js:2122:25)
+    at Readable.<anonymous> (C:\Users\Windows\Desktop\New Projetct\library-management-system\.next\server\chunks\node_modules_tedious_lib_token_778d00c4._.js:1823:39)
+    at Readable.emit (node:events:518:28)
+    at addChunk (node:internal/streams/readable:561:12)
+    at readableAddChunkPushObjectMode (node:internal/streams/readable:538:3)
+    at Readable.push (node:internal/streams/readable:393:5)
+    at nextAsync (node:internal/streams/from:194:22)
+    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)
+2025-07-05 18:08:27 [ERROR] Error deleting subject: The DELETE statement conflicted with the REFERENCE constraint "FK_Books_Subject". The conflict occurred in database "jkconsultancyadmindb", table "dbo.Books", column 'SubjectId'.
+RequestError: The DELETE statement conflicted with the REFERENCE constraint "FK_Books_Subject". The conflict occurred in database "jkconsultancyadmindb", table "dbo.Books", column 'SubjectId'.
+    at handleError (C:\Users\Windows\Desktop\New Projetct\library-management-system\.next\server\chunks\node_modules_mssql_93e55d20._.js:3584:23)
+    at Connection.emit (node:events:518:28)
+    at Connection.emit (C:\Users\Windows\Desktop\New Projetct\library-management-system\.next\server\chunks\node_modules_tedious_lib_connection_cdf92d37.js:879:22)
+    at RequestTokenHandler.onErrorMessage (C:\Users\Windows\Desktop\New Projetct\library-management-system\.next\server\chunks\node_modules_tedious_lib_token_778d00c4._.js:2122:25)
+    at Readable.<anonymous> (C:\Users\Windows\Desktop\New Projetct\library-management-system\.next\server\chunks\node_modules_tedious_lib_token_778d00c4._.js:1823:39)
+    at Readable.emit (node:events:518:28)
+    at addChunk (node:internal/streams/readable:561:12)
+    at readableAddChunkPushObjectMode (node:internal/streams/readable:538:3)
+    at Readable.push (node:internal/streams/readable:393:5)
+    at nextAsync (node:internal/streams/from:194:22)
+    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)
+2025-07-05 18:09:20 [ERROR] Error deleting subject: The DELETE statement conflicted with the REFERENCE constraint "FK_Books_Subject". The conflict occurred in database "jkconsultancyadmindb", table "dbo.Books", column 'SubjectId'.
+RequestError: The DELETE statement conflicted with the REFERENCE constraint "FK_Books_Subject". The conflict occurred in database "jkconsultancyadmindb", table "dbo.Books", column 'SubjectId'.
+    at handleError (C:\Users\Windows\Desktop\New Projetct\library-management-system\.next\server\chunks\node_modules_mssql_93e55d20._.js:3584:23)
+    at Connection.emit (node:events:518:28)
+    at Connection.emit (C:\Users\Windows\Desktop\New Projetct\library-management-system\.next\server\chunks\node_modules_tedious_lib_connection_cdf92d37.js:879:22)
+    at RequestTokenHandler.onErrorMessage (C:\Users\Windows\Desktop\New Projetct\library-management-system\.next\server\chunks\node_modules_tedious_lib_token_778d00c4._.js:2122:25)
+    at Readable.<anonymous> (C:\Users\Windows\Desktop\New Projetct\library-management-system\.next\server\chunks\node_modules_tedious_lib_token_778d00c4._.js:1823:39)
+    at Readable.emit (node:events:518:28)
+    at addChunk (node:internal/streams/readable:561:12)
+    at readableAddChunkPushObjectMode (node:internal/streams/readable:538:3)
+    at Readable.push (node:internal/streams/readable:393:5)
+    at nextAsync (node:internal/streams/from:194:22)
+    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)
+2025-07-05 18:09:35 [ERROR] Error deleting subject: The DELETE statement conflicted with the REFERENCE constraint "FK_Books_Subject". The conflict occurred in database "jkconsultancyadmindb", table "dbo.Books", column 'SubjectId'.
+RequestError: The DELETE statement conflicted with the REFERENCE constraint "FK_Books_Subject". The conflict occurred in database "jkconsultancyadmindb", table "dbo.Books", column 'SubjectId'.
+    at handleError (C:\Users\Windows\Desktop\New Projetct\library-management-system\.next\server\chunks\node_modules_mssql_93e55d20._.js:3584:23)
+    at Connection.emit (node:events:518:28)
+    at Connection.emit (C:\Users\Windows\Desktop\New Projetct\library-management-system\.next\server\chunks\node_modules_tedious_lib_connection_cdf92d37.js:879:22)
+    at RequestTokenHandler.onErrorMessage (C:\Users\Windows\Desktop\New Projetct\library-management-system\.next\server\chunks\node_modules_tedious_lib_token_778d00c4._.js:2122:25)
+    at Readable.<anonymous> (C:\Users\Windows\Desktop\New Projetct\library-management-system\.next\server\chunks\node_modules_tedious_lib_token_778d00c4._.js:1823:39)
+    at Readable.emit (node:events:518:28)
+    at addChunk (node:internal/streams/readable:561:12)
+    at readableAddChunkPushObjectMode (node:internal/streams/readable:538:3)
+    at Readable.push (node:internal/streams/readable:393:5)
+    at nextAsync (node:internal/streams/from:194:22)
+    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)
+2025-07-05 18:11:47 [ERROR] Error deleting book: RequestError: The DELETE statement conflicted with the REFERENCE constraint "FK_BookHistory_Books". The conflict occurred in database "jkconsultancyadmindb", table "dbo.BookStockHistory", column 'BookId'.
+2025-07-05 18:11:54 [ERROR] Error deleting book: RequestError: The DELETE statement conflicted with the REFERENCE constraint "FK_BookHistory_Books". The conflict occurred in database "jkconsultancyadmindb", table "dbo.BookStockHistory", column 'BookId'.
