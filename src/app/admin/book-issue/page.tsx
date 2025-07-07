@@ -7,8 +7,7 @@ import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import {
   faSpinner, faPlus, faSearch, faEdit, faTrash,
   faCalendarDays, faTimes, faTimesCircle, faFileExcel,
-  faUndo,
-  faRedo,
+  faUndo, faRedo,
 } from '@fortawesome/free-solid-svg-icons';
 import { Book, BookIssue, Student, Publication, Course } from '@/types';
 import * as XLSX from 'xlsx';
@@ -16,6 +15,7 @@ import * as XLSX from 'xlsx';
 const BookIssuePage = () => {
   const [bookIssues, setBookIssues] = useState<BookIssue[]>([]);
   const [books, setBooks] = useState<Book[]>([]);
+  const [allBooks, setAllBooks] = useState<Book[]>([]); // Store all books for resetting
   const [students, setStudents] = useState<Student[]>([]);
   const [filteredStudents, setFilteredStudents] = useState<Student[]>([]);
   const [publications, setPublications] = useState<Publication[]>([]);
@@ -44,7 +44,6 @@ const BookIssuePage = () => {
   const [isRenewModalOpen, setIsRenewModalOpen] = useState(false);
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
-
   const [showPublicationInput, setShowPublicationInput] = useState(false);
   const [showStudentInput, setShowStudentInput] = useState(false);
   const [showBookInput, setShowBookInput] = useState(false);
@@ -53,7 +52,7 @@ const BookIssuePage = () => {
   const [bookSearch, setBookSearch] = useState('');
   const [overdueBooks, setOverdueBooks] = useState<BookIssue[]>([]);
   const modalRef = useRef<HTMLDivElement>(null);
- const user = useUser();
+  const user = useUser();
 
   useEffect(() => {
     fetchData();
@@ -89,21 +88,21 @@ const BookIssuePage = () => {
         axios.get('/api/course'),
       ]);
 
-      setBookIssues(issuesRes.data);
-      console.log(issuesRes.data);
-      setBooks(booksRes.data);
-      setStudents(studentsRes.data);
-      setFilteredStudents(
-        studentsRes.data.filter((student: { id: any; }, index: any, self: any[]) =>
-          index === self.findIndex((s: { id: any; }) => s.id === student.id)
-        )
+      const uniqueStudents = studentsRes.data.filter((student: { id: any }, index: number, self: any[]) =>
+        index === self.findIndex((s: { id: any }) => s.id === student.id)
       );
+
+      setBookIssues(issuesRes.data);
+      setBooks(booksRes.data);
+      setAllBooks(booksRes.data); // Store all books for resetting
+      setStudents(uniqueStudents);
+      setFilteredStudents(uniqueStudents);
       setPublications(publicationsRes.data);
       setCourses(coursesRes.data);
     } catch (error) {
       console.error('Error fetching data:', error);
       toast.error('Failed to fetch data');
-    } finally {
+  } finally {
       setLoading(false);
     }
   };
@@ -112,15 +111,14 @@ const BookIssuePage = () => {
 
   const handlePublicationChange = (pubId: number) => {
     setFormData(prev => ({ ...prev, PublicationId: pubId, BookId: 0 }));
-    setFilteredStudents(
-      students
-        .filter((student, index, self) => index === self.findIndex((s) => s.id === student.id))
-        .filter(s => s.courseId === courses.find(c => c.id === pubId)?.id || 0)
-    );
-    setBooks(books.filter(b => b.PublicationId === pubId));
-    setSelectedBook(null);
     setPublicationSearch(publications.find(p => p.PubId === pubId)?.Name || '');
     setShowPublicationInput(false);
+    setSelectedBook(null);
+    setBookSearch('');
+
+    // Filter books based on selected publication
+    const filteredBooks = pubId ? allBooks.filter(b => b.PublicationId === pubId) : allBooks;
+    setBooks(filteredBooks);
   };
 
   const handleBookChange = (bookId: number) => {
@@ -134,9 +132,9 @@ const BookIssuePage = () => {
   const handleCourseChange = (courseId: number) => {
     setFormData(prev => ({ ...prev, CourseId: courseId, StudentId: 0 }));
     setFilteredStudents(
-      students
-        .filter((student, index, self) => index === self.findIndex((s) => s.id === student.id))
-        .filter(s => s.courseId === courseId)
+      courseId
+        ? students.filter(s => s.courseId === courseId)
+        : students
     );
     setStudentSearch('');
   };
@@ -145,7 +143,6 @@ const BookIssuePage = () => {
     const student = filteredStudents.find(s => s.id === studentId);
     if (!student) return;
 
-    // Check for overdue books without toast
     const overdue = bookIssues.filter(
       issue =>
         issue.StudentId === studentId &&
@@ -165,70 +162,67 @@ const BookIssuePage = () => {
     return dueDate.toISOString().split('T')[0];
   };
 
-const handleIssueBook = async () => {
-  if (isSubmitting) return;
+  const handleIssueBook = async () => {
+    if (isSubmitting) return;
 
-  const { BookId, StudentId, Days } = formData;
+    const { BookId, StudentId, Days } = formData;
 
-  if (!BookId || !StudentId || !Days) {
-    toast.error('Please fill all required fields');
-    return;
-  }
+    if (!BookId || !StudentId || !Days) {
+      toast.error('Please fill all required fields');
+      return;
+    }
 
-  setIsSubmitting(true);
+    setIsSubmitting(true);
 
-  try {
-    const payload = {
-      ...formData,
-      CreatedBy: user?.name || 'system',
-      CreatedOn: new Date().toISOString(),
-    };
+    try {
+      const payload = {
+        ...formData,
+        CreatedBy: user?.name || 'system',
+        CreatedOn: new Date().toISOString(),
+      };
 
-    const response = await axios.post('/api/book-issue', payload);
-    toast.success(response.data.message || 'Book issued successfully');
+      const response = await axios.post('/api/book-issue', payload);
+      toast.success(response.data.message || 'Book issued successfully');
 
-    setIsModalOpen(false);
-    resetFormFields();
-    await fetchData();
-  } catch (error: any) {
-    console.error('Issue Book Error:', error);
-    toast.error(error.response?.data?.message || 'Failed to issue book');
-  } finally {
-    setIsSubmitting(false);
-  }
-};
+      setIsModalOpen(false);
+      resetFormFields();
+      await fetchData();
+    } catch (error: any) {
+      console.error('Issue Book Error:', error);
+      toast.error(error.response?.data?.message || 'Failed to issue book');
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
 
+  const handleEditBook = async () => {
+    if (isSubmitting || !selectedIssue?.IssueId || !formData.BookId || !formData.StudentId || !formData.Days) {
+      toast.error('Please fill all required fields');
+      return;
+    }
 
+    setIsSubmitting(true);
 
- const handleEditBook = async () => {
-  if (isSubmitting || !selectedIssue?.IssueId || !formData.BookId || !formData.StudentId || !formData.Days) {
-    toast.error('Please fill all required fields');
-    return;
-  }
+    try {
+      const payload = {
+        ...formData,
+        ModifiedBy: user?.name || 'system',
+        ModifiedOn: new Date().toISOString(),
+      };
 
-  setIsSubmitting(true);
+      const response = await axios.patch(`/api/book-issue?id=${selectedIssue.IssueId}`, payload);
+      toast.success(response.data.message || 'Book issue updated successfully');
 
-  try {
-    const payload = {
-      ...formData,
-      ModifiedBy: user?.name || 'system',
-      ModifiedOn: new Date().toISOString(),
-    };
-
-    const response = await axios.patch(`/api/book-issue?id=${selectedIssue.IssueId}`, payload);
-    toast.success(response.data.message || 'Book issue updated successfully');
-
-    setIsEditModalOpen(false);
-    setSelectedIssue(null);
-    await fetchData();
-  } catch (error: any) {
-    console.error('Error updating book issue:', error);
-    toast.error(error.response?.data?.message || 'Failed to update book issue');
-  } finally {
-    setIsSubmitting(false);
-  }
-};
-
+      setIsEditModalOpen(false);
+      setSelectedIssue(null);
+      await fetchData();
+    } catch (error: any) {
+      console.error('Error updating book issue:', error);
+      toast.error(error.response?.data?.message || 'Failed to update book issue');
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
 
   const handleReturnBook = async () => {
     if (isSubmitting || !selectedIssue) return;
@@ -238,12 +232,12 @@ const handleIssueBook = async () => {
       const today = new Date();
       const isLate = today > dueDate;
 
-    const response = await axios.put(`/api/book-issue?id=${selectedIssue.IssueId}`, {
-  status: 'returned',
-  remarks: returnRemarks,
-  fineAmount: isLate ? fineAmount : 0,
-  ModifiedBy: user.name, // <-- add this
-});
+      const response = await axios.put(`/api/book-issue?id=${selectedIssue.IssueId}`, {
+        status: 'returned',
+        remarks: returnRemarks,
+        fineAmount: isLate ? fineAmount : 0,
+        ModifiedBy: user?.name || 'system',
+      });
 
       toast.success(response.data.message || 'Book returned successfully');
       setIsReturnModalOpen(false);
@@ -259,32 +253,30 @@ const handleIssueBook = async () => {
     }
   };
 
-const handleRenewBook = async () => {
-  if (isSubmitting || !selectedIssue || !renewDays) return;
-  setIsSubmitting(true);
+  const handleRenewBook = async () => {
+    if (isSubmitting || !selectedIssue || !renewDays) return;
+    setIsSubmitting(true);
 
-  try {
-    const response = await axios.put(`/api/book-issue?id=${selectedIssue.IssueId}`, {
-      status: 'renewed',
-      renewDays,
-      ModifiedBy: user?.name || 'system',
-      ModifiedOn: new Date().toISOString(),
-    });
+    try {
+      const response = await axios.put(`/api/book-issue?id=${selectedIssue.IssueId}`, {
+        status: 'renewed',
+        renewDays,
+        ModifiedBy: user?.name || 'system',
+        ModifiedOn: new Date().toISOString(),
+      });
 
-    toast.success(response.data.message || 'Book renewed successfully');
-    setIsRenewModalOpen(false);
-    setRenewDays(7);
-    setSelectedIssue(null);
-    await fetchData();
-  } catch (error: any) {
-    console.error('Error renewing book:', error);
-    toast.error(error.response?.data?.message || 'Failed to renew book');
-  } finally {
-    setIsSubmitting(false);
-  }
-};
-
-
+      toast.success(response.data.message || 'Book renewed successfully');
+      setIsRenewModalOpen(false);
+      setRenewDays(7);
+      setSelectedIssue(null);
+      await fetchData();
+    } catch (error: any) {
+      console.error('Error renewing book:', error);
+      toast.error(error.response?.data?.message || 'Failed to renew book');
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
 
   const handleDeleteBook = async () => {
     if (isSubmitting || !selectedIssue) return;
@@ -304,7 +296,7 @@ const handleRenewBook = async () => {
   };
 
   const openEditModal = (issue: BookIssue) => {
-    const book = books.find(b => b.BookId === issue.BookId);
+    const book = allBooks.find(b => b.BookId === issue.BookId);
     const student = students.find(s => s.id === issue.StudentId);
     const days = Math.max(1, Math.ceil((new Date(issue.DueDate).getTime() - new Date().getTime()) / (1000 * 60 * 60 * 24)));
 
@@ -319,11 +311,11 @@ const handleRenewBook = async () => {
       CourseId: student?.courseId || 0,
     });
     setFilteredStudents(
-      students
-        .filter((student, index, self) => index === self.findIndex((s) => s.id === student.id))
-        .filter(s => s.courseId === student?.courseId || 0)
+      student?.courseId
+        ? students.filter(s => s.courseId === student.courseId)
+        : students
     );
-    setBooks(books.filter(b => b.PublicationId === book?.PublicationId || 0)); // Reset books based on current publication
+    setBooks(book?.PublicationId ? allBooks.filter(b => b.PublicationId === book.PublicationId) : allBooks);
     setPublicationSearch(publications.find(p => p.PubId === book?.PublicationId)?.Name || '');
     setStudentSearch(`${student?.fName} ${student?.lName}` || '');
     setBookSearch(book?.Title || '');
@@ -361,7 +353,7 @@ const handleRenewBook = async () => {
     setShowStudentInput(false);
     setShowBookInput(false);
     setOverdueBooks([]);
-    setBooks(books); // Reset to all books
+    setBooks(allBooks); // Reset to all books
   };
 
   const exportToExcel = () => {
@@ -389,8 +381,8 @@ const handleRenewBook = async () => {
   };
 
   return (
-    <div className="container mx-auto p-4">
-      <div className="flex flex-col sm:flex-row justify-between items-center mb-4 gap-2 bg-gradient-to-r from-blue-50 to-white p-2 rounded-md">
+    <div className="container ">
+      <div className="flex flex-col sm:flex-row justify-between items-center mb-2   gap-2 bg-gradient-to-r from-blue-50 to-white p-2 rounded-md">
         <h1 className="text-xl font-bold text-blue-800">Book Issue Manager</h1>
         <div className="flex gap-2">
           <button
@@ -411,55 +403,85 @@ const handleRenewBook = async () => {
         </div>
       </div>
 
-      <div className="bg-white rounded shadow p-3 mb-4">
-        <div className="grid grid-cols-1 sm:grid-cols-6 gap-3 items-center">
-          <div className="text-sm font-medium text-blue-600">Total Book Issues: {bookIssues.length}</div>
-          <div className="relative">
-            <input
-              type="text"
-              placeholder="Search by book, student"
-              className="w-full pl-8 pr-2 py-1 border rounded text-sm"
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-            />
-            <FontAwesomeIcon icon={faSearch} className="absolute left-2 top-2.5 w-3 h-3 text-gray-400" />
-          </div>
-          <select
-            className="w-full p-1 border rounded text-sm"
-            value={statusFilter}
-            onChange={(e) => setStatusFilter(e.target.value as any)}
-          >
-            <option value="all">All Status</option>
-            <option value="issued">Issued</option>
-            <option value="returned">Returned</option>
-            <option value="overdue">Overdue</option>
-          </select>
-          <input
-            type="date"
-            className="w-full p-1 border rounded text-sm"
-            value={dateRange.start}
-            onChange={(e) => setDateRange({ ...dateRange, start: e.target.value })}
-          />
-          <input
-            type="date"
-            className="w-full p-1 border rounded text-sm"
-            value={dateRange.end}
-            onChange={(e) => setDateRange({ ...dateRange, end: e.target.value })}
-          />
-          <select
-            className="w-full p-1 border rounded text-sm"
-            value={courseNameFilter}
-            onChange={(e) => setCourseNameFilter(e.target.value)}
-          >
-            <option value="">All Courses</option>
-            {uniqueCourseNames.map((name, idx) => (
-              <option key={String(name || idx)} value={String(name || '')}>
-                {name || ''}
-              </option>
-            ))}
-          </select>
-        </div>
-      </div>
+    <div className="bg-white rounded shadow p-2 mb-4">
+  <div className="grid grid-cols-1 sm:grid-cols-8 gap-3 items-center">
+    {/* Total Count */}
+    <div className="text-sm font-medium text-blue-600 col-span-1 sm:col-span-2">
+      Total Book Issues: {bookIssues.length}
+    </div>
+
+    {/* Search */}
+    <div className="relative col-span-1">
+      <input
+        type="text"
+        placeholder="Search by book, student"
+        className="w-full pl-8 pr-2 py-1 border rounded text-sm"
+        value={searchTerm}
+        onChange={(e) => setSearchTerm(e.target.value)}
+      />
+      <FontAwesomeIcon icon={faSearch} className="absolute left-2 top-2.5 w-3 h-3 text-gray-400" />
+    </div>
+
+    {/* Status Filter */}
+    <select
+      className="w-full p-1 border rounded text-sm"
+      value={statusFilter}
+      onChange={(e) => setStatusFilter(e.target.value as any)}
+    >
+      <option value="all">All Status</option>
+      <option value="issued">Issued</option>
+      <option value="returned">Returned</option>
+      <option value="overdue">Overdue</option>
+    </select>
+
+    {/* Date Range */}
+    <input
+      type="date"
+      className="w-full p-1 border rounded text-sm"
+      value={dateRange.start}
+      onChange={(e) => setDateRange({ ...dateRange, start: e.target.value })}
+      title='Book Issue on '
+    />
+    <input
+      type="date"
+      className="w-full p-1 border rounded text-sm"
+      value={dateRange.end}
+      onChange={(e) => setDateRange({ ...dateRange, end: e.target.value })}
+      title='Book Issue till'
+
+    />
+
+    {/* Course Filter */}
+    <select
+      className="w-full p-1 border rounded text-sm"
+      value={courseNameFilter}
+      onChange={(e) => setCourseNameFilter(e.target.value)}
+    >
+      <option value="">All Courses</option>
+      {uniqueCourseNames.map((name, idx) => (
+        <option key={String(name || idx)} value={String(name || '')}>
+          {name || ''}
+        </option>
+      ))}
+    </select>
+        <button
+      onClick={() => {
+        setSearchTerm('');
+        setStatusFilter('all');
+        setDateRange({ start: '', end: '' });
+        setCourseNameFilter('');
+      }}
+      className="px-3 py-1 text-sm text-gray-700 bg-gray-100 hover:bg-gray-200 rounded border border-gray-300 transition"
+    >
+      Reset Filters
+    </button>
+
+
+  </div>
+
+  
+</div>
+
 
       <div className="bg-white rounded shadow overflow-hidden">
         {loading ? (
@@ -491,14 +513,12 @@ const handleRenewBook = async () => {
                 ) : (
                   filteredIssues.map((issue, index) => {
                     const daysLeft = Math.ceil((new Date(issue.DueDate).getTime() - new Date().getTime()) / (1000 * 60 * 60 * 24));
-   const returnDate =
-  Array.isArray(issue.ReturnDate) && issue.ReturnDate[0]
-    ? new Date(issue.ReturnDate[0]).toLocaleDateString()
-    : issue.ReturnDate && !isNaN(new Date(issue.ReturnDate).getTime())
-      ? new Date(issue.ReturnDate).toLocaleDateString()
-      : 'N/A';
-
-
+                    const returnDate =
+                      Array.isArray(issue.ReturnDate) && issue.ReturnDate[0]
+                        ? new Date(issue.ReturnDate[0]).toLocaleDateString()
+                        : issue.ReturnDate && !isNaN(new Date(issue.ReturnDate).getTime())
+                          ? new Date(issue.ReturnDate).toLocaleDateString()
+                          : 'N/A';
 
                     return (
                       <tr key={issue.IssueId} className="hover:bg-gray-50">
@@ -515,8 +535,6 @@ const handleRenewBook = async () => {
                         <td className="px-3 py-2">{new Date(issue.IssueDate).toLocaleDateString()}</td>
                         <td className="px-3 py-2">{new Date(issue.DueDate).toLocaleDateString()}</td>
                         <td className="px-3 py-2">{returnDate}</td>
-
-
                         <td className="px-3 py-2 text-center">
                           <span className={`px-2 py-1 text-xs rounded-full ${
                             issue.Status === 'issued' ? 'bg-blue-100 text-blue-800' :
@@ -601,8 +619,9 @@ const handleRenewBook = async () => {
                               e.stopPropagation();
                               setPublicationSearch('');
                               setFormData(prev => ({ ...prev, PublicationId: 0 }));
-                              setBooks(books); // Reset to all books
+                              setBooks(allBooks); // Reset to all books
                               setSelectedBook(null);
+                              setBookSearch('');
                             }}
                             className="text-red-500 hover:text-red-700"
                           >
@@ -891,8 +910,9 @@ const handleRenewBook = async () => {
                               e.stopPropagation();
                               setPublicationSearch('');
                               setFormData(prev => ({ ...prev, PublicationId: 0 }));
-                              setBooks(books); // Reset to all books
+                              setBooks(allBooks); // Reset to all books
                               setSelectedBook(null);
+                              setBookSearch('');
                             }}
                             className="text-red-500 hover:text-red-700"
                           >
@@ -1144,74 +1164,66 @@ const handleRenewBook = async () => {
         </div>
       )}
 
- {isReturnModalOpen && selectedIssue && (
-  <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-2 z-50">
-    <div className="bg-white rounded shadow w-full max-w-xs relative">
-      <button
-        onClick={() => { setIsReturnModalOpen(false); setSelectedIssue(null); }}
-        className="absolute top-2 right-2 text-red-600 hover:text-red-800 transition duration-200"
-      >
-        <FontAwesomeIcon icon={faTimes} size="lg" />
-      </button>
-      <div className="p-4">
-        <h2 className="text-lg font-bold mb-2 text-green-800">Return Book</h2>
-        <p className="mb-3 text-sm">
-          Return <strong>{selectedIssue.BookTitle}</strong> issued to <strong>{selectedIssue.StudentName}</strong>?
-        </p>
-
-        {/* Remarks */}
-        <div className="mb-3">
-          <label className="block text-xs font-medium mb-1 text-gray-700">Remarks (Optional)</label>
-          <textarea
-            className="w-full p-1 border rounded text-sm"
-            rows={2}
-            value={returnRemarks}
-            onChange={(e) => setReturnRemarks(e.target.value)}
-          />
-        </div>
-
-        {/* Fine Field for Overdue */}
-        {new Date() > new Date(selectedIssue.DueDate) && (
-          <div className="mb-3">
-            <label className="block text-xs font-medium mb-1 text-gray-700">Fine Amount</label>
-            <input
-              type="number"
-              className="w-full p-1 border rounded text-sm"
-              value={fineAmount}
-              onChange={(e) => setFineAmount(Number(e.target.value))}
-              placeholder="Enter fine amount"
-              min={0}
-            />
-            {fineAmount <= 1 && (
-              <p className="text-xs text-red-600 mt-1">Fine must be greater than 1 to return overdue book</p>
-            )}
-          </div>
-        )}
-
-        <div className="flex justify-end gap-2">
-          <button
-            onClick={() => { setIsReturnModalOpen(false); setSelectedIssue(null); }}
-            className="px-3 py-1 border border-gray-300 rounded text-gray-700 text-sm hover:bg-gray-100 transition duration-200"
-          >
-            Cancel
-          </button>
-
-          {/* ✅ Conditionally show "Return" button */}
-          {!(new Date() > new Date(selectedIssue.DueDate)) || fineAmount > 1 ? (
+      {isReturnModalOpen && selectedIssue && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-2 z-50">
+          <div className="bg-white rounded shadow w-full max-w-xs relative">
             <button
-              onClick={handleReturnBook}
-              className="px-3 py-1 bg-green-600 text-white rounded text-sm hover:bg-green-800 transition duration-200"
-              disabled={isSubmitting}
+              onClick={() => { setIsReturnModalOpen(false); setSelectedIssue(null); }}
+              className="absolute top-2 right-2 text-red-600 hover:text-red-800 transition duration-200"
             >
-              {isSubmitting ? 'Returning...' : 'Return'}
+              <FontAwesomeIcon icon={faTimes} size="lg" />
             </button>
-          ) : null}
+            <div className="p-4">
+              <h2 className="text-lg font-bold mb-2 text-green-800">Return Book</h2>
+              <p className="mb-3 text-sm">
+                Return <strong>{selectedIssue.BookTitle}</strong> issued to <strong>{selectedIssue.StudentName}</strong>?
+              </p>
+              <div className="mb-3">
+                <label className="block text-xs font-medium mb-1 text-gray-700">Remarks (Optional)</label>
+                <textarea
+                  className="w-full p-1 border rounded text-sm"
+                  rows={2}
+                  value={returnRemarks}
+                  onChange={(e) => setReturnRemarks(e.target.value)}
+                />
+              </div>
+              {new Date() > new Date(selectedIssue.DueDate) && (
+                <div className="mb-3">
+                  <label className="block text-xs font-medium mb-1 text-gray-700">Fine Amount</label>
+                  <input
+                    type="number"
+                    className="w-full p-1 border rounded text-sm"
+                    value={fineAmount}
+                    onChange={(e) => setFineAmount(Number(e.target.value))}
+                    placeholder="Enter fine amount"
+                    min={0}
+                  />
+                  {fineAmount <= 1 && (
+                    <p className="text-xs text-red-600 mt-1">Fine must be greater than 1 to return overdue book</p>
+                  )}
+                </div>
+              )}
+              <div className="flex justify-end gap-2">
+                <button
+                  onClick={() => { setIsReturnModalOpen(false); setSelectedIssue(null); }}
+                  className="px-3 py-1 border border-gray-300 rounded text-gray-700 text-sm hover:bg-gray-100 transition duration-200"
+                >
+                  Cancel
+                </button>
+                {!(new Date() > new Date(selectedIssue.DueDate)) || fineAmount > 1 ? (
+                  <button
+                    onClick={handleReturnBook}
+                    className="px-3 py-1 bg-green-600 text-white rounded text-sm hover:bg-green-800 transition duration-200"
+                    disabled={isSubmitting}
+                  >
+                    {isSubmitting ? 'Returning...' : 'Return'}
+                  </button>
+                ) : null}
+              </div>
+            </div>
+          </div>
         </div>
-      </div>
-    </div>
-  </div>
-)}
-
+      )}
 
       {isRenewModalOpen && selectedIssue && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-2 z-50">

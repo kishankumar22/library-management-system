@@ -71,8 +71,8 @@ export default function PenaltyReportPage() {
     );
 
   return (
-    <main className=" bg-green-50 min-h-screen">
-      <h1 className="text-2xl font-bold text-center mb-6 bg-green-700 text-white p-4 rounded">
+    <main className=" bg-blue-50 min-h-screen">
+      <h1 className="text-2xl font-bold text-center mb-3 bg-blue-700 text-white p-2 rounded">
         <FontAwesomeIcon icon={faBook} className="mr-2" />
         Penalty Report
       </h1>
@@ -84,8 +84,8 @@ export default function PenaltyReportPage() {
       )}
 
       {!loading && filteredPenalties.length > 0 && (
-        <table className="min-w-full border border-green-400 shadow-lg">
-          <thead className="bg-green-200">
+        <table className="min-w-full border border-blue-400 shadow-lg">
+          <thead className="bg-blue-200">
             <tr>
               <th className="px-4 py-2 text-left">
                 <FontAwesomeIcon icon={faBook} className="mr-1" />
@@ -113,7 +113,7 @@ export default function PenaltyReportPage() {
             {filteredPenalties.map((penalty) => (
               <tr
                 key={penalty.PenaltyId}
-                className="odd:bg-green-50 even:bg-green-100 hover:bg-green-200"
+                className="odd:bg-blue-50 even:bg-blue-100 hover:bg-blue-200"
               >
                 <td className="px-4 py-2">{penalty.BookTitle}</td>
                 <td className="px-4 py-2">{penalty.Amount}</td>

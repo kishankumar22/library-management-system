@@ -2,11 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { getConnection } from '@/app/lib/db';
 import jwt from 'jsonwebtoken';
 import bcrypt from 'bcryptjs';
-import { sendOtp } from '@/app/lib/sendOtp';
 import logger from '@/app/lib/logger';
-
-// Singleton OTP store for development (in-memory)
-const otpStore: { [key: string]: { otp: string; expires: number; role: string } } = {};
 
 export async function POST(req: NextRequest) {
   try {
@@ -34,7 +30,7 @@ export async function POST(req: NextRequest) {
         console.log('Validating token for:', { email: normalizedEmail, role: decoded.role });
         const userData = await getUserData(pool, normalizedEmail, decoded.role);
         if (userData) {
-          console.log('Token valid, returning user data:', userData);
+          // console.log('Token valid, returning user data:', userData);
           return NextResponse.json({
             token,
             user: userData,
@@ -84,6 +80,8 @@ export async function POST(req: NextRequest) {
     // Step 2: Handle password or DOB verification
     if (step === 'verify') {
       console.log('Verifying credentials for:', normalizedEmail);
+      const expiresIn = rememberMe ? '7d' : '1h';
+
       const adminResult = await pool
         .request()
         .input('email', normalizedEmail)
@@ -103,26 +101,16 @@ export async function POST(req: NextRequest) {
           return NextResponse.json({ message: 'Invalid password' }, { status: 401 });
         }
 
-        const otp = Math.floor(100000 + Math.random() * 900000).toString();
-        otpStore[normalizedEmail] = {
-          otp,
-          expires: Date.now() + 10 * 60 * 1000, // 10 minutes
-          role: 'admin',
-        };
-        console.log('Stored OTP for admin:', {
-          email: normalizedEmail,
-          otp,
-          expires: otpStore[normalizedEmail].expires,
+        const token = jwt.sign({ userId: user.user_id, role: 'admin' }, process.env.JWT_SECRET!, {
+          expiresIn,
         });
 
-        try {
-          await sendOtp(normalizedEmail, otp);
-          console.log('OTP sent successfully');
-          return NextResponse.json({ otpRequired: true, userType: 'admin' });
-        } catch (error: any) {
-          logger.error(`Failed to send OTP to ${normalizedEmail}: ${error.message}`);
-          return NextResponse.json({ message: `Failed to send OTP: ${error.message}` }, { status: 500 });
-        }
+        console.log('Admin login successful, returning user data:', user);
+        return NextResponse.json({
+          token,
+          user, // Send all columns from the User table
+          userType: 'admin',
+        });
       }
 
       const studentResult = await pool
@@ -142,26 +130,16 @@ export async function POST(req: NextRequest) {
           return NextResponse.json({ message: 'Invalid date of birth' }, { status: 401 });
         }
 
-        const otp = Math.floor(100000 + Math.random() * 900000).toString();
-        otpStore[normalizedEmail] = {
-          otp,
-          expires: Date.now() + 10 * 60 * 1000, // 10 minutes
-          role: 'student',
-        };
-        console.log('Stored OTP for student:', {
-          email: normalizedEmail,
-          otp,
-          expires: otpStore[normalizedEmail].expires,
+        const token = jwt.sign({ studentId: student.id, role: 'student' }, process.env.JWT_SECRET!, {
+          expiresIn,
         });
 
-        try {
-          await sendOtp(normalizedEmail, otp);
-          console.log('OTP sent successfully');
-          return NextResponse.json({ otpRequired: true, userType: 'student' });
-        } catch (error: any) {
-          logger.error(`Failed to send OTP to ${normalizedEmail}: ${error.message}`);
-          return NextResponse.json({ message: `Failed to send OTP: ${error.message}` }, { status: 500 });
-        }
+        console.log('Student login successful, returning user data:', student);
+        return NextResponse.json({
+          token,
+          user: student, // Send all columns from the Student table
+          userType: 'student',
+        });
       }
 
       console.log('User not found');
@@ -186,9 +164,8 @@ async function getUserData(pool: any, email: string, role: string) {
 
       if (result.recordset.length > 0) {
         const user = result.recordset[0];
-        return user; // return full user record (all columns)
+        return user; // Return full user record (all columns)
       }
-
     } else if (role === 'student') {
       const result = await pool
         .request()
@@ -197,17 +174,13 @@ async function getUserData(pool: any, email: string, role: string) {
 
       if (result.recordset.length > 0) {
         const student = result.recordset[0];
-        return student; // return full student record (all columns)
+        return student; // Return full student record (all columns)
       }
     }
 
     return null;
-
   } catch (error: any) {
     logger.error(`Error fetching user data: ${error.message}`);
     return null;
   }
 }
-
-
-export { otpStore };

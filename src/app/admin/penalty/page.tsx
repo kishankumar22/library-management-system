@@ -35,6 +35,16 @@ const ManagePenalty = () => {
   });
   const [paymentHistory, setPaymentHistory] = useState([]);
   const user = useUser();
+    const clearFilters = () => {
+    setFilters({
+      searchTerm: '',
+      statusFilter: 'all',
+      startDate: '',
+      endDate: '',
+    });
+ 
+  };
+
 
   useEffect(() => {
     fetchPenalties();
@@ -45,11 +55,9 @@ const ManagePenalty = () => {
       setLoading(true);
       setError(null);
       const response = await axios.get('/api/penalty', { timeout: 30000 });
-      const filteredPenalties = response.data.filter(
-        (penalty: { ReturnDate: string | number | Date; DueDate: string | number | Date; }) => new Date(penalty.ReturnDate) > new Date(penalty.DueDate)
-      );
+      // Remove the filter for ReturnDate > DueDate since the data shows issued status
       const uniquePenalties = Array.from(
-        new Map(filteredPenalties.map((item: { PenaltyId: any; }) => [item.PenaltyId, item])).values()
+        new Map(response.data.map((item: { PenaltyId: any; }) => [item.PenaltyId, item])).values()
       );
       setAllPenalties(uniquePenalties);
       applyFilters(uniquePenalties);
@@ -145,19 +153,19 @@ const ManagePenalty = () => {
     }
 
     try {
-await axios.post(
-  '/api/penalty',
-  {
-    IssueId: selectedPenalty.IssueId,
-    StudentId: selectedPenalty.StudentId,
-    AmountPaid: amountToPay,
-    PaymentMode: paymentData.PaymentMode,
-    TransactionId: paymentData.TransactionId || null,
-    ReceiveBy: user?.name || 'Admin',
-    CreatedBy: user?.name || 'Admin',
-  },
-  { timeout: 30000 }
-);
+      await axios.post(
+        '/api/penalty',
+        {
+          IssueId: selectedPenalty.IssueId,
+          StudentId: selectedPenalty.StudentId,
+          AmountPaid: amountToPay,
+          PaymentMode: paymentData.PaymentMode,
+          TransactionId: paymentData.TransactionId || null,
+          ReceiveBy: user?.name || 'Admin',
+          CreatedBy: user?.name || 'Admin',
+        },
+        { timeout: 30000 }
+      );
 
       setIsPaymentModalOpen(false);
       fetchPenalties();
@@ -215,12 +223,8 @@ await axios.post(
         <div className="text-red-600 text-center p-4">{error}</div>
       ) : (
         <>
-          <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-4 gap-2">
-            <h1 className="text-xl font-bold text-gray-800">Manage Penalties</h1>
-          </div>
-
-          <div className="bg-gray-50 p-4 rounded mb-4">
-            <div className="grid grid-cols-1 sm:grid-cols-6 gap-2 items-center">
+          <div className="bg-gray-50 p-2 rounded mb-2">
+            <div className="grid grid-cols-1 sm:grid-cols-4 md:grid-cols-3  xl:grid-cols-7 lg:grid-cols-4 gap-2 items-center">
               <div className="flex items-center gap-2 text-blue-600 font-medium pl-8 py-2 border rounded text-sm">
                 Total Penalties: {filteredPenaltiesCount}
               </div>
@@ -259,12 +263,19 @@ await axios.post(
                 onChange={handleFilterChange}
                 className="border p-2 rounded text-sm focus:outline-none focus:ring-2 focus:ring-blue-200"
               />
+                <button
+                    onClick={clearFilters}
+                    className="bg-gray-500 text-white px-2 py-2 rounded text-sm hover:bg-gray-600"
+                  >
+                    Clear Filters
+                  </button>
               <button
                 onClick={exportToExcel}
                 className="bg-green-600 text-white px-4 py-2 rounded text-sm flex items-center gap-2 hover:bg-green-700 transition-colors"
               >
                 <FontAwesomeIcon icon={faFileExcel} /> Export to Excel
               </button>
+            
             </div>
           </div>
 

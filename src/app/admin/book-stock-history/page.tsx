@@ -1,27 +1,24 @@
 'use client';
 import { useUser } from '@/app/hooks/useUser';
-
-
-
 import { useState, useEffect, useRef } from 'react';
 import { toast } from 'react-toastify';
 import axios from 'axios';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import {
-  faSpinner, faPlus, faBook, faTimes, faTimesCircle, faSearch, faPlusCircle, faMinusCircle,
-  faArrowCircleDown, faArrowCircleUp,
+  faSpinner, faPlus, faBook, faTimes, faTimesCircle, faSearch, faArrowCircleDown, faArrowCircleUp,
 } from '@fortawesome/free-solid-svg-icons';
 import { Book, Publication, BookStockHistory } from '@/types';
 
 const BookStockHistoryPage = () => {
   const [books, setBooks] = useState<Book[]>([]);
+  const [allBooks, setAllBooks] = useState<Book[]>([]);
   const [publications, setPublications] = useState<Publication[]>([]);
   const [bookStockHistory, setBookStockHistory] = useState<BookStockHistory[]>([]);
   const [loading, setLoading] = useState(true);
   const [formData, setFormData] = useState({
     BookId: 0,
     PublicationId: 0,
-    CopiesAdded: 0, // Will be positive for In, negative for Out
+    CopiesAdded: 0,
     Remarks: '',
   });
   const [selectedBook, setSelectedBook] = useState<Book | null>(null);
@@ -29,13 +26,17 @@ const BookStockHistoryPage = () => {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
   const [publicationFilter, setPublicationFilter] = useState(0);
+  const [statusFilter, setStatusFilter] = useState<'all' | 'Stock In' | 'Stock Out'>('all');
   const [filterPublicationSearch, setFilterPublicationSearch] = useState('');
   const [showFilterPublicationInput, setShowFilterPublicationInput] = useState(false);
   const [modalPublicationSearch, setModalPublicationSearch] = useState('');
   const [showModalPublicationInput, setShowModalPublicationInput] = useState(false);
   const [bookSearch, setBookSearch] = useState('');
   const [showBookInput, setShowBookInput] = useState(false);
-  const [actionType, setActionType] = useState<string | null>(null); // No default value
+  const [actionType, setActionType] = useState<string | null>(null);
+  const [totalStock, setTotalStock] = useState(0);
+  const [totalStockIn, setTotalStockIn] = useState(0);
+  const [totalStockOut, setTotalStockOut] = useState(0);
   const user = useUser();
 
   const modalRef = useRef<HTMLDivElement>(null);
@@ -44,7 +45,7 @@ const BookStockHistoryPage = () => {
 
   useEffect(() => {
     fetchData();
-  }, []);
+  }, [statusFilter, publicationFilter, searchTerm]);
 
   useEffect(() => {
     const handleOutsideClick = (e: MouseEvent) => {
@@ -65,6 +66,21 @@ const BookStockHistoryPage = () => {
     };
   }, [isModalOpen]);
 
+  useEffect(() => {
+    // Calculate totals
+    const stockIn = bookStockHistory
+      .filter(history => history.CopiesAdded >= 0)
+      .reduce((sum, history) => sum + history.CopiesAdded, 0);
+    const stockOut = bookStockHistory
+      .filter(history => history.CopiesAdded < 0)
+      .reduce((sum, history) => sum + Math.abs(history.CopiesAdded), 0);
+    const total = bookStockHistory.reduce((sum, history) => sum + history.CopiesAdded, 0);
+
+    setTotalStockIn(stockIn);
+    setTotalStockOut(stockOut);
+    setTotalStock(total);
+  }, [bookStockHistory]);
+
   const fetchData = async () => {
     try {
       setLoading(true);
@@ -76,6 +92,7 @@ const BookStockHistoryPage = () => {
         }),
       ]);
       setBooks(booksRes.data);
+      setAllBooks(booksRes.data);
       setPublications(publicationsRes.data);
       setBookStockHistory(historyRes.data);
     } catch (error) {
@@ -91,15 +108,15 @@ const BookStockHistoryPage = () => {
     setFilterPublicationSearch(selectedPub?.Name || '');
     setPublicationFilter(pubId);
     setShowFilterPublicationInput(false);
-    fetchData();
   };
 
   const handleModalPublicationChange = (pubId: number) => {
     const selectedPub = publications.find(p => p.PubId === pubId);
     setModalPublicationSearch(selectedPub?.Name || '');
     setFormData(prev => ({ ...prev, PublicationId: pubId, BookId: 0 }));
-    setBooks(books.filter(b => b.PublicationId === pubId));
+    setBooks(pubId ? allBooks.filter(b => b.PublicationId === pubId) : allBooks);
     setSelectedBook(null);
+    setBookSearch('');
     setShowModalPublicationInput(false);
   };
 
@@ -117,7 +134,6 @@ const BookStockHistoryPage = () => {
       return;
     }
 
-    // Check available copies for "Out" operation
     if (actionType === 'Out' && selectedBook && selectedBook.AvailableCopies < Math.abs(formData.CopiesAdded)) {
       toast.error('Insufficient available copies to remove');
       return;
@@ -149,20 +165,24 @@ const BookStockHistoryPage = () => {
     setSelectedBook(null);
     setModalPublicationSearch('');
     setBookSearch('');
-    setActionType(null); // Reset to no selection
+    setActionType(null);
     setShowModalPublicationInput(false);
     setShowBookInput(false);
+    setBooks(allBooks);
   };
 
   const filteredHistory = bookStockHistory.filter(history => {
     const matchesSearch = history.BookName?.toLowerCase().includes(searchTerm.toLowerCase());
     const matchesPublication = publicationFilter === 0 || history.PublicationName?.toLowerCase() === publications.find(p => p.PubId === publicationFilter)?.Name.toLowerCase();
-    return matchesSearch && matchesPublication;
+    const matchesStatus = statusFilter === 'all' ||
+                         (statusFilter === 'Stock In' && history.CopiesAdded >= 0) ||
+                         (statusFilter === 'Stock Out' && history.CopiesAdded < 0);
+    return matchesSearch && matchesPublication && matchesStatus;
   });
 
   return (
-    <div className="container mx-auto p-4">
-      <div className="flex flex-col sm:flex-row justify-between items-center mb-4 gap-2 bg-gradient-to-r from-blue-50 to-white p-2 rounded-md">
+    <div className="container ">
+      <div className="flex flex-col sm:flex-row justify-between items-center mb-2 gap-2 bg-gradient-to-r from-blue-50 to-white p-2 rounded-md">
         <h1 className="text-xl font-bold text-blue-800">Book Stock History</h1>
         <button
           onClick={() => {
@@ -175,87 +195,125 @@ const BookStockHistoryPage = () => {
         </button>
       </div>
 
-      <div className="bg-white rounded shadow p-3 mb-4">
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 items-center">
-          <div className="relative">
-            <input
-              type="text"
-              placeholder="Search by book name"
-              className="w-full pl-8 pr-2 py-1 border rounded text-sm"
-              value={searchTerm}
-              onChange={(e) => {
-                setSearchTerm(e.target.value);
-                fetchData();
-              }}
-            />
-            <FontAwesomeIcon icon={faSearch} className="absolute left-2 top-2.5 w-3 h-3 text-gray-400" />
-          </div>
-          <div className="relative">
-            <div
-              className="w-full p-1 border rounded text-sm bg-white flex justify-between items-center"
-              onClick={() => {
-                setShowFilterPublicationInput(true);
-                if (filterPublicationInputRef.current) {
-                  filterPublicationInputRef.current.focus();
-                  if (!filterPublicationSearch) {
-                    setFilterPublicationSearch('');
-                  }
-                }
-              }}
-            >
-              <input
-                ref={filterPublicationInputRef}
-                type="text"
-                placeholder="Search Publication"
-                className="w-full p-0 border-0 text-sm focus:outline-none"
-                value={filterPublicationSearch}
-                onChange={(e) => {
-                  setFilterPublicationSearch(e.target.value);
-                  setShowFilterPublicationInput(true);
-                }}
-                onBlur={() => setTimeout(() => setShowFilterPublicationInput(false), 200)}
-              />
-              {filterPublicationSearch && (
-                <button
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    setFilterPublicationSearch('');
-                    setPublicationFilter(0);
-                    fetchData();
-                  }}
-                  className="text-red-500 hover:text-red-700"
-                >
-                  <FontAwesomeIcon icon={faTimesCircle} size="xs" />
-                </button>
-              )}
-            </div>
-            {showFilterPublicationInput && (
-              <div className="relative">
-                <ul className="absolute w-full bg-white border rounded mt-1 max-h-40 overflow-y-auto z-10">
-                  <li className="p-1 bg-gray-100 font-medium">Select Publication</li>
-                  {publications
-                    .filter(pub => pub.Name.toLowerCase().includes(filterPublicationSearch.toLowerCase()))
-                    .length === 0 ? (
-                    <li className="p-1 text-gray-500 italic">No publication found</li>
-                  ) : (
-                    publications
-                      .filter(pub => pub.Name.toLowerCase().includes(filterPublicationSearch.toLowerCase()))
-                      .map(pub => (
-                        <li
-                          key={pub.PubId}
-                          className="p-1 hover:bg-gray-100 cursor-pointer"
-                          onClick={() => handleFilterPublicationChange(pub.PubId)}
-                        >
-                          {pub.Name}
-                        </li>
-                      ))
-                  )}
-                </ul>
-              </div>
-            )}
-          </div>
-        </div>
+<div className="bg-white rounded-lg shadow p-2 mb-3 border border-gray-200">
+  <div className="grid grid-cols-1 md:grid-cols-4 gap-3 items-center text-sm">
+    
+    {/* Stock Summary - Compact */}
+    <div className="flex flex-wrap gap-3 text-[11px] font-medium">
+      <div className="flex items-center gap-1 text-blue-700">
+        <FontAwesomeIcon icon={faBook} className="w-4 h-4" />
+        <span>Total Stock:</span>
+        <span className="font-semibold">{totalStock}</span>
       </div>
+      <div className="flex items-center gap-1 text-green-600">
+        <FontAwesomeIcon icon={faArrowCircleDown} className="w-4 h-4" />
+        <span>Stock In:</span>
+        <span className="font-semibold">{totalStockIn}</span>
+      </div>
+      <div className="flex items-center gap-1 text-red-600">
+        <FontAwesomeIcon icon={faArrowCircleUp} className="w-4 h-4" />
+        <span>Stock Out:</span>
+        <span className="font-semibold">{totalStockOut}</span>
+      </div>
+    </div>
+
+    {/* Status Dropdown */}
+    <div>
+      <label className="block text-xs font-medium text-gray-600 mb-1">Status</label>
+      <select
+        className="w-full px-2 py-1.5 border rounded text-sm focus:outline-none focus:ring-1 focus:ring-blue-500"
+        value={statusFilter}
+        onChange={(e) => setStatusFilter(e.target.value as 'all' | 'Stock In' | 'Stock Out')}
+      >
+        <option value="all">All</option>
+        <option value="Stock In">Stock In</option>
+        <option value="Stock Out">Stock Out</option>
+      </select>
+    </div>
+
+    {/* Publication Search */}
+    <div className="relative">
+      <label className="block text-xs font-medium text-gray-600 mb-1">Publication</label>
+      <div
+        className="flex items-center border rounded px-2 py-1.5 bg-white text-sm focus-within:ring-1 focus-within:ring-blue-500"
+        onClick={() => {
+          setShowFilterPublicationInput(true);
+          if (filterPublicationInputRef.current) {
+            filterPublicationInputRef.current.focus();
+            if (!filterPublicationSearch) setFilterPublicationSearch('');
+          }
+        }}
+      >
+        <input
+          ref={filterPublicationInputRef}
+          type="text"
+          placeholder="Search Publication"
+          className="w-full border-none focus:outline-none bg-transparent"
+          value={filterPublicationSearch}
+          onChange={(e) => {
+            setFilterPublicationSearch(e.target.value);
+            setShowFilterPublicationInput(true);
+          }}
+          onBlur={() => setTimeout(() => setShowFilterPublicationInput(false), 200)}
+        />
+        {filterPublicationSearch && (
+          <button
+            onClick={(e) => {
+              e.stopPropagation();
+              setFilterPublicationSearch('');
+              setPublicationFilter(0);
+            }}
+            className="text-red-500 hover:text-red-700 ml-2"
+          >
+            <FontAwesomeIcon icon={faTimesCircle} size="sm" />
+          </button>
+        )}
+      </div>
+      {showFilterPublicationInput && (
+        <ul className="absolute z-10 w-full bg-white border rounded mt-1 max-h-40 overflow-y-auto text-sm">
+          <li className="px-2 py-1 font-semibold bg-gray-100">Select Publication</li>
+          {publications.filter(pub =>
+            pub.Name.toLowerCase().includes(filterPublicationSearch.toLowerCase())
+          ).length === 0 ? (
+            <li className="px-2 py-1 italic text-gray-400">No publication found</li>
+          ) : (
+            publications
+              .filter(pub =>
+                pub.Name.toLowerCase().includes(filterPublicationSearch.toLowerCase())
+              )
+              .map(pub => (
+                <li
+                  key={pub.PubId}
+                  className="px-2 py-1 hover:bg-gray-100 cursor-pointer"
+                  onClick={() => handleFilterPublicationChange(pub.PubId)}
+                >
+                  {pub.Name}
+                </li>
+              ))
+          )}
+        </ul>
+      )}
+    </div>
+
+    {/* Book Search */}
+    <div className="relative">
+      <label className="block text-xs font-medium text-gray-600 mb-1">Search Book</label>
+      <input
+        type="text"
+        placeholder="Search by book name"
+        className="w-full pl-8 pr-2 py-1.5 border rounded text-sm focus:outline-none focus:ring-1 focus:ring-blue-500"
+        value={searchTerm}
+        onChange={(e) => setSearchTerm(e.target.value)}
+      />
+      <FontAwesomeIcon
+        icon={faSearch}
+        className="absolute left-2 top-9 transform -translate-y-1/2 w-3.5 h-3.5 text-gray-400"
+      />
+    </div>
+  </div>
+</div>
+
+
 
       <div className="bg-white rounded shadow overflow-x-auto">
         {loading ? (
@@ -286,15 +344,18 @@ const BookStockHistoryPage = () => {
                     <td className="px-3 py-2">{index + 1}</td>
                     <td className="px-3 py-2 uppercase">{history.BookName}</td>
                     <td className="px-3 py-2">{history.PublicationName}</td>
-                    <td
-                      className={`px-3 py-2 font-medium ${history.CopiesAdded >= 0 ? 'text-green-600' : 'text-red-600'}`}
-                      title={history.CopiesAdded >= 0 
-                        ? `Added ${history.CopiesAdded} book${history.CopiesAdded !== 1 ? 's' : ''}` 
-                        : `Removed ${Math.abs(history.CopiesAdded)} book${Math.abs(history.CopiesAdded) !== 1 ? 's' : ''}`}
-                    >
-                      {history.CopiesAdded >= 0 
-                        ? `+${history.CopiesAdded}` 
-                        : `${history.CopiesAdded}`}
+                    <td className="px-3 py-2">
+                      <div className="flex items-center gap-1">
+                       
+                        <span
+                          className={history.CopiesAdded >= 0 ? 'text-green-600 font-medium' : 'text-red-600 font-medium'}
+                          title={history.CopiesAdded >= 0 
+                            ? `Added ${history.CopiesAdded} book${history.CopiesAdded !== 1 ? 's' : ''}` 
+                            : `Removed ${Math.abs(history.CopiesAdded)} book${Math.abs(history.CopiesAdded) !== 1 ? 's' : ''}`}
+                        >
+                          {history.CopiesAdded >= 0 ? `+${history.CopiesAdded}` : `${history.CopiesAdded}`}
+                        </span>
+                      </div>
                     </td>
                     <td className="px-3 py-2">{history.Remarks || 'N/A'}</td>
                     <td className="px-3 py-2">{new Date(history.CreatedOn).toLocaleDateString()}</td>
@@ -357,8 +418,9 @@ const BookStockHistoryPage = () => {
                               e.stopPropagation();
                               setModalPublicationSearch('');
                               setFormData(prev => ({ ...prev, PublicationId: 0 }));
-                              setBooks(books);
+                              setBooks(allBooks);
                               setSelectedBook(null);
+                              setBookSearch('');
                             }}
                             className="text-red-500 hover:text-red-700"
                           >

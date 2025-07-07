@@ -1,0 +1,7 @@
+Application has thrown an uncaught exception and is terminated:
+Error: ENOENT: no such file or directory, open 'C:\Users\Windows\Desktop\New Projetct\library-management-system\.next\prerender-manifest.json'
+    at async open (node:internal/fs/promises:638:25)
+    at async Object.readFile (node:internal/fs/promises:1238:14)
+    at async setupFsCheck (C:\Users\Windows\Desktop\New Projetct\library-management-system\node_modules\next\dist\server\lib\router-utils\filesystem.js:190:40)
+    at async initialize (C:\Users\Windows\Desktop\New Projetct\library-management-system\node_modules\next\dist\server\lib\router-server.js:110:23)
+    at async NextCustomServer.prepare (C:\Users\Windows\Desktop\New Projetct\library-management-system\node_modules\next\dist\server\next.js:276:28)

@@ -173,9 +173,9 @@ export default function BookReportPage() {
 
   return (
     <div className="min-h-screen p-2 bg-white text-black">
-      <div className="flex justify-between items-center mb-6">
-        <h1 className="text-2xl font-bold flex items-center gap-2 text-indigo-800">
-          <FontAwesomeIcon icon={faBook} />
+      <div className="text-2xl font-bold text-center mb-3 bg-blue-700 text-white p-2 rounded">
+        <h1 className="">
+          <FontAwesomeIcon icon={faBook} className='mr-2'  />
           My Book Report
         </h1>
         {/* <button

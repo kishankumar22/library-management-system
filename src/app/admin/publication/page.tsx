@@ -201,55 +201,52 @@ const PublicationsPage = () => {
 
   return (
     <div>
-      <div className="bg-white w-full rounded-lg shadow-sm px-4 py-1">
-        <h2 className="text-xl font-bold text-gray-800 mb-2">Manage Publications</h2>
+      <div className=" w-full rounded-lg shadow-sm px-4 py-1">
+        {/* <h2 className="text-xl font-bold text-gray-800 mb-2">Manage Publications</h2> */}
 
-        <div className="flex flex-col sm:flex-row justify-between mb-6 gap-4">
-          <div className="flex flex-col sm:flex-row gap-4 w-full sm:w-auto">
-          <div className="flex flex-col sm:flex-row gap-2 w-full sm:w-auto">
-                  <div className="flex-grow mt-1 text-blue-700 sm:flex-grow-0 sm:w-36">
-                  Total Publications: <span className="font-semibold">{filteredPublications.length}</span>
-                </div>
-              </div>
-            
-            <div className="relative flex-grow sm:flex-grow-0 sm:w-64">
-              <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                <FontAwesomeIcon icon={faSearch} className="text-gray-400" />
-              </div>
-              <input
-                type="text"
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-                placeholder="Search publications..."
-                className="pl-10 pr-4 py-2 border border-gray-300 rounded-lg w-full focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-              />
-            </div>
-            <div className="relative flex-grow sm:flex-grow-0 sm:w-40">
-              <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                <FontAwesomeIcon icon={faFilter} className="text-gray-400" />
-              </div>
-              <select
-                value={statusFilter}
-                onChange={(e) => setStatusFilter(e.target.value as 'all' | 'active' | 'inactive')}
-                className="pl-10 pr-4 py-2 border border-gray-300 rounded-lg w-full appearance-none focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white"
-              >
-                <option value="all">All</option>
-                <option value="active">Active</option>
-                <option value="inactive">Inactive</option>
-              </select>
-            </div>
-          </div>
-          <button
-            onClick={() => {
-              setName('');
-              setEditingId(null);
-              setIsModalOpen(true);
-            }}
-            className="bg-blue-600 hover:bg-blue-700 text-white font-medium py-2 px-4 rounded-lg transition duration-200 flex items-center gap-2 shadow-md hover:shadow-lg"
-          >
-            <FontAwesomeIcon icon={faPlus} /> Add Publication
-          </button>
-        </div>
+       <div className="flex flex-col sm:flex-row justify-between items-center gap-2 mb-2 bg-gray-50 p-2 rounded-lg shadow-sm">
+  <div className="flex flex-col sm:flex-row gap-2 w-full sm:w-auto items-center">
+    <div className="flex-shrink-0 text-blue-700 text-sm font-medium">
+      Total Publications: <span className="font-semibold">{filteredPublications.length}</span>
+    </div>
+    <div className="relative flex-grow sm:flex-grow-0 sm:w-48">
+      <div className="absolute inset-y-0 left-0 pl-2 flex items-center pointer-events-none">
+        <FontAwesomeIcon icon={faSearch} className="text-gray-400 text-xs" />
+      </div>
+      <input
+        type="text"
+        value={searchTerm}
+        onChange={(e) => setSearchTerm(e.target.value)}
+        placeholder="Search publications..."
+        className="pl-8 pr-2 py-1 border border-gray-200 rounded-md w-full text-xs focus:outline-none focus:ring-1 focus:ring-blue-400 focus:border-transparent"
+      />
+    </div>
+    <div className="relative flex-grow sm:flex-grow-0 sm:w-32">
+      <div className="absolute inset-y-0 left-0 pl-2 flex items-center pointer-events-none">
+        <FontAwesomeIcon icon={faFilter} className="text-gray-400 text-xs" />
+      </div>
+      <select
+        value={statusFilter}
+        onChange={(e) => setStatusFilter(e.target.value as 'all' | 'active' | 'inactive')}
+        className="pl-8 pr-2 py-1 border border-gray-200 rounded-md w-full text-xs appearance-none focus:outline-none focus:ring-1 focus:ring-blue-400 focus:border-transparent bg-white"
+      >
+        <option value="all">All</option>
+        <option value="active">Active</option>
+        <option value="inactive">Inactive</option>
+      </select>
+    </div>
+  </div>
+  <button
+    onClick={() => {
+      setName('');
+      setEditingId(null);
+      setIsModalOpen(true);
+    }}
+    className="bg-blue-600 hover:bg-blue-700 text-white text-xs font-medium py-1 px-3 rounded-md transition-colors duration-200 flex items-center gap-1 shadow-sm hover:shadow-md"
+  >
+    <FontAwesomeIcon icon={faPlus} size="xs" /> Add Publication
+  </button>
+</div>
 
         {isModalOpen && (
           <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50 transition-opacity duration-300 ease-in-out">

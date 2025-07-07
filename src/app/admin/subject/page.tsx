@@ -190,7 +190,7 @@ const handleSubmit = async (e: React.FormEvent) => {
 
   return (
     <div className="">
-      <div className="bg-white w-full rounded-lg shadow-sm px-4 py-1">
+      <div className=" w-full rounded-lg shadow-sm px-4 py-1">
         {initialLoading ? (
           <div className="flex items-center justify-center h-screen">
             <div className="text-center">
@@ -200,52 +200,62 @@ const handleSubmit = async (e: React.FormEvent) => {
           </div>
         ) : (
           <>
-            <h2 className="text-xl font-semibold mb-3 text-gray-800">Manage Subjects</h2>
+            {/* <h2 className="text-xl font-semibold mb-3 text-gray-800">Manage Subjects</h2> */}
 
-            <div className="flex flex-col sm:flex-row justify-between mb-2 gap-2">
-              <div className="flex flex-col sm:flex-row gap-2 w-full sm:w-auto">
-                  <div className="flex-grow mt-1 text-blue-700 sm:flex-grow-0 sm:w-36">
-                  Total Subjects: <span className="font-semibold">{filteredSubjects.length}</span>
-                </div>
-                <div className="relative flex-grow sm:flex-grow-0 sm:w-56">
-                  <div className="absolute inset-y-0 left-0 pl-2 flex items-center pointer-events-none">
-                    <FontAwesomeIcon icon={faSearch} className="text-gray-400 text-sm" />
-                  </div>
-                  <input
-                    type="text"
-                    value={searchTerm}
-                    onChange={(e) => setSearchTerm(e.target.value)}
-                    placeholder="Search subjects..."
-                    className="pl-8 pr-2 py-1.5 text-sm border border-gray-300 rounded w-full focus:outline-none focus:ring-1 focus:ring-blue-500"
-                  />
-                </div>
-                <div className="relative flex-grow sm:flex-grow-0 sm:w-36">
-                  <div className="absolute inset-y-0 left-0 pl-2 flex items-center pointer-events-none">
-                    <FontAwesomeIcon icon={faFilter} className="text-gray-400 text-sm" />
-                  </div>
-                  <select
-                    value={statusFilter}
-                    onChange={(e) => setStatusFilter(e.target.value as 'all' | 'active' | 'inactive')}
-                    className="pl-8 pr-2 py-1.5 text-sm border border-gray-300 rounded w-full focus:outline-none focus:ring-1 focus:ring-blue-500"
-                  >
-                    <option value="all">All</option>
-                    <option value="active">Active</option>
-                    <option value="inactive">Inactive</option>
-                  </select>
-                </div>
-              
-              </div>
-              <button
-                onClick={() => {
-                  setName('');
-                  setEditingId(null);
-                  setIsModalOpen(true);
-                }}
-                className="bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium py-1.5 px-3 rounded flex items-center gap-1"
-              >
-                <FontAwesomeIcon icon={faPlus} size="xs" /> Add Subject
-              </button>
-            </div>
+          <div className="flex flex-col sm:flex-row items-center justify-between gap-3 mb-4">
+  {/* Left Side: Total + Search + Filter */}
+  <div className="flex flex-col sm:flex-row items-center gap-3 w-full sm:w-auto">
+    
+    {/* Total Subjects */}
+    <div className="text-sm text-gray-700">
+      Total Subjects: <span className="font-semibold text-blue-700">{filteredSubjects.length}</span>
+    </div>
+
+    {/* Search Box */}
+    <div className="relative w-full sm:w-56">
+      <span className="absolute inset-y-0 left-0 flex items-center pl-2 text-gray-400">
+        <FontAwesomeIcon icon={faSearch} className="text-sm" />
+      </span>
+      <input
+        type="text"
+        value={searchTerm}
+        onChange={(e) => setSearchTerm(e.target.value)}
+        placeholder="Search subjects..."
+        className="pl-8 pr-3 py-2 text-sm border border-gray-300 rounded-md w-full shadow-sm focus:ring-blue-500 focus:border-blue-500 focus:outline-none"
+      />
+    </div>
+
+    {/* Status Filter */}
+    <div className="relative w-full sm:w-36">
+      <span className="absolute inset-y-0 left-0 flex items-center pl-2 text-gray-400">
+        <FontAwesomeIcon icon={faFilter} className="text-sm" />
+      </span>
+      <select
+        value={statusFilter}
+        onChange={(e) => setStatusFilter(e.target.value as 'all' | 'active' | 'inactive')}
+        className="pl-8 pr-2 py-2 text-sm border border-gray-300 rounded-md w-full shadow-sm focus:ring-blue-500 focus:border-blue-500 focus:outline-none"
+      >
+        <option value="all">All</option>
+        <option value="active">Active</option>
+        <option value="inactive">Inactive</option>
+      </select>
+    </div>
+  </div>
+
+  {/* Add Subject Button */}
+  <button
+    onClick={() => {
+      setName('');
+      setEditingId(null);
+      setIsModalOpen(true);
+    }}
+    className="flex items-center gap-2 bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium px-4 py-2 rounded-md shadow-sm transition-colors"
+  >
+    <FontAwesomeIcon icon={faPlus} size="sm" />
+    Add Subject
+  </button>
+</div>
+
 
             {isModalOpen && (
               <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-3 z-50">

@@ -180,3 +180,4 @@ RequestError: The DELETE statement conflicted with the REFERENCE constraint "FK_
     at process.processTicksAndRejections (node:internal/process/task_queues:105:5)
 2025-07-05 18:11:47 [ERROR] Error deleting book: RequestError: The DELETE statement conflicted with the REFERENCE constraint "FK_BookHistory_Books". The conflict occurred in database "jkconsultancyadmindb", table "dbo.BookStockHistory", column 'BookId'.
 2025-07-05 18:11:54 [ERROR] Error deleting book: RequestError: The DELETE statement conflicted with the REFERENCE constraint "FK_BookHistory_Books". The conflict occurred in database "jkconsultancyadmindb", table "dbo.BookStockHistory", column 'BookId'.
+2025-07-07 10:41:25 [ERROR] Failed to delete old photo: Error: ENOENT: no such file or directory, unlink 'C:\Users\Windows\Desktop\New Projetct\library-management-system\public\Books\Community Phrmacy.jpg'

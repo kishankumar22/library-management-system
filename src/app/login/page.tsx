@@ -5,20 +5,16 @@ import { useRouter } from 'next/navigation';
 import { toast } from 'react-toastify';
 import Image from 'next/image';
 import axios from 'axios';
-import pic from '../../public/images/Library.png';
+import pic from '../../public/images/logo.jpg';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faSpinner, faEye, faEyeSlash, faArrowLeft, faInfoCircle } from '@fortawesome/free-solid-svg-icons';
+import { faSpinner, faEye, faEyeSlash, faArrowLeft } from '@fortawesome/free-solid-svg-icons';
 
 const LoginPage = () => {
   const router = useRouter();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [dob, setDob] = useState('');
-  const [otp, setOtp] = useState('');
-  const [isOtpSent, setIsOtpSent] = useState(false);
-  const [isModalOpen, setIsModalOpen] = useState(false);
   const [rememberMe, setRememberMe] = useState(false);
-  const [resendTimer, setResendTimer] = useState(0);
   const [isLoading, setIsLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
   const [step, setStep] = useState<'email' | 'verify'>('email');
@@ -37,17 +33,6 @@ const LoginPage = () => {
     }
   }, []);
 
-  // Handle resend OTP timer
-  useEffect(() => {
-    let timer: NodeJS.Timeout;
-    if (isOtpSent && resendTimer > 0) {
-      timer = setInterval(() => {
-        setResendTimer((prev) => (prev > 0 ? prev - 1 : 0));
-      }, 1000);
-    }
-    return () => clearInterval(timer);
-  }, [isOtpSent, resendTimer]);
-
   // Validate token for remembered user
   const validateToken = async (email: string, token: string) => {
     setIsLoading(true);
@@ -65,7 +50,7 @@ const LoginPage = () => {
         localStorage.setItem('token', data.token);
         localStorage.setItem('role', data.userType);
         localStorage.setItem('rememberedUser', email.toLowerCase().trim());
-        localStorage.setItem('UserDetails', JSON.stringify(data || {}));
+        localStorage.setItem('UserDetails', JSON.stringify(data || {})); // Stores full user data
         toast.success('Auto-login successful');
         router.push(data.userType === 'admin' ? '/admin' : '/student');
         router.refresh();
@@ -121,7 +106,7 @@ const LoginPage = () => {
     await checkUserType(email);
   };
 
-  // Handle login (password/DOB and OTP)
+  // Handle login (password/DOB)
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsLoading(true);
@@ -139,65 +124,6 @@ const LoginPage = () => {
       const data = response.data;
       console.log('Login Response:', data);
 
-      if (response.status === 200) {
-        if (data.otpRequired) {
-          setIsOtpSent(true);
-          setIsModalOpen(true);
-          setResendTimer(59);
-          toast.success(`OTP sent to ${email}. Please check your inbox and enter the 6-digit code.`, {
-            position: 'top-center',
-          });
-        } else if (data.token) {
-          if (rememberMe) {
-            localStorage.setItem('rememberedUser', email.toLowerCase().trim());
-            setRememberedUser(email.toLowerCase().trim());
-          } else {
-            localStorage.removeItem('rememberedUser');
-            setRememberedUser(null);
-          }
-          localStorage.setItem('token', data.token);
-          localStorage.setItem('role', userType || '');
-          localStorage.setItem('UserDetails', JSON.stringify(data || {}));
-          toast.success('Logged in successfully');
-          router.push(userType === 'admin' ? '/admin' : '/student');
-          router.refresh();
-        } else {
-          toast.error('Login failed: No token received');
-        }
-      } else {
-        toast.error(data.message || 'Login failed');
-      }
-    } catch (error: any) {
-      console.error('Login error:', error);
-      toast.error(error.response?.data?.message || 'An error occurred during login');
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
-  // Handle OTP verification
-  const handleOtpVerification = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!otp || otp.length !== 6) {
-      toast.error('Please enter a valid 6-digit OTP');
-      return;
-    }
-    setIsLoading(true);
-    try {
-      const response = await axios.post(
-        '/api/auth/otp',
-        {
-          email: email.toLowerCase().trim(),
-          otp: otp.trim(),
-          role: userType,
-        },
-        {
-          headers: { 'X-Remember-Me': rememberMe },
-        }
-      );
-
-      const data = response.data;
-      console.log('OTP Verification Response:', data);
       if (response.status === 200 && data.token) {
         if (rememberMe) {
           localStorage.setItem('rememberedUser', email.toLowerCase().trim());
@@ -208,65 +134,19 @@ const LoginPage = () => {
         }
         localStorage.setItem('token', data.token);
         localStorage.setItem('role', userType || '');
-        localStorage.setItem('UserDetails', JSON.stringify(data || {}));
-        setIsModalOpen(false);
-        setIsOtpSent(false);
-        setOtp('');
-        setResendTimer(0);
-        toast.success('OTP verified successfully');
+        localStorage.setItem('UserDetails', JSON.stringify(data || {})); // Stores full user data
+        toast.success('Logged in successfully');
         router.push(userType === 'admin' ? '/admin' : '/student');
         router.refresh();
       } else {
-        toast.error(data.message || 'Invalid or expired OTP');
+        toast.error(data.message || 'Login failed');
       }
     } catch (error: any) {
-      console.error('OTP verification error:', error);
-      toast.error(error.response?.data?.message || 'An error occurred during OTP verification');
+      console.error('Login error:', error);
+      toast.error(error.response?.data?.message || 'An error occurred during login');
     } finally {
       setIsLoading(false);
     }
-  };
-
-  // Resend OTP
-  const handleResendOtp = async () => {
-    if (resendTimer > 0) return;
-    setIsLoading(true);
-    try {
-      const body = {
-        email: email.toLowerCase().trim(),
-        step: 'verify',
-        ...(userType === 'admin' ? { password } : { dob }),
-        rememberMe,
-      };
-
-      const response = await axios.post('/api/auth/login', body, {
-        headers: { 'X-Remember-Me': rememberMe },
-      });
-      const data = response.data;
-      console.log('Resend OTP Response:', data);
-
-      if (response.status === 200 && data.otpRequired) {
-        setResendTimer(59);
-        toast.success(`New OTP sent to ${email}. Please check your inbox.`, {
-          position: 'top-center',
-        });
-      } else {
-        toast.error(data.message || 'Failed to resend OTP');
-      }
-    } catch (error: any) {
-      console.error('Resend OTP error:', error);
-      toast.error(error.response?.data?.message || 'An error occurred while resending OTP');
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
-  // Close OTP modal
-  const closeModal = () => {
-    setIsModalOpen(false);
-    setOtp('');
-    setIsOtpSent(false);
-    setResendTimer(0);
   };
 
   // Go back to email step
@@ -384,56 +264,6 @@ const LoginPage = () => {
               Login
             </button>
           </form>
-        )}
-
-        {isModalOpen && (
-          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-            <div className="bg-white p-6 rounded-lg shadow-lg w-full max-w-sm">
-              <h3 className="text-xl font-bold mb-4 text-blue-700">Enter OTP</h3>
-              <p className="text-sm text-gray-600 mb-4">We've sent a 6-digit OTP to {email}</p>
-              <form onSubmit={handleOtpVerification} className="space-y-4">
-                <div>
-                  <label className="block text-sm font-semibold text-gray-700">OTP</label>
-                  <input
-                    type="text"
-                    value={otp}
-                    onChange={(e) => setOtp(e.target.value.trim())}
-                    className="w-full mt-1 p-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-400"
-                    required
-                    placeholder="Enter the 6-digit OTP"
-                  />
-                </div>
-                <div className="flex justify-between items-center">
-                  <button
-                    type="button"
-                    onClick={closeModal}
-                    className="bg-gray-500 hover:bg-gray-600 text-white p-2 rounded transition duration-200"
-                  >
-                    Cancel
-                  </button>
-                  <button
-                    type="submit"
-                    className="bg-blue-600 hover:bg-blue-700 text-white p-2 rounded transition duration-200 flex items-center justify-center"
-                    disabled={isLoading}
-                  >
-                    {isLoading && <FontAwesomeIcon icon={faSpinner} spin className="mr-2" />}
-                    Verify OTP
-                  </button>
-                </div>
-              </form>
-              <p className="text-sm text-gray-500 mt-4 flex items-center">
-                <FontAwesomeIcon icon={faInfoCircle} className="mr-2 text-blue-600" />
-                Resend OTP in {resendTimer > 0 ? resendTimer : '0'}s{' '}
-                <button
-                  onClick={handleResendOtp}
-                  disabled={resendTimer > 0 || isLoading}
-                  className="text-blue-600 hover:text-blue-800 disabled:text-gray-400 ml-2"
-                >
-                  Resend OTP
-                </button>
-              </p>
-            </div>
-          </div>
         )}
       </div>
     </div>

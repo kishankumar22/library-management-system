@@ -1,0 +1,41 @@
+> Server listening on http://localhost:\\.\pipe\e0ffb184-1bda-41d4-8664-824bdefd8661
+Login Request: {
+  email: 'kishankumar73001@gmail.com',
+  step: 'verify',
+  rememberMe: undefined
+}
+Connecting to DB with config: {
+  user: 'kishankk',
+  server: 'localhost',
+  database: 'jkconsultancyadmindb',
+  port: 1433
+}
+✅ DB Connected successfully
+Validating token for: { email: 'kishankumar73001@gmail.com', role: 'student' }
+Login Request: {
+  email: 'kumarkishan73001@gmail.com',
+  step: 'email',
+  rememberMe: undefined
+}
+Checking email: kumarkishan73001@gmail.com
+Admin user found
+Login Request: {
+  email: 'kumarkishan73001@gmail.com',
+  step: 'verify',
+  rememberMe: true
+}
+Verifying credentials for: kumarkishan73001@gmail.com
+Admin login successful, returning user data: {
+  user_id: 1,
+  name: 'Kishan Kumar',
+  email: 'Kumarkishan73001@gmail.com',
+  mobileNo: '6387478842',
+  password: '$2b$10$r746XMJWmBwzD3kEh7k76ONKK/01/BGam6IL4BGLdSE8jZt3v7416',
+  roleId: 2,
+  created_on: 2025-02-03T10:06:20.714Z,
+  created_by: 'Administrator',
+  modify_on: 2025-06-02T12:12:53.486Z,
+  modify_by: 'admin',
+  profile_pic_url: 'https://res.cloudinary.com/dxqmmofie/image/upload/v1748846598/user_profiles/ua67ep4z2etwzn37vxjn.jpg',
+  profile_pic_public_id: 'user_profiles/ua67ep4z2etwzn37vxjn'
+}

@@ -23,6 +23,9 @@ type Issue = {
   BookTitle: string;
   StudentName: string;
   IssueDate: string;
+  Status: string;
+  DueDate: string;
+  IssueId?: number; // Optional, based on sample data
 };
 
 type StockHistory = {
@@ -41,13 +44,15 @@ type Penalty = {
   DueDate: string;
   ReturnDate: string;
   CreatedOn: string;
+  BookIssueStatus?: string;
+  courseYear?: string;
 };
 
 type DashboardData = {
   totalBooks: number;
   availableBooks: number;
-  totalStudents: number;
-  totalPublications: number;
+  totalBookIssue: number;
+  TotalOverDue: number;
   totalCourses: number;
   totalPenalties: number;
   recentIssues: Issue[];
@@ -60,8 +65,8 @@ export default function AdminPage() {
   const [dashboardData, setDashboardData] = useState<DashboardData>({
     totalBooks: 0,
     availableBooks: 0,
-    totalStudents: 0,
-    totalPublications: 0,
+    totalBookIssue: 0,
+    TotalOverDue: 0,
     totalCourses: 0,
     totalPenalties: 0,
     recentIssues: [],
@@ -102,31 +107,48 @@ export default function AdminPage() {
           return acc;
         }, {} as { [month: string]: number });
 
-        const filteredPenalties = penaltiesRes.data.filter(
-          (penalty: { ReturnDate: string | number | Date; DueDate: string | number | Date }) =>
-            new Date(penalty.ReturnDate) > new Date(penalty.DueDate)
+        // Filter and deduplicate unpaid penalties
+        const unpaidPenalties: Penalty[] = Array.from(
+          new Map<number, Penalty>(
+            penaltiesRes.data
+              .filter((penalty: { PenaltyStatus: string }) => penalty.PenaltyStatus.toLowerCase() === 'unpaid')
+              .map((item: Penalty) => [item.PenaltyId, item])
+          ).values()
         );
-        const uniquePenalties = Array.from(
-          new Map(filteredPenalties.map((item: Penalty) => [item.PenaltyId, item])).values()
-        ).slice(0, 5) as Penalty[];
-        
-        const uniqueStudents = Array.from(
-          new Set(issuesRes.data.map((issue: Issue) => issue.StudentName))
-        ).slice(0, 5);
+        const totalPenalties = unpaidPenalties.length;
+        // Take top 5 recent penalties from deduplicated unpaid penalties
+        const recentPenalties: Penalty[] = unpaidPenalties.slice(0, 5);
 
+        // Calculate total issued books
+        const BookIssueCount = issuesRes.data.filter(
+          (issue: { Status: string }) => issue.Status === 'issued'
+        ).length;
 
+        // Calculate total overdue books
+        const now = new Date('2025-07-07T08:27:00Z'); // 01:57 PM IST (UTC+5:30)
+        const TotalOverDue = issuesRes.data.filter((issue: { DueDate: string; Status: string }) => {
+          const dueDate = new Date(issue.DueDate);
+          return dueDate < now && issue.Status !== 'returned';
+        }).length;
 
         setDashboardData({
           totalBooks: booksRes.data.length,
           availableBooks: availableBooksRes.data.length,
-          totalStudents: uniqueStudents.length,
-          totalPublications: publicationsRes.data.length,
+          totalBookIssue: BookIssueCount,
+          TotalOverDue,
           totalCourses: coursesRes.data.length,
-          totalPenalties: penaltiesRes.data.length,
-          recentIssues: issuesRes.data.slice(0, 5),
+          totalPenalties,
+          recentIssues: issuesRes.data.slice(0, 5).map(issue => ({
+            BookTitle: issue.BookTitle,
+            StudentName: issue.StudentName,
+            IssueDate: issue.IssueDate,
+            Status: issue.Status,
+            DueDate: issue.DueDate,
+            IssueId: issue.IssueId, // Use IssueId if available
+          })),
           stockHistory: stockHistoryRes.data.slice(0, 5),
           monthlyIssues,
-          recentPenalties: uniquePenalties,
+          recentPenalties,
         });
       } catch (err) {
         setError('Failed to load dashboard data. Please try again later.');
@@ -217,55 +239,44 @@ export default function AdminPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-50 to-blue-50 p-4">
-      <div className=" mx-auto">
+    <div className="min-h-screen bg-gradient-to-br -mt-4 from-gray-50 to-blue-50  p-2 ">
+      <div className="">
         {/* Header */}
-        <div className="mb-2">
-          <h1 className="text-2xl font-bold text-gray-900 ">Admin Dashboard</h1>
-        </div>
+    
 
         {/* Stats Grid */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-2 lg:grid-cols-4 gap-4  mb-4">
+        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-4">
           <StatCard
-            title="Total Books / Available Books"
-            value={`${dashboardData.totalBooks} / ${dashboardData.availableBooks}`}
+            title="Available Books"
+            value={dashboardData.availableBooks}
             icon={Book}
             gradient="from-blue-500 to-blue-500"
             textColor="text-white"
             href="/admin/book"
           />
-   
           <StatCard
-            title="Total Issued  Students"
-            value={dashboardData.totalStudents}
+            title="Book Issued"
+            value={dashboardData.totalBookIssue}
             icon={Users}
             gradient="from-purple-500 to-purple-600"
             textColor="text-white"
-            href="/admin/subject"
+            href="/admin/book-issue"
           />
           <StatCard
-            title="Publications / Total Books"
-            value={`${dashboardData.totalPublications} / ${dashboardData.totalBooks}`}
-            icon={Building2}
+            title="Overdue Books"
+            value={dashboardData.TotalOverDue}
+            icon={AlertTriangle}
             gradient="from-amber-500 to-amber-600"
             textColor="text-white"
-            href="/admin/publication"
+            href="/admin/book-issue"
           />
-          {/* <StatCard
-            title="Total Courses"
-            value={dashboardData.totalCourses}
-            icon={Calendar}
-            gradient="from-rose-500 to-rose-600"
-            textColor="text-white"
-            href="/admin/subject"
-          /> */}
           <StatCard
             title="Active Penalties"
             value={dashboardData.totalPenalties}
             icon={AlertTriangle}
             gradient="from-orange-500 to-orange-600"
             textColor="text-white"
-            href="http://localhost:3001/admin/penalty"
+            href="/admin/penalty"
           />
         </div>
 
@@ -331,7 +342,7 @@ export default function AdminPage() {
             
             <div className="space-y-2">
               {dashboardData.recentIssues.map((issue, index) => (
-                <div key={index} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors">
+                <div key={issue.IssueId || `issue-${index}`} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors">
                   <div className="flex-1">
                     <p className="font-medium text-gray-900 uppercase text-xs">{issue.BookTitle}</p>
                     <p className="text-gray-600 text-xs">{issue.StudentName}</p>
@@ -363,8 +374,8 @@ export default function AdminPage() {
             
             <div className="space-y-3">
               {dashboardData.recentPenalties.length > 0 ? (
-                dashboardData.recentPenalties.map((penalty) => (
-                  <div key={penalty.PenaltyId} className="p-3 border border-gray-200 rounded-lg hover:border-gray-300 transition-colors">
+                dashboardData.recentPenalties.map((penalty, index) => (
+                  <div key={`${penalty.PenaltyId}-${index}`} className="p-3 border border-gray-200 rounded-lg hover:border-gray-300 transition-colors">
                     <div className="flex items-start justify-between mb-2">
                       <div>
                         <p className="font-medium text-gray-900 uppercase text-xs">{penalty.BookTitle}</p>

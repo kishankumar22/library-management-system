@@ -7,7 +7,8 @@ import axios from 'axios';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import {
   faSpinner, faPlus, faEdit, faTrash, faSearch, faFilter,faTimesCircle,faTimes,faToggleOff,
-  faToggleOn
+  faToggleOn,
+  faRotateLeft
 } from '@fortawesome/free-solid-svg-icons';
 import { Book } from '@/types';
 
@@ -50,6 +51,15 @@ const BooksPage = () => {
   const modalRef = useRef<HTMLDivElement>(null);
   const confirmModalRef = useRef<HTMLDivElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const resetFilter = () => {
+  setSearchTerm('');
+  setStatusFilter('all');
+  setCourseFilter('');
+  setSubjectFilter('');
+  setPublicationFilter('');
+  setAvailableCopiesFilter('');
+};
+
 
   useEffect(() => {
     fetchInitialData();
@@ -278,104 +288,125 @@ const handleToggleActive = async () => {
 
   return (
     <div className="">
-      <div className="bg-white rounded-lg shadow-sm p-4">
+      <div className="bg-white rounded-lg shadow-sm">
         {initialLoading ? (
           <div className="flex items-center justify-center h-[96vh]">
             <FontAwesomeIcon icon={faSpinner} className="animate-spin w-16 h-16 text-blue-500 text-4xl" />
           </div>
         ) : (
           <>
-            <div className="flex flex-col sm:flex-row justify-between items-center mb-2 gap-2">
-              <h2 className="text-xl font-semibold text-gray-800">Manage Books</h2>
-              <button
-                onClick={() => {
-                  resetForm();
-                  setIsModalOpen(true);
-                }}
-                className="bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium py-2 px-4 rounded flex items-center gap-1"
-              >
-                <FontAwesomeIcon icon={faPlus} size="sm" /> Add Book
-              </button>
-            </div>
+<div className="flex flex-wrap gap-2 mb-4 bg-gray-50 p-3 rounded-lg shadow-sm items-center">
+  {/* Total Books */}
+  <div className="text-blue-700 text-sm font-medium mr-auto">
+    Total Books: <span className="font-semibold">{books.length}</span>
+  </div>
 
-            <div className="flex flex-col sm:flex-row gap-2 mb-4 bg-gray-50 p-3 rounded-lg">
-               <div className="flex flex-col sm:flex-row gap-2 w-full sm:w-auto">
-                  <div className="flex-grow mt-1 text-blue-700 sm:flex-grow-0 sm:w-36">
-                  Total Books: <span className="font-semibold">{books.length}</span>
-                </div>
-              </div>
-              <div className="relative flex-grow">
-                <FontAwesomeIcon icon={faSearch} className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-500" />
-                <input
-                  type="text"
-                  value={searchTerm}
-                  onChange={(e) => setSearchTerm(e.target.value)}
-                  placeholder="Search by title or ISBN..."
-                  className="pl-10 pr-4 py-2 text-sm border border-gray-300 rounded-lg w-full focus:outline-none focus:ring-2 focus:ring-blue-500"
-                />
-              </div>
-              <div className="relative flex-grow sm:w-40">
-                <FontAwesomeIcon icon={faFilter} className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-500" />
-                <select
-                  value={statusFilter}
-                  onChange={(e) => setStatusFilter(e.target.value as any)}
-                  className="pl-10 pr-4 py-2 text-sm border border-gray-300 rounded-lg w-full focus:outline-none focus:ring-2 focus:ring-blue-500"
-                >
-                  <option value="all">All Status</option>
-                  <option value="active">Active</option>
-                  <option value="inactive">Inactive</option>
-                </select>
-              </div>
-              <div className="relative flex-grow sm:w-40">
-                <FontAwesomeIcon icon={faFilter} className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-500" />
-                <select
-                  value={courseFilter}
-                  onChange={(e) => setCourseFilter(e.target.value)}
-                  className="pl-10 pr-4 py-2 text-sm border border-gray-300 rounded-lg w-full focus:outline-none focus:ring-2 focus:ring-blue-500"
-                >
-                  <option value="">All Courses</option>
-                  {courses.map(course => (
-                    <option key={course.id} value={course.id}>{course.courseName}</option>
-                  ))}
-                </select>
-              </div>
-              <div className="relative flex-grow sm:w-40">
-                <FontAwesomeIcon icon={faFilter} className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-500" />
-                <select
-                  value={subjectFilter}
-                  onChange={(e) => setSubjectFilter(e.target.value)}
-                  className="pl-10 pr-4 py-2 text-sm border border-gray-300 rounded-lg w-full focus:outline-none focus:ring-2 focus:ring-blue-500"
-                >
-                  <option value="">All Subjects</option>
-                  {subjects.map(subject => (
-                    <option key={subject.SubId} value={subject.SubId}>{subject.Name}</option>
-                  ))}
-                </select>
-              </div>
-              <div className="relative flex-grow sm:w-40">
-                <FontAwesomeIcon icon={faFilter} className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-500" />
-                <select
-                  value={publicationFilter}
-                  onChange={(e) => setPublicationFilter(e.target.value)}
-                  className="pl-10 pr-4 py-2 text-sm border border-gray-300 rounded-lg w-full focus:outline-none focus:ring-2 focus:ring-blue-500"
-                >
-                  <option value="">All Publications</option>
-                  {publications.map(pub => (
-                    <option key={pub.PubId} value={pub.PubId}>{pub.Name}</option>
-                  ))}
-                </select>
-              </div>
-              <div className="relative flex-grow sm:w-40">
-                <FontAwesomeIcon icon={faFilter} className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-500" />
-                <input
-                  type="number"
-                  value={availableCopiesFilter}
-                  onChange={(e) => setAvailableCopiesFilter(e.target.value)}
-                  placeholder="Min Copies"
-                  className="pl-10 pr-4 py-2 text-sm border border-gray-300 rounded-lg w-full focus:outline-none focus:ring-2 focus:ring-blue-500"
-                />
-              </div>
-            </div>
+  {/* Search */}
+  <div className="relative flex-grow min-w-[180px] max-w-xs">
+    <FontAwesomeIcon icon={faSearch} className="absolute left-2 top-1/2 -translate-y-1/2 text-gray-400" />
+    <input
+      type="text"
+      value={searchTerm}
+      onChange={(e) => setSearchTerm(e.target.value)}
+      placeholder="Search by title or ISBN..."
+      className="pl-8 pr-2 py-1 text-xs border border-gray-300 rounded-md w-full focus:outline-none focus:ring-1 focus:ring-blue-500"
+    />
+  </div>
+
+  {/* Status Filter */}
+  <div className="relative flex-grow min-w-[120px] max-w-xs">
+    <FontAwesomeIcon icon={faFilter} className="absolute left-2 top-1/2 -translate-y-1/2 text-gray-400" />
+    <select
+      value={statusFilter}
+      onChange={(e) => setStatusFilter(e.target.value as any)}
+      className="pl-8 pr-2 py-1 text-xs border border-gray-300 rounded-md w-full focus:outline-none focus:ring-1 focus:ring-blue-500 appearance-none"
+    >
+      <option value="all">All Status</option>
+      <option value="active">Active</option>
+      <option value="inactive">Inactive</option>
+    </select>
+  </div>
+
+  {/* Course Filter */}
+  <div className="relative flex-grow min-w-[150px] max-w-xs">
+    <FontAwesomeIcon icon={faFilter} className="absolute left-2 top-1/2 -translate-y-1/2 text-gray-400" />
+    <select
+      value={courseFilter}
+      onChange={(e) => setCourseFilter(e.target.value)}
+      className="pl-8 pr-2 py-1 text-xs border border-gray-300 rounded-md w-full focus:outline-none focus:ring-1 focus:ring-blue-500 appearance-none"
+    >
+      <option value="">All Courses</option>
+      {courses.map(course => (
+        <option key={course.id} value={course.id}>{course.courseName}</option>
+      ))}
+    </select>
+  </div>
+
+  {/* Subject Filter */}
+  <div className="relative flex-grow min-w-[150px] max-w-xs">
+    <FontAwesomeIcon icon={faFilter} className="absolute left-2 top-1/2 -translate-y-1/2 text-gray-400" />
+    <select
+      value={subjectFilter}
+      onChange={(e) => setSubjectFilter(e.target.value)}
+      className="pl-8 pr-2 py-1 text-xs border border-gray-300 rounded-md w-full focus:outline-none focus:ring-1 focus:ring-blue-500 appearance-none"
+    >
+      <option value="">All Subjects</option>
+      {subjects.map(subject => (
+        <option key={subject.SubId} value={subject.SubId}>{subject.Name}</option>
+      ))}
+    </select>
+  </div>
+
+  {/* Publication Filter */}
+  <div className="relative flex-grow min-w-[150px] max-w-xs">
+    <FontAwesomeIcon icon={faFilter} className="absolute left-2 top-1/2 -translate-y-1/2 text-gray-400" />
+    <select
+      value={publicationFilter}
+      onChange={(e) => setPublicationFilter(e.target.value)}
+      className="pl-8 pr-2 py-1 text-xs border border-gray-300 rounded-md w-full focus:outline-none focus:ring-1 focus:ring-blue-500 appearance-none"
+    >
+      <option value="">All Publications</option>
+      {publications.map(pub => (
+        <option key={pub.PubId} value={pub.PubId}>{pub.Name}</option>
+      ))}
+    </select>
+  </div>
+
+  {/* Available Copies */}
+  <div className="relative flex-grow min-w-[120px] max-w-xs">
+    <FontAwesomeIcon icon={faFilter} className="absolute left-2 top-1/2 -translate-y-1/2 text-gray-400" />
+    <input
+      type="number"
+      value={availableCopiesFilter}
+      onChange={(e) => setAvailableCopiesFilter(e.target.value)}
+      placeholder="Min Copies"
+      className="pl-8 pr-2 py-1 text-xs border border-gray-300 rounded-md w-full focus:outline-none focus:ring-1 focus:ring-blue-500"
+    />
+  </div>
+
+  {/* Buttons Group */}
+  <div className="flex gap-2 flex-wrap justify-end w-full sm:w-auto">
+    {/* Reset Filter */}
+    <button
+      onClick={resetFilter}
+      className="bg-yellow-500 hover:bg-yellow-600 text-white text-xs font-medium py-1.5 px-3 rounded-md flex items-center gap-1 shadow-sm transition-colors duration-200"
+    >
+      <FontAwesomeIcon icon={faRotateLeft} size="xs" /> Reset Filter
+    </button>
+
+    {/* Add Book */}
+    <button
+      onClick={() => {
+        resetForm();
+        setIsModalOpen(true);
+      }}
+      className="bg-green-600 hover:bg-green-700 text-white text-xs font-medium py-1.5 px-3 rounded-md flex items-center gap-1 shadow-sm transition-colors duration-200"
+    >
+      <FontAwesomeIcon icon={faPlus} size="xs" /> Add Book
+    </button>
+  </div>
+</div>
+
 
             {isModalOpen && (
               <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-3 z-50">
