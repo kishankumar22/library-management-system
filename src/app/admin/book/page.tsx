@@ -272,7 +272,8 @@ const handleToggleActive = async () => {
     if (fileInputRef.current) fileInputRef.current.value = '';
   };
 
-  const baseUrl = 'http://localhost:3001';
+  // const baseUrl = 'https://library.jkipm.in';
+  const baseUrl = 'https://localhost:3003';
 
   const handleSubjectChange = (subId: string) => {
     setFormData({ ...formData, SubjectId: subId });

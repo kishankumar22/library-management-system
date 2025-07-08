@@ -125,7 +125,7 @@ export default function AdminPage() {
         ).length;
 
         // Calculate total overdue books
-        const now = new Date('2025-07-07T08:27:00Z'); // 01:57 PM IST (UTC+5:30)
+        const now = new Date(); // 01:57 PM IST (UTC+5:30)
         const TotalOverDue = issuesRes.data.filter((issue: { DueDate: string; Status: string }) => {
           const dueDate = new Date(issue.DueDate);
           return dueDate < now && issue.Status !== 'returned';

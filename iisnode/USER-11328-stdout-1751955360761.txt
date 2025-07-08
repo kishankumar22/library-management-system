@@ -1,0 +1,14 @@
+> Server listening on http://localhost:\\.\pipe\6629d5ef-7e89-476b-bb20-3a6b0efa7170
+Login Request: {
+  email: 'kumarkishan73001@gmail.com',
+  step: 'verify',
+  rememberMe: undefined
+}
+Connecting to DB with config: {
+  user: 'kishankk',
+  server: 'localhost',
+  database: 'jkconsultancyadmindb',
+  port: 1433
+}
+✅ DB Connected successfully
+Validating token for: { email: 'kumarkishan73001@gmail.com', role: 'admin' }
