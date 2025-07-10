@@ -21,7 +21,7 @@ const LoginPage = () => {
   const [userType, setUserType] = useState<'admin' | 'student' | null>(null);
   const [rememberedUser, setRememberedUser] = useState<string | null>(null);
 
-  // Check for remembered user and validate token on mount
+  // Auto-login if token exists
   useEffect(() => {
     const remembered = localStorage.getItem('rememberedUser');
     const token = localStorage.getItem('token');
@@ -33,7 +33,6 @@ const LoginPage = () => {
     }
   }, []);
 
-  // Validate token for remembered user
   const validateToken = async (email: string, token: string) => {
     setIsLoading(true);
     try {
@@ -42,36 +41,28 @@ const LoginPage = () => {
         { email: email.toLowerCase().trim(), step: 'verify' },
         { headers: { Authorization: `Bearer ${token}`, 'X-Remember-Me': rememberMe } }
       );
-
       const data = response.data;
-      console.log('Token Validation Response:', data);
       if (response.status === 200 && data.token) {
         setUserType(data.userType);
         localStorage.setItem('token', data.token);
         localStorage.setItem('role', data.userType);
         localStorage.setItem('rememberedUser', email.toLowerCase().trim());
-        localStorage.setItem('UserDetails', JSON.stringify(data || {})); // Stores full user data
+        localStorage.setItem('UserDetails', JSON.stringify(data || {}));
         toast.success('Auto-login successful');
         router.push(data.userType === 'admin' ? '/admin' : '/student');
         router.refresh();
       } else {
-        localStorage.removeItem('token');
-        localStorage.removeItem('role');
-        localStorage.removeItem('UserDetails');
+        localStorage.clear();
         toast.error(data.message || 'Invalid or expired token');
       }
     } catch (error: any) {
-      console.error('Token validation error:', error);
-      localStorage.removeItem('token');
-      localStorage.removeItem('role');
-      localStorage.removeItem('UserDetails');
+      localStorage.clear();
       toast.error(error.response?.data?.message || 'Error validating token');
     } finally {
       setIsLoading(false);
     }
   };
 
-  // Check user type (admin or student)
   const checkUserType = async (email: string) => {
     setIsLoading(true);
     try {
@@ -79,9 +70,7 @@ const LoginPage = () => {
         email: email.toLowerCase().trim(),
         step: 'email',
       });
-
       const data = response.data;
-      console.log('Check User Type Response:', data);
       if (response.status === 200 && data.userType) {
         setUserType(data.userType);
         setStep('verify');
@@ -89,24 +78,18 @@ const LoginPage = () => {
         toast.error(data.message || 'Email not found');
       }
     } catch (error: any) {
-      console.error('Error checking user type:', error);
       toast.error(error.response?.data?.message || 'An error occurred while checking user type');
     } finally {
       setIsLoading(false);
     }
   };
 
-  // Handle email submission
   const handleEmailSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!email) {
-      toast.error('Email is required');
-      return;
-    }
+    if (!email) return toast.error('Email is required');
     await checkUserType(email);
   };
 
-  // Handle login (password/DOB)
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsLoading(true);
@@ -122,19 +105,16 @@ const LoginPage = () => {
         headers: { 'X-Remember-Me': rememberMe },
       });
       const data = response.data;
-      console.log('Login Response:', data);
 
       if (response.status === 200 && data.token) {
         if (rememberMe) {
           localStorage.setItem('rememberedUser', email.toLowerCase().trim());
-          setRememberedUser(email.toLowerCase().trim());
         } else {
           localStorage.removeItem('rememberedUser');
-          setRememberedUser(null);
         }
         localStorage.setItem('token', data.token);
         localStorage.setItem('role', userType || '');
-        localStorage.setItem('UserDetails', JSON.stringify(data || {})); // Stores full user data
+        localStorage.setItem('UserDetails', JSON.stringify(data || {}));
         toast.success('Logged in successfully');
         router.push(userType === 'admin' ? '/admin' : '/student');
         router.refresh();
@@ -142,14 +122,12 @@ const LoginPage = () => {
         toast.error(data.message || 'Login failed');
       }
     } catch (error: any) {
-      console.error('Login error:', error);
       toast.error(error.response?.data?.message || 'An error occurred during login');
     } finally {
       setIsLoading(false);
     }
   };
 
-  // Go back to email step
   const goBackToEmail = () => {
     setStep('email');
     setUserType(null);
@@ -159,18 +137,26 @@ const LoginPage = () => {
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-100 to-blue-200 p-4">
-      <div className="bg-white p-8 rounded-xl shadow-xl w-full max-w-md">
-        <div className="flex justify-center mb-2">
+      <div className="bg-white p-8 rounded-xl shadow-2xl w-full max-w-md">
+        {/* Logo */}
+        <div className="flex justify-center mb-4">
           <Image
             src={pic}
             alt="Library Logo"
             width={100}
             height={100}
+            priority
             className="rounded-full border-4 border-blue-500 shadow-md"
           />
         </div>
-        <h2 className="text-3xl font-bold text-center mb-2 text-blue-700">Login</h2>
 
+        {/* Branding */}
+        <div className="text-center mb-6">
+          <h1 className="text-2xl font-bold text-blue-800">JK Institute of Pharmacy</h1>
+          <p className="text-sm text-gray-600">Library Management System</p>
+        </div>
+
+        {/* Email Step */}
         {step === 'email' ? (
           <form onSubmit={handleEmailSubmit} className="space-y-4">
             <div>
@@ -197,13 +183,13 @@ const LoginPage = () => {
               className="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 rounded transition duration-200 flex items-center justify-center"
               disabled={isLoading}
             >
-              {isLoading && <FontAwesomeIcon icon={faSpinner} spin className="mr-2" />}
+              {isLoading && <FontAwesomeIcon icon={faSpinner} spin className="mr-2 animate-spin" />}
               Next
             </button>
           </form>
         ) : (
           <form onSubmit={handleLogin} className="space-y-4">
-            <div className="flex items-center mb-4">
+            <div className="flex items-center mb-2">
               <button
                 type="button"
                 onClick={goBackToEmail}
@@ -213,6 +199,15 @@ const LoginPage = () => {
               </button>
               <span className="text-gray-700">{email}</span>
             </div>
+
+            {/* User Type Badge */}
+            {userType && (
+              <div className="text-center mb-2">
+                <span className="inline-block bg-blue-600 text-white text-xs font-semibold rounded-full px-3 py-1 shadow">
+                  {userType === 'admin' ? 'Admin Login' : 'Student Login'}
+                </span>
+              </div>
+            )}
 
             {userType === 'admin' ? (
               <div className="relative">
@@ -260,7 +255,7 @@ const LoginPage = () => {
               className="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 rounded transition duration-200 flex items-center justify-center"
               disabled={isLoading}
             >
-              {isLoading && <FontAwesomeIcon icon={faSpinner} spin className="mr-2" />}
+              {isLoading && <FontAwesomeIcon icon={faSpinner} spin className="mr-2 animate-spin" />}
               Login
             </button>
           </form>

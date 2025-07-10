@@ -8,6 +8,7 @@ import {
   faSpinner, faPlus, faSearch, faEdit, faTrash,
   faCalendarDays, faTimes, faTimesCircle, faFileExcel,
   faUndo, faRedo,
+  faRotateLeft,
 } from '@fortawesome/free-solid-svg-icons';
 import { Book, BookIssue, Student, Publication, Course } from '@/types';
 import * as XLSX from 'xlsx';
@@ -15,7 +16,7 @@ import * as XLSX from 'xlsx';
 const BookIssuePage = () => {
   const [bookIssues, setBookIssues] = useState<BookIssue[]>([]);
   const [books, setBooks] = useState<Book[]>([]);
-  const [allBooks, setAllBooks] = useState<Book[]>([]); // Store all books for resetting
+  const [allBooks, setAllBooks] = useState<Book[]>([]);
   const [students, setStudents] = useState<Student[]>([]);
   const [filteredStudents, setFilteredStudents] = useState<Student[]>([]);
   const [publications, setPublications] = useState<Publication[]>([]);
@@ -35,9 +36,11 @@ const BookIssuePage = () => {
   const [returnRemarks, setReturnRemarks] = useState('');
   const [fineAmount, setFineAmount] = useState(0);
   const [searchTerm, setSearchTerm] = useState('');
-  const [statusFilter, setStatusFilter] = useState<'all' | 'issued' | 'returned' | 'overdue'>('all');
+  const [statusFilter, setStatusFilter] = useState<'all' | 'issued' | 'returned' | 'overdue'>('issued');
   const [dateRange, setDateRange] = useState({ start: '', end: '' });
   const [courseNameFilter, setCourseNameFilter] = useState('');
+  const [courseYearFilter, setCourseYearFilter] = useState<string>('all');
+  const [formCourseYearFilter, setFormCourseYearFilter] = useState<string>('all');
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [isReturnModalOpen, setIsReturnModalOpen] = useState(false);
@@ -94,7 +97,7 @@ const BookIssuePage = () => {
 
       setBookIssues(issuesRes.data);
       setBooks(booksRes.data);
-      setAllBooks(booksRes.data); // Store all books for resetting
+      setAllBooks(booksRes.data);
       setStudents(uniqueStudents);
       setFilteredStudents(uniqueStudents);
       setPublications(publicationsRes.data);
@@ -102,12 +105,13 @@ const BookIssuePage = () => {
     } catch (error) {
       console.error('Error fetching data:', error);
       toast.error('Failed to fetch data');
-  } finally {
+    } finally {
       setLoading(false);
     }
   };
 
   const uniqueCourseNames = [...new Set(courses.map(course => course.courseName).filter(Boolean))].sort();
+  const courseYears = ['all', '1st', '2nd', '3rd', '4th'];
 
   const handlePublicationChange = (pubId: number) => {
     setFormData(prev => ({ ...prev, PublicationId: pubId, BookId: 0 }));
@@ -116,7 +120,6 @@ const BookIssuePage = () => {
     setSelectedBook(null);
     setBookSearch('');
 
-    // Filter books based on selected publication
     const filteredBooks = pubId ? allBooks.filter(b => b.PublicationId === pubId) : allBooks;
     setBooks(filteredBooks);
   };
@@ -129,13 +132,25 @@ const BookIssuePage = () => {
     setShowBookInput(false);
   };
 
-  const handleCourseChange = (courseId: number) => {
+  const handleCourseChange = (courseId: number, isEdit: boolean = false) => {
     setFormData(prev => ({ ...prev, CourseId: courseId, StudentId: 0 }));
-    setFilteredStudents(
-      courseId
-        ? students.filter(s => s.courseId === courseId)
-        : students
-    );
+    const filtered = courseId
+      ? students.filter(s => s.courseId === courseId && (formCourseYearFilter === 'all' || s.courseYear === formCourseYearFilter))
+      : students.filter(s => formCourseYearFilter === 'all' || s.courseYear === formCourseYearFilter);
+    setFilteredStudents(filtered);
+    setStudentSearch('');
+    if (!isEdit) {
+      setFormCourseYearFilter('all');
+    }
+  };
+
+  const handleCourseYearChange = (year: string, isEdit: boolean = false) => {
+    setFormCourseYearFilter(year);
+    const filtered = formData.CourseId
+      ? students.filter(s => s.courseId === formData.CourseId && (year === 'all' || s.courseYear === year))
+      : students.filter(s => year === 'all' || s.courseYear === year);
+    setFilteredStudents(filtered);
+    setFormData(prev => ({ ...prev, StudentId: 0 }));
     setStudentSearch('');
   };
 
@@ -145,13 +160,17 @@ const BookIssuePage = () => {
 
     const overdue = bookIssues.filter(
       issue =>
-        issue.StudentId === studentId &&
+        issue.StudentId === student.StudentAcademicDetailsId &&
         issue.Status === 'issued' &&
         new Date(issue.DueDate) < new Date()
     );
     setOverdueBooks(overdue);
 
-    setFormData(prev => ({ ...prev, StudentId: studentId, CourseId: student.courseId || 0 }));
+    setFormData(prev => ({
+      ...prev,
+      StudentId: student.StudentAcademicDetailsId,
+      CourseId: student.courseId || 0
+    }));
     setStudentSearch(`${student.fName} ${student.lName}` || '');
     setShowStudentInput(false);
   };
@@ -297,7 +316,7 @@ const BookIssuePage = () => {
 
   const openEditModal = (issue: BookIssue) => {
     const book = allBooks.find(b => b.BookId === issue.BookId);
-    const student = students.find(s => s.id === issue.StudentId);
+    const student = students.find(s => s.StudentAcademicDetailsId === issue.StudentId);
     const days = Math.max(1, Math.ceil((new Date(issue.DueDate).getTime() - new Date().getTime()) / (1000 * 60 * 60 * 24)));
 
     setSelectedIssue(issue);
@@ -310,9 +329,10 @@ const BookIssuePage = () => {
       PublicationId: book?.PublicationId || 0,
       CourseId: student?.courseId || 0,
     });
+    setFormCourseYearFilter(issue.courseYear || 'all');
     setFilteredStudents(
       student?.courseId
-        ? students.filter(s => s.courseId === student.courseId)
+        ? students.filter(s => s.courseId === student.courseId && (issue.courseYear === 'all' || s.courseYear === issue.courseYear))
         : students
     );
     setBooks(book?.PublicationId ? allBooks.filter(b => b.PublicationId === book.PublicationId) : allBooks);
@@ -332,8 +352,9 @@ const BookIssuePage = () => {
     const matchesDate = (!dateRange.start || new Date(issue.IssueDate) >= new Date(dateRange.start)) &&
                        (!dateRange.end || new Date(issue.IssueDate) <= new Date(dateRange.end));
     const matchesCourseName = !courseNameFilter || (issue.courseName?.toLowerCase() === courseNameFilter.toLowerCase());
+    const matchesCourseYear = courseYearFilter === 'all' || issue.courseYear === courseYearFilter;
 
-    return matchesSearch && matchesStatus && matchesDate && matchesCourseName;
+    return matchesSearch && matchesStatus && matchesDate && matchesCourseName && matchesCourseYear;
   });
 
   const resetFormFields = () => {
@@ -353,7 +374,8 @@ const BookIssuePage = () => {
     setShowStudentInput(false);
     setShowBookInput(false);
     setOverdueBooks([]);
-    setBooks(allBooks); // Reset to all books
+    setBooks(allBooks);
+    setFormCourseYearFilter('all');
   };
 
   const exportToExcel = () => {
@@ -381,8 +403,8 @@ const BookIssuePage = () => {
   };
 
   return (
-    <div className="container ">
-      <div className="flex flex-col sm:flex-row justify-between items-center mb-2   gap-2 bg-gradient-to-r from-blue-50 to-white p-2 rounded-md">
+    <div className="container">
+      <div className="flex flex-col sm:flex-row justify-between items-center mb-2 gap-2 bg-gradient-to-r from-blue-50 to-white p-2 rounded-md">
         <h1 className="text-xl font-bold text-blue-800">Book Issue Manager</h1>
         <div className="flex gap-2">
           <button
@@ -403,28 +425,30 @@ const BookIssuePage = () => {
         </div>
       </div>
 
-    <div className="bg-white rounded shadow p-2 mb-4">
-  <div className="grid grid-cols-1 sm:grid-cols-8 gap-3 items-center">
-    {/* Total Count */}
-    <div className="text-sm font-medium text-blue-600 col-span-1 sm:col-span-2">
+ <div className="bg-white rounded shadow px-3 py-2 mb-4 w-full">
+  <div className="flex flex-wrap lg:flex-nowrap items-center gap-2 w-full">
+    <div className="text-sm font-medium text-blue-600 whitespace-nowrap">
       Total Book Issues: {bookIssues.length}
     </div>
 
     {/* Search */}
-    <div className="relative col-span-1">
+    <div className="relative flex items-center">
+      <FontAwesomeIcon
+        icon={faSearch}
+        className="absolute left-2 top-1/2 transform -translate-y-1/2 w-3 h-3 text-gray-400"
+      />
       <input
         type="text"
         placeholder="Search by book, student"
-        className="w-full pl-8 pr-2 py-1 border rounded text-sm"
+        className="pl-7 pr-2 py-1 border rounded-sm text-sm w-[180px] lg:w-[200px]"
         value={searchTerm}
         onChange={(e) => setSearchTerm(e.target.value)}
       />
-      <FontAwesomeIcon icon={faSearch} className="absolute left-2 top-2.5 w-3 h-3 text-gray-400" />
     </div>
 
-    {/* Status Filter */}
+    {/* Status */}
     <select
-      className="w-full p-1 border rounded text-sm"
+      className="px-2 py-1 border rounded-sm text-sm min-w-[100px]"
       value={statusFilter}
       onChange={(e) => setStatusFilter(e.target.value as any)}
     >
@@ -434,26 +458,25 @@ const BookIssuePage = () => {
       <option value="overdue">Overdue</option>
     </select>
 
-    {/* Date Range */}
+    {/* Date Pickers */}
     <input
       type="date"
-      className="w-full p-1 border rounded text-sm"
+      className="px-2 py-1 border rounded-sm text-sm min-w-[140px]"
       value={dateRange.start}
       onChange={(e) => setDateRange({ ...dateRange, start: e.target.value })}
-      title='Book Issue on '
+      title="From Date"
     />
     <input
       type="date"
-      className="w-full p-1 border rounded text-sm"
+      className="px-2 py-1 border rounded-sm text-sm min-w-[140px]"
       value={dateRange.end}
       onChange={(e) => setDateRange({ ...dateRange, end: e.target.value })}
-      title='Book Issue till'
-
+      title="To Date"
     />
 
-    {/* Course Filter */}
+    {/* Courses */}
     <select
-      className="w-full p-1 border rounded text-sm"
+      className="px-2 py-1 border rounded-sm text-sm min-w-[130px]"
       value={courseNameFilter}
       onChange={(e) => setCourseNameFilter(e.target.value)}
     >
@@ -464,23 +487,37 @@ const BookIssuePage = () => {
         </option>
       ))}
     </select>
-        <button
+
+    {/* Year */}
+    <select
+      className="px-2 py-1 border rounded-sm text-sm min-w-[110px]"
+      value={courseYearFilter}
+      onChange={(e) => setCourseYearFilter(e.target.value)}
+    >
+      {courseYears.map((year) => (
+        <option key={year} value={year}>
+          {year === 'all' ? 'All Years' : year}
+        </option>
+      ))}
+    </select>
+
+    {/* Reset Button */}
+    <button
       onClick={() => {
         setSearchTerm('');
         setStatusFilter('all');
         setDateRange({ start: '', end: '' });
         setCourseNameFilter('');
+        setCourseYearFilter('all');
       }}
-      className="px-3 py-1 text-sm text-gray-700 bg-gray-100 hover:bg-gray-200 rounded border border-gray-300 transition"
+      className="px-3 py-1 text-sm text-gray-700 bg-red-100 hover:bg-red-200 rounded-sm border border-red-300 transition whitespace-nowrap"
     >
-      Reset Filters
+     <FontAwesomeIcon icon={faRotateLeft} size="xs" /> Reset Filters
     </button>
-
-
   </div>
-
-  
 </div>
+
+
 
 
       <div className="bg-white rounded shadow overflow-hidden">
@@ -489,96 +526,99 @@ const BookIssuePage = () => {
             <FontAwesomeIcon icon={faSpinner} spin size="lg" className="w-10 h-10 text-blue-600" />
           </div>
         ) : (
-          <div className="overflow-x-auto">
-            <table className="min-w-full divide-y divide-gray-200 text-sm">
-              <thead className="bg-gray-50">
-                <tr>
-                  <th className="px-3 py-2 text-left text-blue-800">Sr.</th>
-                  <th className="px-3 py-2 text-left text-blue-800">📖 Book Title</th>
-                  <th className="px-3 py-2 text-left text-blue-800">👨‍🎓 Student Name</th>
-                  <th className="px-3 py-2 text-left text-blue-800">🎓 Course Name</th>
-                  <th className="px-3 py-2 text-left text-blue-800">⏳ Days Left</th>
-                  <th className="px-3 py-2 text-left text-blue-800">📅 Issued On</th>
-                  <th className="px-3 py-2 text-left text-blue-800">📌 Due On</th>
-                  <th className="px-3 py-2 text-left text-blue-800">✔️ Return Date</th>
-                  <th className="px-3 py-2 text-left text-blue-800">🔄 Current Status</th>
-                  <th className="px-3 py-2 text-left text-blue-800">⚙️ Manage</th>
-                </tr>
-              </thead>
-              <tbody className="bg-white divide-y divide-gray-200">
-                {filteredIssues.length === 0 ? (
-                  <tr>
-                    <td colSpan={10} className="px-3 py-2 text-center text-gray-500">No book issues found</td>
-                  </tr>
-                ) : (
-                  filteredIssues.map((issue, index) => {
-                    const daysLeft = Math.ceil((new Date(issue.DueDate).getTime() - new Date().getTime()) / (1000 * 60 * 60 * 24));
-                    const returnDate =
-                      Array.isArray(issue.ReturnDate) && issue.ReturnDate[0]
-                        ? new Date(issue.ReturnDate[0]).toLocaleDateString()
-                        : issue.ReturnDate && !isNaN(new Date(issue.ReturnDate).getTime())
-                          ? new Date(issue.ReturnDate).toLocaleDateString()
-                          : 'N/A';
+        <div className="overflow-x-auto bg-white rounded-lg shadow-md">
+  <table className="table-auto min-w-[1000px] w-full text-xs text-left">
+    <thead className="bg-blue-50 text-blue-800">
+      <tr>
+        <th className="px-2 py-2">#</th>
+        <th className="px-2 py-2">📖 Book Name</th>
+        <th className="px-2 py-2">👨‍🎓 Student Name </th>
+        <th className="px-2 py-2">👨 Father Name</th>
+        <th className="px-2 py-2">🎓 Course Name</th>
+        <th className="px-2 py-2">Course Year</th>
+        <th className="px-2 py-2">Session</th>
+        <th className="px-2 py-2">⏳ Days Left</th>
+        <th className="px-2 py-2">📅 Issued On</th>
+        <th className="px-2 py-2">📌 Due On</th>
+        <th className="px-2 py-2">✔️ Return Date</th>
+        <th className="px-2 py-2 text-center">🔄 Status</th>
+        <th className="px-2 py-2 text-center">⚙️</th>
+      </tr>
+    </thead>
+    <tbody className="divide-y divide-gray-200">
+      {filteredIssues.length === 0 ? (
+        <tr>
+          <td colSpan={13} className="text-center text-gray-500 py-4">No book issues found</td>
+        </tr>
+      ) : (
+        filteredIssues.map((issue, index) => {
+          const dueDate = new Date(issue.DueDate).getTime();
+const now = new Date().getTime();
+const daysLeft = Math.ceil((dueDate - now) / (1000 * 60 * 60 * 24));
 
-                    return (
-                      <tr key={issue.IssueId} className="hover:bg-gray-50">
-                        <td className="px-3 py-2">{index + 1}</td>
-                        <td className="px-3 py-2 uppercase">{issue.BookTitle}</td>
-                        <td className="px-3 py-2">{issue.StudentName}</td>
-                        <td className="px-3 py-2">{issue.courseName || 'N/A'}</td>
-                        <td className="px-3 py-2">
-                          <div className="text-xs flex items-center gap-1">
-                            <FontAwesomeIcon icon={faCalendarDays} className="text-blue-500" />
-                            <span className={daysLeft < 0 ? 'text-red-600' : 'text-green-600'}>{daysLeft} days {daysLeft < 0 ? 'overdue' : 'left'}</span>
-                          </div>
-                        </td>
-                        <td className="px-3 py-2">{new Date(issue.IssueDate).toLocaleDateString()}</td>
-                        <td className="px-3 py-2">{new Date(issue.DueDate).toLocaleDateString()}</td>
-                        <td className="px-3 py-2">{returnDate}</td>
-                        <td className="px-3 py-2 text-center">
-                          <span className={`px-2 py-1 text-xs rounded-full ${
-                            issue.Status === 'issued' ? 'bg-blue-100 text-blue-800' :
-                            issue.Status === 'returned' ? 'bg-green-100 text-green-800' :
-                            'bg-red-100 text-red-800'
-                          }`}>
-                            {issue.Status}
-                          </span>
-                        </td>
-                        <td className="px-3 py-2 whitespace-nowrap">
-                          {issue.Status === 'issued' && (
-                            <div className="flex gap-2">
-                              <button onClick={() => openEditModal(issue)} className="text-white bg-yellow-500 p-1 rounded hover:text-yellow-800 text-xs transition duration-200">
-                                <FontAwesomeIcon icon={faEdit} /> Edit
-                              </button>
-                              <button onClick={() => { setSelectedIssue(issue); setIsReturnModalOpen(true); }} className="text-white bg-green-500 p-1 rounded hover:text-green-800 text-xs transition duration-200">
-                                <FontAwesomeIcon icon={faUndo} /> Return
-                              </button>
-                              <button onClick={() => { setSelectedIssue(issue); setIsRenewModalOpen(true); }} className="text-white bg-blue-500 p-1 rounded hover:text-blue-800 text-xs transition duration-200">
-                                <FontAwesomeIcon icon={faRedo} /> Renew
-                              </button>
-                              <button onClick={() => { setSelectedIssue(issue); setIsDeleteModalOpen(true); }} className="text-red-600 hidden hover:text-red-800 text-xs transition duration-200">
-                                <FontAwesomeIcon icon={faTrash} /> Delete
-                              </button>
-                            </div>
-                          )}
-                          {issue.Status === 'overdue' && (
-                            <div className="flex gap-2">
-                              <button onClick={() => { setSelectedIssue(issue); setIsReturnModalOpen(true); }} className="text-white bg-green-500 p-1 rounded hover:text-green-800 text-xs transition duration-200">
-                                <FontAwesomeIcon icon={faUndo} /> Return
-                              </button>
-                              <button onClick={() => { setSelectedIssue(issue); setIsDeleteModalOpen(true); }} className="text-red-600 hidden hover:text-red-800 text-xs transition duration-200">
-                                <FontAwesomeIcon icon={faTrash} /> Delete
-                              </button>
-                            </div>
-                          )}
-                        </td>
-                      </tr>
-                    );
-                  })
+          const returnDate =
+            Array.isArray(issue.ReturnDate) && issue.ReturnDate[0]
+              ? new Date(issue.ReturnDate[0]).toLocaleDateString()
+              : issue.ReturnDate && !isNaN(new Date(issue.ReturnDate).getTime())
+                ? new Date(issue.ReturnDate).toLocaleDateString()
+                : 'N/A';
+
+          return (
+            <tr key={issue.IssueId} className="hover:bg-gray-50 whitespace-nowrap">
+              <td className="px-2 py-2">{index + 1}</td>
+              <td className="px-2 py-2 font-semibold text-gray-700 uppercase">{issue.BookTitle}</td>
+              <td className="px-2 py-2">{issue.StudentName}</td>
+              <td className="px-2 py-2">{issue.fatherName}</td>
+              <td className="px-2 py-2">{issue.courseName || 'N/A'}</td>
+              <td className="px-2 py-2">{issue.courseYear || 'N/A'}</td>
+              <td className="px-2 py-2">{issue.sessionYear || 'N/A'}</td>
+              <td className="px-2 py-2">
+                <div className={`text-xs font-medium ${daysLeft < 0 ? 'text-red-600' : 'text-green-600'}`}>
+                  {Math.abs(daysLeft)} days {daysLeft < 0 ? 'overdue' : 'left'}
+                </div>
+              </td>
+              <td className="px-2 py-2">{new Date(issue.IssueDate).toLocaleDateString()}</td>
+              <td className="px-2 py-2">{new Date(issue.DueDate).toLocaleDateString()}</td>
+              <td className="px-2 py-2">{returnDate}</td>
+              <td className="px-2 py-2 text-center">
+                <span className={`px-2 py-1 rounded-full text-xs font-semibold ${
+                  issue.Status === 'issued' ? 'bg-blue-100 text-blue-700' :
+                  issue.Status === 'returned' ? 'bg-green-100 text-green-700' :
+                  'bg-red-100 text-red-700'
+                }`}>
+                  {issue.Status}
+                </span>
+              </td>
+              <td className="px-2 py-2 text-center">
+                {issue.Status === 'issued' && (
+                  <div className="flex gap-1 flex-wrap justify-center">
+                    <button onClick={() => openEditModal(issue)} className="bg-yellow-400 hover:bg-yellow-500 text-white px-2 py-1 rounded text-xs">
+                      Edit
+                    </button>
+                    <button onClick={() => { setSelectedIssue(issue); setIsReturnModalOpen(true); }} className="bg-green-500 hover:bg-green-600 text-white px-2 py-1 rounded text-xs">
+                      Return
+                    </button>
+                    <button onClick={() => { setSelectedIssue(issue); setIsRenewModalOpen(true); }} className="bg-blue-500 hover:bg-blue-600 text-white px-2 py-1 rounded text-xs">
+                      Renew
+                    </button>
+                  </div>
                 )}
-              </tbody>
-            </table>
-          </div>
+                {issue.Status === 'overdue' && (
+                  <div className="flex gap-1 justify-center">
+                    <button onClick={() => { setSelectedIssue(issue); setIsReturnModalOpen(true); }} className="bg-green-500 hover:bg-green-600 text-white px-2 py-1 rounded text-xs">
+                      Return
+                    </button>
+                  </div>
+                )}
+              </td>
+            </tr>
+          );
+        })
+      )}
+    </tbody>
+  </table>
+</div>
+
         )}
       </div>
 
@@ -595,9 +635,10 @@ const BookIssuePage = () => {
               <FontAwesomeIcon icon={faTimes} size="lg" />
             </button>
             <div className="p-4">
-              <h2 className="text-lg font-bold mb-3 p-2 rounded-md bg-gradient-to-r from-blue-50 to-white text-blue-800">BOOK ISSUE FORM</h2>
+              <h2 className="text-lg font-bold mb-3 p-2 rounded-md bg-gradient-to-r from-blue-50 to-white text-black">BOOK ISSUE FORM</h2>
               <div className="space-y-4">
                 <div className="bg-gray-100 p-3 rounded">
+                    <h3 className="font-medium text-xl mb-2 text-blue-800">Select Book Detail</h3>
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
                     <div>
                       <label className="block text-xs font-medium mb-1 text-gray-700">Select Publication</label>
@@ -619,7 +660,7 @@ const BookIssuePage = () => {
                               e.stopPropagation();
                               setPublicationSearch('');
                               setFormData(prev => ({ ...prev, PublicationId: 0 }));
-                              setBooks(allBooks); // Reset to all books
+                              setBooks(allBooks);
                               setSelectedBook(null);
                               setBookSearch('');
                             }}
@@ -716,7 +757,7 @@ const BookIssuePage = () => {
 
                 {selectedBook && (
                   <div className="bg-gray-50 p-3 rounded">
-                    <h3 className="font-medium text-sm mb-2 text-gray-800">View Book Detail</h3>
+                    <h3 className="font-medium text-xl mb-2 text-blue-800">View Book Detail</h3>
                     <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                       <div className="col-span-2">
                         <div className="grid grid-cols-2 gap-2 text-sm">
@@ -725,15 +766,17 @@ const BookIssuePage = () => {
                           <div><span className="font-medium text-gray-700">Publication:</span> {selectedBook.PublicationName}</div>
                           <div><span className="font-medium text-gray-700">Branch:</span> {selectedBook.courseName}</div>
                           <div><span className="font-medium text-gray-700">Price:</span> {selectedBook.Price}</div>
-                          <div><span className="font-medium text-gray-700">Total Quantity:</span> {selectedBook.TotalCopies}</div>
-                          <div><span className="font-medium text-gray-700">Available Qty:</span> {selectedBook.AvailableCopies}</div>
-                          <div><span className="font-medium text-gray-700">Rent Qty:</span> {selectedBook.TotalCopies - selectedBook.AvailableCopies}</div>
+                          <div><span className="font-bold text-gray-700">Total Quantity:</span> {selectedBook.TotalCopies}</div>
+                          <div><span className="font-medium text-red-700">Available Qty:</span> {selectedBook.AvailableCopies}</div>
+                          <div><span className="font-medium text-green-700">Rent Qty:</span> {selectedBook.TotalCopies - selectedBook.AvailableCopies}</div>
+                          <div><span className="font-medium text-gray-700">Accession Number:</span> {selectedBook.AccessionNumber}</div>
+                          <div><span className="font-medium text-gray-700">Sourse:</span> {selectedBook.Source}</div>
                           <div className="col-span-2"><span className="font-medium text-gray-700">Detail:</span> {selectedBook.Details}</div>
                         </div>
                       </div>
                       {selectedBook.BookPhoto && (
                         <div className="flex justify-center">
-                          <img src={selectedBook.BookPhoto} alt={selectedBook.Title} className="h-32 w-auto object-contain" />
+                          <img src={selectedBook.BookPhoto} alt={selectedBook.Title} className="h-32 w-auto object-contain " />
                         </div>
                       )}
                     </div>
@@ -741,8 +784,8 @@ const BookIssuePage = () => {
                 )}
 
                 <div className="bg-gray-50 p-3 rounded">
-                  <h3 className="font-medium text-sm mb-2 text-gray-800">Select Student Detail</h3>
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                  <h3 className="font-medium text-xl mb-2 text-green-800">Select Student Detail</h3>
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
                     <div>
                       <label className="block text-xs font-medium mb-1 text-gray-700">Select Course</label>
                       <select
@@ -753,6 +796,18 @@ const BookIssuePage = () => {
                         <option value={0}>---Select Course---</option>
                         {courses.map(course => (
                           <option key={course.id} value={course.id}>{course.courseName}</option>
+                        ))}
+                      </select>
+                    </div>
+                    <div>
+                      <label className="block text-xs font-medium mb-1 text-gray-700">Course Year</label>
+                      <select
+                        className="w-full p-1 border rounded text-sm"
+                        value={formCourseYearFilter}
+                        onChange={(e) => handleCourseYearChange(e.target.value)}
+                      >
+                        {courseYears.map(year => (
+                          <option key={year} value={year}>{year === 'all' ? 'All Years' : year}</option>
                         ))}
                       </select>
                     </div>
@@ -910,7 +965,7 @@ const BookIssuePage = () => {
                               e.stopPropagation();
                               setPublicationSearch('');
                               setFormData(prev => ({ ...prev, PublicationId: 0 }));
-                              setBooks(allBooks); // Reset to all books
+                              setBooks(allBooks);
                               setSelectedBook(null);
                               setBookSearch('');
                             }}
@@ -1007,18 +1062,20 @@ const BookIssuePage = () => {
 
                 {selectedBook && (
                   <div className="bg-gray-50 p-3 rounded">
-                    <h3 className="font-medium text-sm mb-2 text-gray-800">View Book Detail</h3>
+                    <h3 className="font-medium text-xl  mb-2 text-blue-800">View Book Detail</h3>
                     <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                       <div className="col-span-2">
                         <div className="grid grid-cols-2 gap-2 text-sm">
-                          <div><span className="font-medium text-gray-700">Book Name:</span> {selectedBook.Title}</div>
+                          <div className='font-bold'><span className="font-medium text-gray-700">Book Name:</span> {selectedBook.Title}</div>
                           <div><span className="font-medium text-gray-700">Author:</span> {selectedBook.Author}</div>
                           <div><span className="font-medium text-gray-700">Publication:</span> {selectedBook.PublicationName}</div>
                           <div><span className="font-medium text-gray-700">Branch:</span> {selectedBook.courseName}</div>
                           <div><span className="font-medium text-gray-700">Price:</span> {selectedBook.Price}</div>
-                          <div><span className="font-medium text-gray-700">Total Quantity:</span> {selectedBook.TotalCopies}</div>
-                          <div><span className="font-medium text-gray-700">Available Qty:</span> {selectedBook.AvailableCopies}</div>
-                          <div><span className="font-medium text-gray-700">Rent Qty:</span> {selectedBook.TotalCopies - selectedBook.AvailableCopies}</div>
+                          <div><span className="font-bold text-gray-700">Total Quantity:</span> {selectedBook.TotalCopies}</div>
+                          <div><span className="font-medium text-red-700">Available Qty:</span> {selectedBook.AvailableCopies}</div>
+                          <div><span className="font-medium text-green-700">Rent Qty:</span> {selectedBook.TotalCopies - selectedBook.AvailableCopies}</div>
+                           <div><span className="font-medium text-gray-700">Accession Number:</span> {selectedBook.AccessionNumber}</div>
+                          <div><span className="font-medium text-gray-700">Sourse:</span> {selectedBook.Source}</div>
                           <div className="col-span-2"><span className="font-medium text-gray-700">Detail:</span> {selectedBook.Details}</div>
                         </div>
                       </div>
@@ -1032,18 +1089,30 @@ const BookIssuePage = () => {
                 )}
 
                 <div className="bg-gray-50 p-3 rounded">
-                  <h3 className="font-medium text-sm mb-2 text-gray-800">Select Student Detail</h3>
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                  <h3 className="font-medium text-xl mb-2 text-green-800">Select Student Detail</h3>
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
                     <div>
                       <label className="block text-xs font-medium mb-1 text-gray-700">Select Course</label>
                       <select
                         className="w-full p-1 border rounded text-sm"
                         value={formData.CourseId}
-                        onChange={(e) => handleCourseChange(Number(e.target.value))}
+                        onChange={(e) => handleCourseChange(Number(e.target.value), true)}
                       >
                         <option value={0}>---Select Course---</option>
                         {courses.map(course => (
                           <option key={course.id} value={course.id}>{course.courseName}</option>
+                        ))}
+                      </select>
+                    </div>
+                    <div>
+                      <label className="block text-xs font-medium mb-1 text-gray-700">Course Year</label>
+                      <select
+                        className="w-full p-1 border rounded text-sm"
+                        value={formCourseYearFilter}
+                        onChange={(e) => handleCourseYearChange(e.target.value, true)}
+                      >
+                        {courseYears.map(year => (
+                          <option key={year} value={year}>{year === 'all' ? 'All Years' : year}</option>
                         ))}
                       </select>
                     </div>

@@ -7,58 +7,78 @@ import sql from 'mssql';
 export async function GET(req: NextRequest) {
   try {
     const { searchParams } = new URL(req.url);
-    const studentId = searchParams.get('studentId');
+    const studentAcademicId = searchParams.get('studentId'); // This is now StudentAcademicDetails.id
     const status = searchParams.get('status');
-
     const pool = await getConnection();
-
-    // ✅ Step 1: Auto-update overdue records
+    // Step 1: Auto-update overdue records
     await pool.request().query(`
       UPDATE BookIssue
       SET Status = 'overdue'
       WHERE Status = 'issued' AND DueDate < GETDATE() AND ReturnDate IS NULL
     `);
-
-    // ✅ Step 2: Prepare filtered SELECT query
+    // Step 2: Prepare filtered SELECT query
+    // Now BookIssue.StudentId contains StudentAcademicDetails.id, not Student.id
     let query = `
-      SELECT 
-        bi.*, 
-        b.Title AS BookTitle, 
+      SELECT
+        bi.*,
+        b.Title AS BookTitle,
         s.fName + ' ' + s.lName AS StudentName,
-        s.id,s.email,
+        s.id AS ActualStudentId,
+        s.email,
+        s.fatherName,
         c.courseName,
+        sad.id AS StudentAcademicId,
+        sad.courseYear,
+        sad.sessionYear,
         bi.ReturnDate
       FROM BookIssue bi
       JOIN Books b ON bi.BookId = b.BookId
-      JOIN Student s ON bi.StudentId = s.id
+      JOIN StudentAcademicDetails sad ON bi.StudentId = sad.id
+      JOIN Student s ON sad.studentId = s.id
       JOIN Course c ON s.courseId = c.id
       WHERE 1=1
     `;
-
     const params: any[] = [];
-    if (studentId) {
+    // Now we can directly use the passed studentAcademicId for filtering
+    if (studentAcademicId) {
       query += ` AND bi.StudentId = @StudentId`;
-      params.push({ name: 'StudentId', type: sql.Int, value: studentId });
+      params.push({ name: 'StudentId', type: sql.Int, value: studentAcademicId });
     }
-
     if (status) {
       query += ` AND bi.Status = @Status`;
       params.push({ name: 'Status', type: sql.VarChar, value: status });
     }
-
     query += ` ORDER BY bi.IssueDate DESC`;
-
     const request = pool.request();
     params.forEach(param => request.input(param.name, param.type, param.value));
     const result = await request.query(query);
-
     return NextResponse.json(result.recordset);
-
   } catch (error: any) {
     logger.error('Error fetching book issues', { error: error.message, stack: error.stack });
     return NextResponse.json({ message: 'Error fetching book issues' }, { status: 500 });
   }
 }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 

@@ -1,5 +1,5 @@
-2025-07-05 12:30:02 [ERROR] Error fetching students Incorrect syntax near '.'.
-RequestError: Incorrect syntax near '.'.
+2025-07-10 13:31:53 [ERROR] Error issuing book
+RequestError: The INSERT statement conflicted with the FOREIGN KEY constraint "FK_BookIssue_Student". The conflict occurred in database "jkconsultancyadmindb", table "dbo.Student", column 'id'.
     at handleError (C:\Users\Windows\Desktop\New Projetct\library-management-system\.next\server\chunks\node_modules_mssql_93e55d20._.js:3584:23)
     at Connection.emit (node:events:518:28)
     at Connection.emit (C:\Users\Windows\Desktop\New Projetct\library-management-system\.next\server\chunks\node_modules_tedious_lib_connection_cdf92d37.js:879:22)
@@ -11,8 +11,9 @@ RequestError: Incorrect syntax near '.'.
     at Readable.push (node:internal/streams/readable:393:5)
     at nextAsync (node:internal/streams/from:194:22)
     at process.processTicksAndRejections (node:internal/process/task_queues:105:5)
-2025-07-05 12:33:58 [ERROR] Error fetching students Incorrect syntax near '.'.
-RequestError: Incorrect syntax near '.'.
+2025-07-10 13:38:03 [ERROR] No student found for StudentAcademicId: 65
+2025-07-10 13:39:07 [ERROR] Error fetching book issues
+RequestError: Invalid column name 'courseId'.
     at handleError (C:\Users\Windows\Desktop\New Projetct\library-management-system\.next\server\chunks\node_modules_mssql_93e55d20._.js:3584:23)
     at Connection.emit (node:events:518:28)
     at Connection.emit (C:\Users\Windows\Desktop\New Projetct\library-management-system\.next\server\chunks\node_modules_tedious_lib_connection_cdf92d37.js:879:22)
@@ -24,8 +25,8 @@ RequestError: Incorrect syntax near '.'.
     at Readable.push (node:internal/streams/readable:393:5)
     at nextAsync (node:internal/streams/from:194:22)
     at process.processTicksAndRejections (node:internal/process/task_queues:105:5)
-2025-07-05 15:04:06 [ERROR] Error fetching library payment history
-RequestError: Column 'jkconsultancyadmindb.dbo.Penalty.Remarks' is invalid in the select list because it is not contained in either an aggregate function or the GROUP BY clause.
+2025-07-10 13:39:08 [ERROR] Error fetching book issues
+RequestError: Invalid column name 'courseId'.
     at handleError (C:\Users\Windows\Desktop\New Projetct\library-management-system\.next\server\chunks\node_modules_mssql_93e55d20._.js:3584:23)
     at Connection.emit (node:events:518:28)
     at Connection.emit (C:\Users\Windows\Desktop\New Projetct\library-management-system\.next\server\chunks\node_modules_tedious_lib_connection_cdf92d37.js:879:22)
@@ -37,8 +38,8 @@ RequestError: Column 'jkconsultancyadmindb.dbo.Penalty.Remarks' is invalid in th
     at Readable.push (node:internal/streams/readable:393:5)
     at nextAsync (node:internal/streams/from:194:22)
     at process.processTicksAndRejections (node:internal/process/task_queues:105:5)
-2025-07-05 15:04:50 [ERROR] Error fetching library payment history
-RequestError: Column 'jkconsultancyadmindb.dbo.Penalty.Remarks' is invalid in the select list because it is not contained in either an aggregate function or the GROUP BY clause.
+2025-07-10 13:54:07 [ERROR] Error issuing book
+RequestError: The INSERT statement conflicted with the FOREIGN KEY constraint "FK_BookIssue_Student". The conflict occurred in database "jkconsultancyadmindb", table "dbo.Student", column 'id'.
     at handleError (C:\Users\Windows\Desktop\New Projetct\library-management-system\.next\server\chunks\node_modules_mssql_93e55d20._.js:3584:23)
     at Connection.emit (node:events:518:28)
     at Connection.emit (C:\Users\Windows\Desktop\New Projetct\library-management-system\.next\server\chunks\node_modules_tedious_lib_connection_cdf92d37.js:879:22)
@@ -50,8 +51,8 @@ RequestError: Column 'jkconsultancyadmindb.dbo.Penalty.Remarks' is invalid in th
     at Readable.push (node:internal/streams/readable:393:5)
     at nextAsync (node:internal/streams/from:194:22)
     at process.processTicksAndRejections (node:internal/process/task_queues:105:5)
-2025-07-05 15:54:50 [ERROR] Error deleting subject: The DELETE statement conflicted with the REFERENCE constraint "FK_Books_Subject". The conflict occurred in database "jkconsultancyadmindb", table "dbo.Books", column 'SubjectId'.
-RequestError: The DELETE statement conflicted with the REFERENCE constraint "FK_Books_Subject". The conflict occurred in database "jkconsultancyadmindb", table "dbo.Books", column 'SubjectId'.
+2025-07-10 13:59:00 [ERROR] Error issuing book
+RequestError: Invalid column name 'StudentAcademicId'.
     at handleError (C:\Users\Windows\Desktop\New Projetct\library-management-system\.next\server\chunks\node_modules_mssql_93e55d20._.js:3584:23)
     at Connection.emit (node:events:518:28)
     at Connection.emit (C:\Users\Windows\Desktop\New Projetct\library-management-system\.next\server\chunks\node_modules_tedious_lib_connection_cdf92d37.js:879:22)
@@ -63,17 +64,8 @@ RequestError: The DELETE statement conflicted with the REFERENCE constraint "FK_
     at Readable.push (node:internal/streams/readable:393:5)
     at nextAsync (node:internal/streams/from:194:22)
     at process.processTicksAndRejections (node:internal/process/task_queues:105:5)
-2025-07-05 16:40:44 [ERROR] Error deleting book: RequestError: The DELETE statement conflicted with the REFERENCE constraint "FK_BookIssue_Book". The conflict occurred in database "jkconsultancyadmindb", table "dbo.BookIssue", column 'BookId'.
-2025-07-05 16:40:46 [ERROR] Error deleting book: RequestError: The DELETE statement conflicted with the REFERENCE constraint "FK_BookIssue_Book". The conflict occurred in database "jkconsultancyadmindb", table "dbo.BookIssue", column 'BookId'.
-2025-07-05 16:40:47 [ERROR] Error deleting book: RequestError: The DELETE statement conflicted with the REFERENCE constraint "FK_BookIssue_Book". The conflict occurred in database "jkconsultancyadmindb", table "dbo.BookIssue", column 'BookId'.
-2025-07-05 16:40:52 [ERROR] Error deleting book: RequestError: The DELETE statement conflicted with the REFERENCE constraint "FK_BookHistory_Books". The conflict occurred in database "jkconsultancyadmindb", table "dbo.BookStockHistory", column 'BookId'.
-2025-07-05 16:41:10 [ERROR] Error deleting book: RequestError: The DELETE statement conflicted with the REFERENCE constraint "FK_BookHistory_Books". The conflict occurred in database "jkconsultancyadmindb", table "dbo.BookStockHistory", column 'BookId'.
-2025-07-05 16:43:21 [ERROR] Error deleting book: RequestError: The DELETE statement conflicted with the REFERENCE constraint "FK_BookIssue_Book". The conflict occurred in database "jkconsultancyadmindb", table "dbo.BookIssue", column 'BookId'.
-2025-07-05 16:45:41 [ERROR] Error deleting book: RequestError: The DELETE statement conflicted with the REFERENCE constraint "FK_BookHistory_Books". The conflict occurred in database "jkconsultancyadmindb", table "dbo.BookStockHistory", column 'BookId'.
-2025-07-05 17:18:17 [ERROR] Error deleting book: RequestError: The DELETE statement conflicted with the REFERENCE constraint "FK_BookHistory_Books". The conflict occurred in database "jkconsultancyadmindb", table "dbo.BookStockHistory", column 'BookId'.
-2025-07-05 17:20:53 [ERROR] Error deleting book: RequestError: The DELETE statement conflicted with the REFERENCE constraint "FK_BookHistory_Books". The conflict occurred in database "jkconsultancyadmindb", table "dbo.BookStockHistory", column 'BookId'.
-2025-07-05 17:21:01 [ERROR] Error deleting subject: The DELETE statement conflicted with the REFERENCE constraint "FK_Books_Subject". The conflict occurred in database "jkconsultancyadmindb", table "dbo.Books", column 'SubjectId'.
-RequestError: The DELETE statement conflicted with the REFERENCE constraint "FK_Books_Subject". The conflict occurred in database "jkconsultancyadmindb", table "dbo.Books", column 'SubjectId'.
+2025-07-10 14:03:24 [ERROR] Error fetching book issues
+RequestError: Invalid column name 'StudentAcademicId'.
     at handleError (C:\Users\Windows\Desktop\New Projetct\library-management-system\.next\server\chunks\node_modules_mssql_93e55d20._.js:3584:23)
     at Connection.emit (node:events:518:28)
     at Connection.emit (C:\Users\Windows\Desktop\New Projetct\library-management-system\.next\server\chunks\node_modules_tedious_lib_connection_cdf92d37.js:879:22)
@@ -85,9 +77,8 @@ RequestError: The DELETE statement conflicted with the REFERENCE constraint "FK_
     at Readable.push (node:internal/streams/readable:393:5)
     at nextAsync (node:internal/streams/from:194:22)
     at process.processTicksAndRejections (node:internal/process/task_queues:105:5)
-2025-07-05 17:21:12 [ERROR] Error deleting book: RequestError: The DELETE statement conflicted with the REFERENCE constraint "FK_BookHistory_Books". The conflict occurred in database "jkconsultancyadmindb", table "dbo.BookStockHistory", column 'BookId'.
-2025-07-05 17:27:54 [ERROR] Error deleting subject: The DELETE statement conflicted with the REFERENCE constraint "FK_Books_Subject". The conflict occurred in database "jkconsultancyadmindb", table "dbo.Books", column 'SubjectId'.
-RequestError: The DELETE statement conflicted with the REFERENCE constraint "FK_Books_Subject". The conflict occurred in database "jkconsultancyadmindb", table "dbo.Books", column 'SubjectId'.
+2025-07-10 14:03:25 [ERROR] Error fetching book issues
+RequestError: Invalid column name 'StudentAcademicId'.
     at handleError (C:\Users\Windows\Desktop\New Projetct\library-management-system\.next\server\chunks\node_modules_mssql_93e55d20._.js:3584:23)
     at Connection.emit (node:events:518:28)
     at Connection.emit (C:\Users\Windows\Desktop\New Projetct\library-management-system\.next\server\chunks\node_modules_tedious_lib_connection_cdf92d37.js:879:22)
@@ -99,8 +90,8 @@ RequestError: The DELETE statement conflicted with the REFERENCE constraint "FK_
     at Readable.push (node:internal/streams/readable:393:5)
     at nextAsync (node:internal/streams/from:194:22)
     at process.processTicksAndRejections (node:internal/process/task_queues:105:5)
-2025-07-05 17:28:36 [ERROR] Error deleting subject: The DELETE statement conflicted with the REFERENCE constraint "FK_Books_Subject". The conflict occurred in database "jkconsultancyadmindb", table "dbo.Books", column 'SubjectId'.
-RequestError: The DELETE statement conflicted with the REFERENCE constraint "FK_Books_Subject". The conflict occurred in database "jkconsultancyadmindb", table "dbo.Books", column 'SubjectId'.
+2025-07-10 14:03:40 [ERROR] Error fetching book issues
+RequestError: Invalid column name 'StudentAcademicId'.
     at handleError (C:\Users\Windows\Desktop\New Projetct\library-management-system\.next\server\chunks\node_modules_mssql_93e55d20._.js:3584:23)
     at Connection.emit (node:events:518:28)
     at Connection.emit (C:\Users\Windows\Desktop\New Projetct\library-management-system\.next\server\chunks\node_modules_tedious_lib_connection_cdf92d37.js:879:22)
@@ -112,8 +103,8 @@ RequestError: The DELETE statement conflicted with the REFERENCE constraint "FK_
     at Readable.push (node:internal/streams/readable:393:5)
     at nextAsync (node:internal/streams/from:194:22)
     at process.processTicksAndRejections (node:internal/process/task_queues:105:5)
-2025-07-05 17:31:30 [ERROR] Error deleting subject: The DELETE statement conflicted with the REFERENCE constraint "FK_Books_Subject". The conflict occurred in database "jkconsultancyadmindb", table "dbo.Books", column 'SubjectId'.
-RequestError: The DELETE statement conflicted with the REFERENCE constraint "FK_Books_Subject". The conflict occurred in database "jkconsultancyadmindb", table "dbo.Books", column 'SubjectId'.
+2025-07-10 14:03:40 [ERROR] Error fetching book issues
+RequestError: Invalid column name 'StudentAcademicId'.
     at handleError (C:\Users\Windows\Desktop\New Projetct\library-management-system\.next\server\chunks\node_modules_mssql_93e55d20._.js:3584:23)
     at Connection.emit (node:events:518:28)
     at Connection.emit (C:\Users\Windows\Desktop\New Projetct\library-management-system\.next\server\chunks\node_modules_tedious_lib_connection_cdf92d37.js:879:22)
@@ -125,9 +116,8 @@ RequestError: The DELETE statement conflicted with the REFERENCE constraint "FK_
     at Readable.push (node:internal/streams/readable:393:5)
     at nextAsync (node:internal/streams/from:194:22)
     at process.processTicksAndRejections (node:internal/process/task_queues:105:5)
-2025-07-05 17:33:17 [ERROR] Error deleting book: RequestError: The DELETE statement conflicted with the REFERENCE constraint "FK_BookHistory_Books". The conflict occurred in database "jkconsultancyadmindb", table "dbo.BookStockHistory", column 'BookId'.
-2025-07-05 18:05:34 [ERROR] Error deleting subject: The DELETE statement conflicted with the REFERENCE constraint "FK_Books_Subject". The conflict occurred in database "jkconsultancyadmindb", table "dbo.Books", column 'SubjectId'.
-RequestError: The DELETE statement conflicted with the REFERENCE constraint "FK_Books_Subject". The conflict occurred in database "jkconsultancyadmindb", table "dbo.Books", column 'SubjectId'.
+2025-07-10 14:04:14 [ERROR] Error fetching book issues
+RequestError: Invalid column name 'StudentAcademicId'.
     at handleError (C:\Users\Windows\Desktop\New Projetct\library-management-system\.next\server\chunks\node_modules_mssql_93e55d20._.js:3584:23)
     at Connection.emit (node:events:518:28)
     at Connection.emit (C:\Users\Windows\Desktop\New Projetct\library-management-system\.next\server\chunks\node_modules_tedious_lib_connection_cdf92d37.js:879:22)
@@ -139,8 +129,8 @@ RequestError: The DELETE statement conflicted with the REFERENCE constraint "FK_
     at Readable.push (node:internal/streams/readable:393:5)
     at nextAsync (node:internal/streams/from:194:22)
     at process.processTicksAndRejections (node:internal/process/task_queues:105:5)
-2025-07-05 18:08:27 [ERROR] Error deleting subject: The DELETE statement conflicted with the REFERENCE constraint "FK_Books_Subject". The conflict occurred in database "jkconsultancyadmindb", table "dbo.Books", column 'SubjectId'.
-RequestError: The DELETE statement conflicted with the REFERENCE constraint "FK_Books_Subject". The conflict occurred in database "jkconsultancyadmindb", table "dbo.Books", column 'SubjectId'.
+2025-07-10 14:04:14 [ERROR] Error fetching book issues
+RequestError: Invalid column name 'StudentAcademicId'.
     at handleError (C:\Users\Windows\Desktop\New Projetct\library-management-system\.next\server\chunks\node_modules_mssql_93e55d20._.js:3584:23)
     at Connection.emit (node:events:518:28)
     at Connection.emit (C:\Users\Windows\Desktop\New Projetct\library-management-system\.next\server\chunks\node_modules_tedious_lib_connection_cdf92d37.js:879:22)
@@ -152,8 +142,8 @@ RequestError: The DELETE statement conflicted with the REFERENCE constraint "FK_
     at Readable.push (node:internal/streams/readable:393:5)
     at nextAsync (node:internal/streams/from:194:22)
     at process.processTicksAndRejections (node:internal/process/task_queues:105:5)
-2025-07-05 18:09:20 [ERROR] Error deleting subject: The DELETE statement conflicted with the REFERENCE constraint "FK_Books_Subject". The conflict occurred in database "jkconsultancyadmindb", table "dbo.Books", column 'SubjectId'.
-RequestError: The DELETE statement conflicted with the REFERENCE constraint "FK_Books_Subject". The conflict occurred in database "jkconsultancyadmindb", table "dbo.Books", column 'SubjectId'.
+2025-07-10 14:05:29 [ERROR] Error fetching book issues
+RequestError: Invalid column name 'StudentAcademicId'.
     at handleError (C:\Users\Windows\Desktop\New Projetct\library-management-system\.next\server\chunks\node_modules_mssql_93e55d20._.js:3584:23)
     at Connection.emit (node:events:518:28)
     at Connection.emit (C:\Users\Windows\Desktop\New Projetct\library-management-system\.next\server\chunks\node_modules_tedious_lib_connection_cdf92d37.js:879:22)
@@ -165,8 +155,8 @@ RequestError: The DELETE statement conflicted with the REFERENCE constraint "FK_
     at Readable.push (node:internal/streams/readable:393:5)
     at nextAsync (node:internal/streams/from:194:22)
     at process.processTicksAndRejections (node:internal/process/task_queues:105:5)
-2025-07-05 18:09:35 [ERROR] Error deleting subject: The DELETE statement conflicted with the REFERENCE constraint "FK_Books_Subject". The conflict occurred in database "jkconsultancyadmindb", table "dbo.Books", column 'SubjectId'.
-RequestError: The DELETE statement conflicted with the REFERENCE constraint "FK_Books_Subject". The conflict occurred in database "jkconsultancyadmindb", table "dbo.Books", column 'SubjectId'.
+2025-07-10 14:05:30 [ERROR] Error fetching book issues
+RequestError: Invalid column name 'StudentAcademicId'.
     at handleError (C:\Users\Windows\Desktop\New Projetct\library-management-system\.next\server\chunks\node_modules_mssql_93e55d20._.js:3584:23)
     at Connection.emit (node:events:518:28)
     at Connection.emit (C:\Users\Windows\Desktop\New Projetct\library-management-system\.next\server\chunks\node_modules_tedious_lib_connection_cdf92d37.js:879:22)
@@ -178,11 +168,8 @@ RequestError: The DELETE statement conflicted with the REFERENCE constraint "FK_
     at Readable.push (node:internal/streams/readable:393:5)
     at nextAsync (node:internal/streams/from:194:22)
     at process.processTicksAndRejections (node:internal/process/task_queues:105:5)
-2025-07-05 18:11:47 [ERROR] Error deleting book: RequestError: The DELETE statement conflicted with the REFERENCE constraint "FK_BookHistory_Books". The conflict occurred in database "jkconsultancyadmindb", table "dbo.BookStockHistory", column 'BookId'.
-2025-07-05 18:11:54 [ERROR] Error deleting book: RequestError: The DELETE statement conflicted with the REFERENCE constraint "FK_BookHistory_Books". The conflict occurred in database "jkconsultancyadmindb", table "dbo.BookStockHistory", column 'BookId'.
-2025-07-07 10:41:25 [ERROR] Failed to delete old photo: Error: ENOENT: no such file or directory, unlink 'C:\Users\Windows\Desktop\New Projetct\library-management-system\public\Books\Community Phrmacy.jpg'
-2025-07-08 13:43:37 [ERROR] Error fetching library payment history
-RequestError: Invalid object name 'LibraryPayments'.
+2025-07-10 14:06:14 [ERROR] Error fetching book issues
+RequestError: Invalid column name 'StudentAcademicId'.
     at handleError (C:\Users\Windows\Desktop\New Projetct\library-management-system\.next\server\chunks\node_modules_mssql_93e55d20._.js:3584:23)
     at Connection.emit (node:events:518:28)
     at Connection.emit (C:\Users\Windows\Desktop\New Projetct\library-management-system\.next\server\chunks\node_modules_tedious_lib_connection_cdf92d37.js:879:22)
@@ -194,8 +181,541 @@ RequestError: Invalid object name 'LibraryPayments'.
     at Readable.push (node:internal/streams/readable:393:5)
     at nextAsync (node:internal/streams/from:194:22)
     at process.processTicksAndRejections (node:internal/process/task_queues:105:5)
-2025-07-08 13:43:38 [ERROR] Error fetching library payment history
-RequestError: Invalid object name 'LibraryPayments'.
+2025-07-10 14:06:16 [ERROR] Error fetching book issues
+RequestError: Invalid column name 'StudentAcademicId'.
+    at handleError (C:\Users\Windows\Desktop\New Projetct\library-management-system\.next\server\chunks\node_modules_mssql_93e55d20._.js:3584:23)
+    at Connection.emit (node:events:518:28)
+    at Connection.emit (C:\Users\Windows\Desktop\New Projetct\library-management-system\.next\server\chunks\node_modules_tedious_lib_connection_cdf92d37.js:879:22)
+    at RequestTokenHandler.onErrorMessage (C:\Users\Windows\Desktop\New Projetct\library-management-system\.next\server\chunks\node_modules_tedious_lib_token_778d00c4._.js:2122:25)
+    at Readable.<anonymous> (C:\Users\Windows\Desktop\New Projetct\library-management-system\.next\server\chunks\node_modules_tedious_lib_token_778d00c4._.js:1823:39)
+    at Readable.emit (node:events:518:28)
+    at addChunk (node:internal/streams/readable:561:12)
+    at readableAddChunkPushObjectMode (node:internal/streams/readable:538:3)
+    at Readable.push (node:internal/streams/readable:393:5)
+    at nextAsync (node:internal/streams/from:194:22)
+    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)
+2025-07-10 14:06:27 [ERROR] Error fetching book issues
+RequestError: Invalid column name 'StudentAcademicId'.
+    at handleError (C:\Users\Windows\Desktop\New Projetct\library-management-system\.next\server\chunks\node_modules_mssql_93e55d20._.js:3584:23)
+    at Connection.emit (node:events:518:28)
+    at Connection.emit (C:\Users\Windows\Desktop\New Projetct\library-management-system\.next\server\chunks\node_modules_tedious_lib_connection_cdf92d37.js:879:22)
+    at RequestTokenHandler.onErrorMessage (C:\Users\Windows\Desktop\New Projetct\library-management-system\.next\server\chunks\node_modules_tedious_lib_token_778d00c4._.js:2122:25)
+    at Readable.<anonymous> (C:\Users\Windows\Desktop\New Projetct\library-management-system\.next\server\chunks\node_modules_tedious_lib_token_778d00c4._.js:1823:39)
+    at Readable.emit (node:events:518:28)
+    at addChunk (node:internal/streams/readable:561:12)
+    at readableAddChunkPushObjectMode (node:internal/streams/readable:538:3)
+    at Readable.push (node:internal/streams/readable:393:5)
+    at nextAsync (node:internal/streams/from:194:22)
+    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)
+2025-07-10 14:06:28 [ERROR] Error fetching book issues
+RequestError: Invalid column name 'StudentAcademicId'.
+    at handleError (C:\Users\Windows\Desktop\New Projetct\library-management-system\.next\server\chunks\node_modules_mssql_93e55d20._.js:3584:23)
+    at Connection.emit (node:events:518:28)
+    at Connection.emit (C:\Users\Windows\Desktop\New Projetct\library-management-system\.next\server\chunks\node_modules_tedious_lib_connection_cdf92d37.js:879:22)
+    at RequestTokenHandler.onErrorMessage (C:\Users\Windows\Desktop\New Projetct\library-management-system\.next\server\chunks\node_modules_tedious_lib_token_778d00c4._.js:2122:25)
+    at Readable.<anonymous> (C:\Users\Windows\Desktop\New Projetct\library-management-system\.next\server\chunks\node_modules_tedious_lib_token_778d00c4._.js:1823:39)
+    at Readable.emit (node:events:518:28)
+    at addChunk (node:internal/streams/readable:561:12)
+    at readableAddChunkPushObjectMode (node:internal/streams/readable:538:3)
+    at Readable.push (node:internal/streams/readable:393:5)
+    at nextAsync (node:internal/streams/from:194:22)
+    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)
+2025-07-10 14:28:54 [ERROR] Error issuing book
+RequestError: The INSERT statement conflicted with the FOREIGN KEY constraint "FK_BookIssue_Student". The conflict occurred in database "jkconsultancyadmindb", table "dbo.Student", column 'id'.
+    at handleError (C:\Users\Windows\Desktop\New Projetct\library-management-system\.next\server\chunks\node_modules_mssql_93e55d20._.js:3584:23)
+    at Connection.emit (node:events:518:28)
+    at Connection.emit (C:\Users\Windows\Desktop\New Projetct\library-management-system\.next\server\chunks\node_modules_tedious_lib_connection_cdf92d37.js:879:22)
+    at RequestTokenHandler.onErrorMessage (C:\Users\Windows\Desktop\New Projetct\library-management-system\.next\server\chunks\node_modules_tedious_lib_token_778d00c4._.js:2122:25)
+    at Readable.<anonymous> (C:\Users\Windows\Desktop\New Projetct\library-management-system\.next\server\chunks\node_modules_tedious_lib_token_778d00c4._.js:1823:39)
+    at Readable.emit (node:events:518:28)
+    at addChunk (node:internal/streams/readable:561:12)
+    at readableAddChunkPushObjectMode (node:internal/streams/readable:538:3)
+    at Readable.push (node:internal/streams/readable:393:5)
+    at nextAsync (node:internal/streams/from:194:22)
+    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)
+2025-07-10 14:58:19 [ERROR] Error fetching book issues
+RequestError: Invalid column name 'StudentAcademicId'.
+    at handleError (C:\Users\Windows\Desktop\New Projetct\library-management-system\.next\server\chunks\node_modules_mssql_93e55d20._.js:3584:23)
+    at Connection.emit (node:events:518:28)
+    at Connection.emit (C:\Users\Windows\Desktop\New Projetct\library-management-system\.next\server\chunks\node_modules_tedious_lib_connection_cdf92d37.js:879:22)
+    at RequestTokenHandler.onErrorMessage (C:\Users\Windows\Desktop\New Projetct\library-management-system\.next\server\chunks\node_modules_tedious_lib_token_778d00c4._.js:2122:25)
+    at Readable.<anonymous> (C:\Users\Windows\Desktop\New Projetct\library-management-system\.next\server\chunks\node_modules_tedious_lib_token_778d00c4._.js:1823:39)
+    at Readable.emit (node:events:518:28)
+    at addChunk (node:internal/streams/readable:561:12)
+    at readableAddChunkPushObjectMode (node:internal/streams/readable:538:3)
+    at Readable.push (node:internal/streams/readable:393:5)
+    at nextAsync (node:internal/streams/from:194:22)
+    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)
+2025-07-10 14:58:21 [ERROR] Error fetching book issues
+RequestError: Invalid column name 'StudentAcademicId'.
+    at handleError (C:\Users\Windows\Desktop\New Projetct\library-management-system\.next\server\chunks\node_modules_mssql_93e55d20._.js:3584:23)
+    at Connection.emit (node:events:518:28)
+    at Connection.emit (C:\Users\Windows\Desktop\New Projetct\library-management-system\.next\server\chunks\node_modules_tedious_lib_connection_cdf92d37.js:879:22)
+    at RequestTokenHandler.onErrorMessage (C:\Users\Windows\Desktop\New Projetct\library-management-system\.next\server\chunks\node_modules_tedious_lib_token_778d00c4._.js:2122:25)
+    at Readable.<anonymous> (C:\Users\Windows\Desktop\New Projetct\library-management-system\.next\server\chunks\node_modules_tedious_lib_token_778d00c4._.js:1823:39)
+    at Readable.emit (node:events:518:28)
+    at addChunk (node:internal/streams/readable:561:12)
+    at readableAddChunkPushObjectMode (node:internal/streams/readable:538:3)
+    at Readable.push (node:internal/streams/readable:393:5)
+    at nextAsync (node:internal/streams/from:194:22)
+    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)
+2025-07-10 14:58:42 [ERROR] Error fetching book issues
+RequestError: Invalid column name 'StudentAcademicId'.
+    at handleError (C:\Users\Windows\Desktop\New Projetct\library-management-system\.next\server\chunks\node_modules_mssql_93e55d20._.js:3584:23)
+    at Connection.emit (node:events:518:28)
+    at Connection.emit (C:\Users\Windows\Desktop\New Projetct\library-management-system\.next\server\chunks\node_modules_tedious_lib_connection_cdf92d37.js:879:22)
+    at RequestTokenHandler.onErrorMessage (C:\Users\Windows\Desktop\New Projetct\library-management-system\.next\server\chunks\node_modules_tedious_lib_token_778d00c4._.js:2122:25)
+    at Readable.<anonymous> (C:\Users\Windows\Desktop\New Projetct\library-management-system\.next\server\chunks\node_modules_tedious_lib_token_778d00c4._.js:1823:39)
+    at Readable.emit (node:events:518:28)
+    at addChunk (node:internal/streams/readable:561:12)
+    at readableAddChunkPushObjectMode (node:internal/streams/readable:538:3)
+    at Readable.push (node:internal/streams/readable:393:5)
+    at nextAsync (node:internal/streams/from:194:22)
+    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)
+2025-07-10 14:58:43 [ERROR] Error fetching students Invalid column name 'courseYear'.
+RequestError: Invalid column name 'courseYear'.
+    at handleError (C:\Users\Windows\Desktop\New Projetct\library-management-system\.next\server\chunks\node_modules_mssql_93e55d20._.js:3584:23)
+    at Connection.emit (node:events:518:28)
+    at Connection.emit (C:\Users\Windows\Desktop\New Projetct\library-management-system\.next\server\chunks\node_modules_tedious_lib_connection_cdf92d37.js:879:22)
+    at RequestTokenHandler.onErrorMessage (C:\Users\Windows\Desktop\New Projetct\library-management-system\.next\server\chunks\node_modules_tedious_lib_token_778d00c4._.js:2122:25)
+    at Readable.<anonymous> (C:\Users\Windows\Desktop\New Projetct\library-management-system\.next\server\chunks\node_modules_tedious_lib_token_778d00c4._.js:1823:39)
+    at Readable.emit (node:events:518:28)
+    at addChunk (node:internal/streams/readable:561:12)
+    at readableAddChunkPushObjectMode (node:internal/streams/readable:538:3)
+    at Readable.push (node:internal/streams/readable:393:5)
+    at nextAsync (node:internal/streams/from:194:22)
+    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)
+2025-07-10 14:58:43 [ERROR] Error fetching book issues
+RequestError: Invalid column name 'StudentAcademicId'.
+    at handleError (C:\Users\Windows\Desktop\New Projetct\library-management-system\.next\server\chunks\node_modules_mssql_93e55d20._.js:3584:23)
+    at Connection.emit (node:events:518:28)
+    at Connection.emit (C:\Users\Windows\Desktop\New Projetct\library-management-system\.next\server\chunks\node_modules_tedious_lib_connection_cdf92d37.js:879:22)
+    at RequestTokenHandler.onErrorMessage (C:\Users\Windows\Desktop\New Projetct\library-management-system\.next\server\chunks\node_modules_tedious_lib_token_778d00c4._.js:2122:25)
+    at Readable.<anonymous> (C:\Users\Windows\Desktop\New Projetct\library-management-system\.next\server\chunks\node_modules_tedious_lib_token_778d00c4._.js:1823:39)
+    at Readable.emit (node:events:518:28)
+    at addChunk (node:internal/streams/readable:561:12)
+    at readableAddChunkPushObjectMode (node:internal/streams/readable:538:3)
+    at Readable.push (node:internal/streams/readable:393:5)
+    at nextAsync (node:internal/streams/from:194:22)
+    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)
+2025-07-10 14:58:43 [ERROR] Error fetching students Invalid column name 'courseYear'.
+RequestError: Invalid column name 'courseYear'.
+    at handleError (C:\Users\Windows\Desktop\New Projetct\library-management-system\.next\server\chunks\node_modules_mssql_93e55d20._.js:3584:23)
+    at Connection.emit (node:events:518:28)
+    at Connection.emit (C:\Users\Windows\Desktop\New Projetct\library-management-system\.next\server\chunks\node_modules_tedious_lib_connection_cdf92d37.js:879:22)
+    at RequestTokenHandler.onErrorMessage (C:\Users\Windows\Desktop\New Projetct\library-management-system\.next\server\chunks\node_modules_tedious_lib_token_778d00c4._.js:2122:25)
+    at Readable.<anonymous> (C:\Users\Windows\Desktop\New Projetct\library-management-system\.next\server\chunks\node_modules_tedious_lib_token_778d00c4._.js:1823:39)
+    at Readable.emit (node:events:518:28)
+    at addChunk (node:internal/streams/readable:561:12)
+    at readableAddChunkPushObjectMode (node:internal/streams/readable:538:3)
+    at Readable.push (node:internal/streams/readable:393:5)
+    at nextAsync (node:internal/streams/from:194:22)
+    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)
+2025-07-10 14:59:05 [ERROR] Error fetching students Invalid column name 'courseYear'.
+RequestError: Invalid column name 'courseYear'.
+    at handleError (C:\Users\Windows\Desktop\New Projetct\library-management-system\.next\server\chunks\node_modules_mssql_93e55d20._.js:3584:23)
+    at Connection.emit (node:events:518:28)
+    at Connection.emit (C:\Users\Windows\Desktop\New Projetct\library-management-system\.next\server\chunks\node_modules_tedious_lib_connection_cdf92d37.js:879:22)
+    at RequestTokenHandler.onErrorMessage (C:\Users\Windows\Desktop\New Projetct\library-management-system\.next\server\chunks\node_modules_tedious_lib_token_778d00c4._.js:2122:25)
+    at Readable.<anonymous> (C:\Users\Windows\Desktop\New Projetct\library-management-system\.next\server\chunks\node_modules_tedious_lib_token_778d00c4._.js:1823:39)
+    at Readable.emit (node:events:518:28)
+    at addChunk (node:internal/streams/readable:561:12)
+    at readableAddChunkPushObjectMode (node:internal/streams/readable:538:3)
+    at Readable.push (node:internal/streams/readable:393:5)
+    at nextAsync (node:internal/streams/from:194:22)
+    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)
+2025-07-10 14:59:05 [ERROR] Error fetching students Invalid column name 'courseYear'.
+RequestError: Invalid column name 'courseYear'.
+    at handleError (C:\Users\Windows\Desktop\New Projetct\library-management-system\.next\server\chunks\node_modules_mssql_93e55d20._.js:3584:23)
+    at Connection.emit (node:events:518:28)
+    at Connection.emit (C:\Users\Windows\Desktop\New Projetct\library-management-system\.next\server\chunks\node_modules_tedious_lib_connection_cdf92d37.js:879:22)
+    at RequestTokenHandler.onErrorMessage (C:\Users\Windows\Desktop\New Projetct\library-management-system\.next\server\chunks\node_modules_tedious_lib_token_778d00c4._.js:2122:25)
+    at Readable.<anonymous> (C:\Users\Windows\Desktop\New Projetct\library-management-system\.next\server\chunks\node_modules_tedious_lib_token_778d00c4._.js:1823:39)
+    at Readable.emit (node:events:518:28)
+    at addChunk (node:internal/streams/readable:561:12)
+    at readableAddChunkPushObjectMode (node:internal/streams/readable:538:3)
+    at Readable.push (node:internal/streams/readable:393:5)
+    at nextAsync (node:internal/streams/from:194:22)
+    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)
+2025-07-10 14:59:08 [ERROR] Error fetching students Invalid column name 'courseYear'.
+RequestError: Invalid column name 'courseYear'.
+    at handleError (C:\Users\Windows\Desktop\New Projetct\library-management-system\.next\server\chunks\node_modules_mssql_93e55d20._.js:3584:23)
+    at Connection.emit (node:events:518:28)
+    at Connection.emit (C:\Users\Windows\Desktop\New Projetct\library-management-system\.next\server\chunks\node_modules_tedious_lib_connection_cdf92d37.js:879:22)
+    at RequestTokenHandler.onErrorMessage (C:\Users\Windows\Desktop\New Projetct\library-management-system\.next\server\chunks\node_modules_tedious_lib_token_778d00c4._.js:2122:25)
+    at Readable.<anonymous> (C:\Users\Windows\Desktop\New Projetct\library-management-system\.next\server\chunks\node_modules_tedious_lib_token_778d00c4._.js:1823:39)
+    at Readable.emit (node:events:518:28)
+    at addChunk (node:internal/streams/readable:561:12)
+    at readableAddChunkPushObjectMode (node:internal/streams/readable:538:3)
+    at Readable.push (node:internal/streams/readable:393:5)
+    at nextAsync (node:internal/streams/from:194:22)
+    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)
+2025-07-10 14:59:09 [ERROR] Error fetching students Invalid column name 'courseYear'.
+RequestError: Invalid column name 'courseYear'.
+    at handleError (C:\Users\Windows\Desktop\New Projetct\library-management-system\.next\server\chunks\node_modules_mssql_93e55d20._.js:3584:23)
+    at Connection.emit (node:events:518:28)
+    at Connection.emit (C:\Users\Windows\Desktop\New Projetct\library-management-system\.next\server\chunks\node_modules_tedious_lib_connection_cdf92d37.js:879:22)
+    at RequestTokenHandler.onErrorMessage (C:\Users\Windows\Desktop\New Projetct\library-management-system\.next\server\chunks\node_modules_tedious_lib_token_778d00c4._.js:2122:25)
+    at Readable.<anonymous> (C:\Users\Windows\Desktop\New Projetct\library-management-system\.next\server\chunks\node_modules_tedious_lib_token_778d00c4._.js:1823:39)
+    at Readable.emit (node:events:518:28)
+    at addChunk (node:internal/streams/readable:561:12)
+    at readableAddChunkPushObjectMode (node:internal/streams/readable:538:3)
+    at Readable.push (node:internal/streams/readable:393:5)
+    at nextAsync (node:internal/streams/from:194:22)
+    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)
+2025-07-10 14:59:24 [ERROR] Error fetching students Invalid column name 'courseYear'.
+RequestError: Invalid column name 'courseYear'.
+    at handleError (C:\Users\Windows\Desktop\New Projetct\library-management-system\.next\server\chunks\node_modules_mssql_93e55d20._.js:3584:23)
+    at Connection.emit (node:events:518:28)
+    at Connection.emit (C:\Users\Windows\Desktop\New Projetct\library-management-system\.next\server\chunks\node_modules_tedious_lib_connection_cdf92d37.js:879:22)
+    at RequestTokenHandler.onErrorMessage (C:\Users\Windows\Desktop\New Projetct\library-management-system\.next\server\chunks\node_modules_tedious_lib_token_778d00c4._.js:2122:25)
+    at Readable.<anonymous> (C:\Users\Windows\Desktop\New Projetct\library-management-system\.next\server\chunks\node_modules_tedious_lib_token_778d00c4._.js:1823:39)
+    at Readable.emit (node:events:518:28)
+    at addChunk (node:internal/streams/readable:561:12)
+    at readableAddChunkPushObjectMode (node:internal/streams/readable:538:3)
+    at Readable.push (node:internal/streams/readable:393:5)
+    at nextAsync (node:internal/streams/from:194:22)
+    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)
+2025-07-10 14:59:25 [ERROR] Error fetching students Invalid column name 'courseYear'.
+RequestError: Invalid column name 'courseYear'.
+    at handleError (C:\Users\Windows\Desktop\New Projetct\library-management-system\.next\server\chunks\node_modules_mssql_93e55d20._.js:3584:23)
+    at Connection.emit (node:events:518:28)
+    at Connection.emit (C:\Users\Windows\Desktop\New Projetct\library-management-system\.next\server\chunks\node_modules_tedious_lib_connection_cdf92d37.js:879:22)
+    at RequestTokenHandler.onErrorMessage (C:\Users\Windows\Desktop\New Projetct\library-management-system\.next\server\chunks\node_modules_tedious_lib_token_778d00c4._.js:2122:25)
+    at Readable.<anonymous> (C:\Users\Windows\Desktop\New Projetct\library-management-system\.next\server\chunks\node_modules_tedious_lib_token_778d00c4._.js:1823:39)
+    at Readable.emit (node:events:518:28)
+    at addChunk (node:internal/streams/readable:561:12)
+    at readableAddChunkPushObjectMode (node:internal/streams/readable:538:3)
+    at Readable.push (node:internal/streams/readable:393:5)
+    at nextAsync (node:internal/streams/from:194:22)
+    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)
+2025-07-10 14:59:45 [ERROR] Error fetching students Invalid column name 'courseYear'.
+RequestError: Invalid column name 'courseYear'.
+    at handleError (C:\Users\Windows\Desktop\New Projetct\library-management-system\.next\server\chunks\node_modules_mssql_93e55d20._.js:3584:23)
+    at Connection.emit (node:events:518:28)
+    at Connection.emit (C:\Users\Windows\Desktop\New Projetct\library-management-system\.next\server\chunks\node_modules_tedious_lib_connection_cdf92d37.js:879:22)
+    at RequestTokenHandler.onErrorMessage (C:\Users\Windows\Desktop\New Projetct\library-management-system\.next\server\chunks\node_modules_tedious_lib_token_778d00c4._.js:2122:25)
+    at Readable.<anonymous> (C:\Users\Windows\Desktop\New Projetct\library-management-system\.next\server\chunks\node_modules_tedious_lib_token_778d00c4._.js:1823:39)
+    at Readable.emit (node:events:518:28)
+    at addChunk (node:internal/streams/readable:561:12)
+    at readableAddChunkPushObjectMode (node:internal/streams/readable:538:3)
+    at Readable.push (node:internal/streams/readable:393:5)
+    at nextAsync (node:internal/streams/from:194:22)
+    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)
+2025-07-10 14:59:45 [ERROR] Error fetching book issues
+RequestError: Invalid column name 'StudentAcademicId'.
+    at handleError (C:\Users\Windows\Desktop\New Projetct\library-management-system\.next\server\chunks\node_modules_mssql_93e55d20._.js:3584:23)
+    at Connection.emit (node:events:518:28)
+    at Connection.emit (C:\Users\Windows\Desktop\New Projetct\library-management-system\.next\server\chunks\node_modules_tedious_lib_connection_cdf92d37.js:879:22)
+    at RequestTokenHandler.onErrorMessage (C:\Users\Windows\Desktop\New Projetct\library-management-system\.next\server\chunks\node_modules_tedious_lib_token_778d00c4._.js:2122:25)
+    at Readable.<anonymous> (C:\Users\Windows\Desktop\New Projetct\library-management-system\.next\server\chunks\node_modules_tedious_lib_token_778d00c4._.js:1823:39)
+    at Readable.emit (node:events:518:28)
+    at addChunk (node:internal/streams/readable:561:12)
+    at readableAddChunkPushObjectMode (node:internal/streams/readable:538:3)
+    at Readable.push (node:internal/streams/readable:393:5)
+    at nextAsync (node:internal/streams/from:194:22)
+    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)
+2025-07-10 14:59:46 [ERROR] Error fetching students Invalid column name 'courseYear'.
+RequestError: Invalid column name 'courseYear'.
+    at handleError (C:\Users\Windows\Desktop\New Projetct\library-management-system\.next\server\chunks\node_modules_mssql_93e55d20._.js:3584:23)
+    at Connection.emit (node:events:518:28)
+    at Connection.emit (C:\Users\Windows\Desktop\New Projetct\library-management-system\.next\server\chunks\node_modules_tedious_lib_connection_cdf92d37.js:879:22)
+    at RequestTokenHandler.onErrorMessage (C:\Users\Windows\Desktop\New Projetct\library-management-system\.next\server\chunks\node_modules_tedious_lib_token_778d00c4._.js:2122:25)
+    at Readable.<anonymous> (C:\Users\Windows\Desktop\New Projetct\library-management-system\.next\server\chunks\node_modules_tedious_lib_token_778d00c4._.js:1823:39)
+    at Readable.emit (node:events:518:28)
+    at addChunk (node:internal/streams/readable:561:12)
+    at readableAddChunkPushObjectMode (node:internal/streams/readable:538:3)
+    at Readable.push (node:internal/streams/readable:393:5)
+    at nextAsync (node:internal/streams/from:194:22)
+    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)
+2025-07-10 14:59:46 [ERROR] Error fetching book issues
+RequestError: Invalid column name 'StudentAcademicId'.
+    at handleError (C:\Users\Windows\Desktop\New Projetct\library-management-system\.next\server\chunks\node_modules_mssql_93e55d20._.js:3584:23)
+    at Connection.emit (node:events:518:28)
+    at Connection.emit (C:\Users\Windows\Desktop\New Projetct\library-management-system\.next\server\chunks\node_modules_tedious_lib_connection_cdf92d37.js:879:22)
+    at RequestTokenHandler.onErrorMessage (C:\Users\Windows\Desktop\New Projetct\library-management-system\.next\server\chunks\node_modules_tedious_lib_token_778d00c4._.js:2122:25)
+    at Readable.<anonymous> (C:\Users\Windows\Desktop\New Projetct\library-management-system\.next\server\chunks\node_modules_tedious_lib_token_778d00c4._.js:1823:39)
+    at Readable.emit (node:events:518:28)
+    at addChunk (node:internal/streams/readable:561:12)
+    at readableAddChunkPushObjectMode (node:internal/streams/readable:538:3)
+    at Readable.push (node:internal/streams/readable:393:5)
+    at nextAsync (node:internal/streams/from:194:22)
+    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)
+2025-07-10 14:59:56 [ERROR] Error fetching book issues
+RequestError: Invalid column name 'StudentAcademicId'.
+    at handleError (C:\Users\Windows\Desktop\New Projetct\library-management-system\.next\server\chunks\node_modules_mssql_93e55d20._.js:3584:23)
+    at Connection.emit (node:events:518:28)
+    at Connection.emit (C:\Users\Windows\Desktop\New Projetct\library-management-system\.next\server\chunks\node_modules_tedious_lib_connection_cdf92d37.js:879:22)
+    at RequestTokenHandler.onErrorMessage (C:\Users\Windows\Desktop\New Projetct\library-management-system\.next\server\chunks\node_modules_tedious_lib_token_778d00c4._.js:2122:25)
+    at Readable.<anonymous> (C:\Users\Windows\Desktop\New Projetct\library-management-system\.next\server\chunks\node_modules_tedious_lib_token_778d00c4._.js:1823:39)
+    at Readable.emit (node:events:518:28)
+    at addChunk (node:internal/streams/readable:561:12)
+    at readableAddChunkPushObjectMode (node:internal/streams/readable:538:3)
+    at Readable.push (node:internal/streams/readable:393:5)
+    at nextAsync (node:internal/streams/from:194:22)
+    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)
+2025-07-10 14:59:56 [ERROR] Error fetching students Invalid column name 'courseYear'.
+RequestError: Invalid column name 'courseYear'.
+    at handleError (C:\Users\Windows\Desktop\New Projetct\library-management-system\.next\server\chunks\node_modules_mssql_93e55d20._.js:3584:23)
+    at Connection.emit (node:events:518:28)
+    at Connection.emit (C:\Users\Windows\Desktop\New Projetct\library-management-system\.next\server\chunks\node_modules_tedious_lib_connection_cdf92d37.js:879:22)
+    at RequestTokenHandler.onErrorMessage (C:\Users\Windows\Desktop\New Projetct\library-management-system\.next\server\chunks\node_modules_tedious_lib_token_778d00c4._.js:2122:25)
+    at Readable.<anonymous> (C:\Users\Windows\Desktop\New Projetct\library-management-system\.next\server\chunks\node_modules_tedious_lib_token_778d00c4._.js:1823:39)
+    at Readable.emit (node:events:518:28)
+    at addChunk (node:internal/streams/readable:561:12)
+    at readableAddChunkPushObjectMode (node:internal/streams/readable:538:3)
+    at Readable.push (node:internal/streams/readable:393:5)
+    at nextAsync (node:internal/streams/from:194:22)
+    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)
+2025-07-10 14:59:57 [ERROR] Error fetching book issues
+RequestError: Invalid column name 'StudentAcademicId'.
+    at handleError (C:\Users\Windows\Desktop\New Projetct\library-management-system\.next\server\chunks\node_modules_mssql_93e55d20._.js:3584:23)
+    at Connection.emit (node:events:518:28)
+    at Connection.emit (C:\Users\Windows\Desktop\New Projetct\library-management-system\.next\server\chunks\node_modules_tedious_lib_connection_cdf92d37.js:879:22)
+    at RequestTokenHandler.onErrorMessage (C:\Users\Windows\Desktop\New Projetct\library-management-system\.next\server\chunks\node_modules_tedious_lib_token_778d00c4._.js:2122:25)
+    at Readable.<anonymous> (C:\Users\Windows\Desktop\New Projetct\library-management-system\.next\server\chunks\node_modules_tedious_lib_token_778d00c4._.js:1823:39)
+    at Readable.emit (node:events:518:28)
+    at addChunk (node:internal/streams/readable:561:12)
+    at readableAddChunkPushObjectMode (node:internal/streams/readable:538:3)
+    at Readable.push (node:internal/streams/readable:393:5)
+    at nextAsync (node:internal/streams/from:194:22)
+    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)
+2025-07-10 14:59:57 [ERROR] Error fetching students Invalid column name 'courseYear'.
+RequestError: Invalid column name 'courseYear'.
+    at handleError (C:\Users\Windows\Desktop\New Projetct\library-management-system\.next\server\chunks\node_modules_mssql_93e55d20._.js:3584:23)
+    at Connection.emit (node:events:518:28)
+    at Connection.emit (C:\Users\Windows\Desktop\New Projetct\library-management-system\.next\server\chunks\node_modules_tedious_lib_connection_cdf92d37.js:879:22)
+    at RequestTokenHandler.onErrorMessage (C:\Users\Windows\Desktop\New Projetct\library-management-system\.next\server\chunks\node_modules_tedious_lib_token_778d00c4._.js:2122:25)
+    at Readable.<anonymous> (C:\Users\Windows\Desktop\New Projetct\library-management-system\.next\server\chunks\node_modules_tedious_lib_token_778d00c4._.js:1823:39)
+    at Readable.emit (node:events:518:28)
+    at addChunk (node:internal/streams/readable:561:12)
+    at readableAddChunkPushObjectMode (node:internal/streams/readable:538:3)
+    at Readable.push (node:internal/streams/readable:393:5)
+    at nextAsync (node:internal/streams/from:194:22)
+    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)
+2025-07-10 15:00:07 [ERROR] Error fetching students Invalid column name 'courseYear'.
+RequestError: Invalid column name 'courseYear'.
+    at handleError (C:\Users\Windows\Desktop\New Projetct\library-management-system\.next\server\chunks\node_modules_mssql_93e55d20._.js:3584:23)
+    at Connection.emit (node:events:518:28)
+    at Connection.emit (C:\Users\Windows\Desktop\New Projetct\library-management-system\.next\server\chunks\node_modules_tedious_lib_connection_cdf92d37.js:879:22)
+    at RequestTokenHandler.onErrorMessage (C:\Users\Windows\Desktop\New Projetct\library-management-system\.next\server\chunks\node_modules_tedious_lib_token_778d00c4._.js:2122:25)
+    at Readable.<anonymous> (C:\Users\Windows\Desktop\New Projetct\library-management-system\.next\server\chunks\node_modules_tedious_lib_token_778d00c4._.js:1823:39)
+    at Readable.emit (node:events:518:28)
+    at addChunk (node:internal/streams/readable:561:12)
+    at readableAddChunkPushObjectMode (node:internal/streams/readable:538:3)
+    at Readable.push (node:internal/streams/readable:393:5)
+    at nextAsync (node:internal/streams/from:194:22)
+    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)
+2025-07-10 15:00:08 [ERROR] Error fetching students Invalid column name 'courseYear'.
+RequestError: Invalid column name 'courseYear'.
+    at handleError (C:\Users\Windows\Desktop\New Projetct\library-management-system\.next\server\chunks\node_modules_mssql_93e55d20._.js:3584:23)
+    at Connection.emit (node:events:518:28)
+    at Connection.emit (C:\Users\Windows\Desktop\New Projetct\library-management-system\.next\server\chunks\node_modules_tedious_lib_connection_cdf92d37.js:879:22)
+    at RequestTokenHandler.onErrorMessage (C:\Users\Windows\Desktop\New Projetct\library-management-system\.next\server\chunks\node_modules_tedious_lib_token_778d00c4._.js:2122:25)
+    at Readable.<anonymous> (C:\Users\Windows\Desktop\New Projetct\library-management-system\.next\server\chunks\node_modules_tedious_lib_token_778d00c4._.js:1823:39)
+    at Readable.emit (node:events:518:28)
+    at addChunk (node:internal/streams/readable:561:12)
+    at readableAddChunkPushObjectMode (node:internal/streams/readable:538:3)
+    at Readable.push (node:internal/streams/readable:393:5)
+    at nextAsync (node:internal/streams/from:194:22)
+    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)
+2025-07-10 15:00:41 [ERROR] Error fetching students Invalid column name 'courseYear'.
+RequestError: Invalid column name 'courseYear'.
+    at handleError (C:\Users\Windows\Desktop\New Projetct\library-management-system\.next\server\chunks\node_modules_mssql_93e55d20._.js:3584:23)
+    at Connection.emit (node:events:518:28)
+    at Connection.emit (C:\Users\Windows\Desktop\New Projetct\library-management-system\.next\server\chunks\node_modules_tedious_lib_connection_cdf92d37.js:879:22)
+    at RequestTokenHandler.onErrorMessage (C:\Users\Windows\Desktop\New Projetct\library-management-system\.next\server\chunks\node_modules_tedious_lib_token_778d00c4._.js:2122:25)
+    at Readable.<anonymous> (C:\Users\Windows\Desktop\New Projetct\library-management-system\.next\server\chunks\node_modules_tedious_lib_token_778d00c4._.js:1823:39)
+    at Readable.emit (node:events:518:28)
+    at addChunk (node:internal/streams/readable:561:12)
+    at readableAddChunkPushObjectMode (node:internal/streams/readable:538:3)
+    at Readable.push (node:internal/streams/readable:393:5)
+    at nextAsync (node:internal/streams/from:194:22)
+    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)
+2025-07-10 15:00:42 [ERROR] Error fetching students Invalid column name 'courseYear'.
+RequestError: Invalid column name 'courseYear'.
+    at handleError (C:\Users\Windows\Desktop\New Projetct\library-management-system\.next\server\chunks\node_modules_mssql_93e55d20._.js:3584:23)
+    at Connection.emit (node:events:518:28)
+    at Connection.emit (C:\Users\Windows\Desktop\New Projetct\library-management-system\.next\server\chunks\node_modules_tedious_lib_connection_cdf92d37.js:879:22)
+    at RequestTokenHandler.onErrorMessage (C:\Users\Windows\Desktop\New Projetct\library-management-system\.next\server\chunks\node_modules_tedious_lib_token_778d00c4._.js:2122:25)
+    at Readable.<anonymous> (C:\Users\Windows\Desktop\New Projetct\library-management-system\.next\server\chunks\node_modules_tedious_lib_token_778d00c4._.js:1823:39)
+    at Readable.emit (node:events:518:28)
+    at addChunk (node:internal/streams/readable:561:12)
+    at readableAddChunkPushObjectMode (node:internal/streams/readable:538:3)
+    at Readable.push (node:internal/streams/readable:393:5)
+    at nextAsync (node:internal/streams/from:194:22)
+    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)
+2025-07-10 15:08:41 [ERROR] Error fetching students Invalid column name 'courseYear'.
+RequestError: Invalid column name 'courseYear'.
+    at handleError (C:\Users\Windows\Desktop\New Projetct\library-management-system\.next\server\chunks\node_modules_mssql_93e55d20._.js:3584:23)
+    at Connection.emit (node:events:518:28)
+    at Connection.emit (C:\Users\Windows\Desktop\New Projetct\library-management-system\.next\server\chunks\node_modules_tedious_lib_connection_cdf92d37.js:879:22)
+    at RequestTokenHandler.onErrorMessage (C:\Users\Windows\Desktop\New Projetct\library-management-system\.next\server\chunks\node_modules_tedious_lib_token_778d00c4._.js:2122:25)
+    at Readable.<anonymous> (C:\Users\Windows\Desktop\New Projetct\library-management-system\.next\server\chunks\node_modules_tedious_lib_token_778d00c4._.js:1823:39)
+    at Readable.emit (node:events:518:28)
+    at addChunk (node:internal/streams/readable:561:12)
+    at readableAddChunkPushObjectMode (node:internal/streams/readable:538:3)
+    at Readable.push (node:internal/streams/readable:393:5)
+    at nextAsync (node:internal/streams/from:194:22)
+    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)
+2025-07-10 15:08:42 [ERROR] Error fetching students Invalid column name 'courseYear'.
+RequestError: Invalid column name 'courseYear'.
+    at handleError (C:\Users\Windows\Desktop\New Projetct\library-management-system\.next\server\chunks\node_modules_mssql_93e55d20._.js:3584:23)
+    at Connection.emit (node:events:518:28)
+    at Connection.emit (C:\Users\Windows\Desktop\New Projetct\library-management-system\.next\server\chunks\node_modules_tedious_lib_connection_cdf92d37.js:879:22)
+    at RequestTokenHandler.onErrorMessage (C:\Users\Windows\Desktop\New Projetct\library-management-system\.next\server\chunks\node_modules_tedious_lib_token_778d00c4._.js:2122:25)
+    at Readable.<anonymous> (C:\Users\Windows\Desktop\New Projetct\library-management-system\.next\server\chunks\node_modules_tedious_lib_token_778d00c4._.js:1823:39)
+    at Readable.emit (node:events:518:28)
+    at addChunk (node:internal/streams/readable:561:12)
+    at readableAddChunkPushObjectMode (node:internal/streams/readable:538:3)
+    at Readable.push (node:internal/streams/readable:393:5)
+    at nextAsync (node:internal/streams/from:194:22)
+    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)
+2025-07-10 15:11:40 [ERROR] Error fetching students Invalid column name 'courseYear'.
+RequestError: Invalid column name 'courseYear'.
+    at handleError (C:\Users\Windows\Desktop\New Projetct\library-management-system\.next\server\chunks\node_modules_mssql_93e55d20._.js:3584:23)
+    at Connection.emit (node:events:518:28)
+    at Connection.emit (C:\Users\Windows\Desktop\New Projetct\library-management-system\.next\server\chunks\node_modules_tedious_lib_connection_cdf92d37.js:879:22)
+    at RequestTokenHandler.onErrorMessage (C:\Users\Windows\Desktop\New Projetct\library-management-system\.next\server\chunks\node_modules_tedious_lib_token_778d00c4._.js:2122:25)
+    at Readable.<anonymous> (C:\Users\Windows\Desktop\New Projetct\library-management-system\.next\server\chunks\node_modules_tedious_lib_token_778d00c4._.js:1823:39)
+    at Readable.emit (node:events:518:28)
+    at addChunk (node:internal/streams/readable:561:12)
+    at readableAddChunkPushObjectMode (node:internal/streams/readable:538:3)
+    at Readable.push (node:internal/streams/readable:393:5)
+    at nextAsync (node:internal/streams/from:194:22)
+    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)
+2025-07-10 15:11:42 [ERROR] Error fetching students Invalid column name 'courseYear'.
+RequestError: Invalid column name 'courseYear'.
+    at handleError (C:\Users\Windows\Desktop\New Projetct\library-management-system\.next\server\chunks\node_modules_mssql_93e55d20._.js:3584:23)
+    at Connection.emit (node:events:518:28)
+    at Connection.emit (C:\Users\Windows\Desktop\New Projetct\library-management-system\.next\server\chunks\node_modules_tedious_lib_connection_cdf92d37.js:879:22)
+    at RequestTokenHandler.onErrorMessage (C:\Users\Windows\Desktop\New Projetct\library-management-system\.next\server\chunks\node_modules_tedious_lib_token_778d00c4._.js:2122:25)
+    at Readable.<anonymous> (C:\Users\Windows\Desktop\New Projetct\library-management-system\.next\server\chunks\node_modules_tedious_lib_token_778d00c4._.js:1823:39)
+    at Readable.emit (node:events:518:28)
+    at addChunk (node:internal/streams/readable:561:12)
+    at readableAddChunkPushObjectMode (node:internal/streams/readable:538:3)
+    at Readable.push (node:internal/streams/readable:393:5)
+    at nextAsync (node:internal/streams/from:194:22)
+    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)
+2025-07-10 15:11:54 [ERROR] Error fetching students Invalid column name 'courseYear'.
+RequestError: Invalid column name 'courseYear'.
+    at handleError (C:\Users\Windows\Desktop\New Projetct\library-management-system\.next\server\chunks\node_modules_mssql_93e55d20._.js:3584:23)
+    at Connection.emit (node:events:518:28)
+    at Connection.emit (C:\Users\Windows\Desktop\New Projetct\library-management-system\.next\server\chunks\node_modules_tedious_lib_connection_cdf92d37.js:879:22)
+    at RequestTokenHandler.onErrorMessage (C:\Users\Windows\Desktop\New Projetct\library-management-system\.next\server\chunks\node_modules_tedious_lib_token_778d00c4._.js:2122:25)
+    at Readable.<anonymous> (C:\Users\Windows\Desktop\New Projetct\library-management-system\.next\server\chunks\node_modules_tedious_lib_token_778d00c4._.js:1823:39)
+    at Readable.emit (node:events:518:28)
+    at addChunk (node:internal/streams/readable:561:12)
+    at readableAddChunkPushObjectMode (node:internal/streams/readable:538:3)
+    at Readable.push (node:internal/streams/readable:393:5)
+    at nextAsync (node:internal/streams/from:194:22)
+    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)
+2025-07-10 15:11:55 [ERROR] Error fetching students Invalid column name 'courseYear'.
+RequestError: Invalid column name 'courseYear'.
+    at handleError (C:\Users\Windows\Desktop\New Projetct\library-management-system\.next\server\chunks\node_modules_mssql_93e55d20._.js:3584:23)
+    at Connection.emit (node:events:518:28)
+    at Connection.emit (C:\Users\Windows\Desktop\New Projetct\library-management-system\.next\server\chunks\node_modules_tedious_lib_connection_cdf92d37.js:879:22)
+    at RequestTokenHandler.onErrorMessage (C:\Users\Windows\Desktop\New Projetct\library-management-system\.next\server\chunks\node_modules_tedious_lib_token_778d00c4._.js:2122:25)
+    at Readable.<anonymous> (C:\Users\Windows\Desktop\New Projetct\library-management-system\.next\server\chunks\node_modules_tedious_lib_token_778d00c4._.js:1823:39)
+    at Readable.emit (node:events:518:28)
+    at addChunk (node:internal/streams/readable:561:12)
+    at readableAddChunkPushObjectMode (node:internal/streams/readable:538:3)
+    at Readable.push (node:internal/streams/readable:393:5)
+    at nextAsync (node:internal/streams/from:194:22)
+    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)
+2025-07-10 15:12:34 [ERROR] Error fetching students Invalid column name 'courseYear'.
+RequestError: Invalid column name 'courseYear'.
+    at handleError (C:\Users\Windows\Desktop\New Projetct\library-management-system\.next\server\chunks\node_modules_mssql_93e55d20._.js:3584:23)
+    at Connection.emit (node:events:518:28)
+    at Connection.emit (C:\Users\Windows\Desktop\New Projetct\library-management-system\.next\server\chunks\node_modules_tedious_lib_connection_cdf92d37.js:879:22)
+    at RequestTokenHandler.onErrorMessage (C:\Users\Windows\Desktop\New Projetct\library-management-system\.next\server\chunks\node_modules_tedious_lib_token_778d00c4._.js:2122:25)
+    at Readable.<anonymous> (C:\Users\Windows\Desktop\New Projetct\library-management-system\.next\server\chunks\node_modules_tedious_lib_token_778d00c4._.js:1823:39)
+    at Readable.emit (node:events:518:28)
+    at addChunk (node:internal/streams/readable:561:12)
+    at readableAddChunkPushObjectMode (node:internal/streams/readable:538:3)
+    at Readable.push (node:internal/streams/readable:393:5)
+    at nextAsync (node:internal/streams/from:194:22)
+    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)
+2025-07-10 15:12:35 [ERROR] Error fetching students Invalid column name 'courseYear'.
+RequestError: Invalid column name 'courseYear'.
+    at handleError (C:\Users\Windows\Desktop\New Projetct\library-management-system\.next\server\chunks\node_modules_mssql_93e55d20._.js:3584:23)
+    at Connection.emit (node:events:518:28)
+    at Connection.emit (C:\Users\Windows\Desktop\New Projetct\library-management-system\.next\server\chunks\node_modules_tedious_lib_connection_cdf92d37.js:879:22)
+    at RequestTokenHandler.onErrorMessage (C:\Users\Windows\Desktop\New Projetct\library-management-system\.next\server\chunks\node_modules_tedious_lib_token_778d00c4._.js:2122:25)
+    at Readable.<anonymous> (C:\Users\Windows\Desktop\New Projetct\library-management-system\.next\server\chunks\node_modules_tedious_lib_token_778d00c4._.js:1823:39)
+    at Readable.emit (node:events:518:28)
+    at addChunk (node:internal/streams/readable:561:12)
+    at readableAddChunkPushObjectMode (node:internal/streams/readable:538:3)
+    at Readable.push (node:internal/streams/readable:393:5)
+    at nextAsync (node:internal/streams/from:194:22)
+    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)
+2025-07-10 15:18:11 [ERROR] Error fetching students Invalid column name 'courseYear'.
+RequestError: Invalid column name 'courseYear'.
+    at handleError (C:\Users\Windows\Desktop\New Projetct\library-management-system\.next\server\chunks\node_modules_mssql_93e55d20._.js:3584:23)
+    at Connection.emit (node:events:518:28)
+    at Connection.emit (C:\Users\Windows\Desktop\New Projetct\library-management-system\.next\server\chunks\node_modules_tedious_lib_connection_cdf92d37.js:879:22)
+    at RequestTokenHandler.onErrorMessage (C:\Users\Windows\Desktop\New Projetct\library-management-system\.next\server\chunks\node_modules_tedious_lib_token_778d00c4._.js:2122:25)
+    at Readable.<anonymous> (C:\Users\Windows\Desktop\New Projetct\library-management-system\.next\server\chunks\node_modules_tedious_lib_token_778d00c4._.js:1823:39)
+    at Readable.emit (node:events:518:28)
+    at addChunk (node:internal/streams/readable:561:12)
+    at readableAddChunkPushObjectMode (node:internal/streams/readable:538:3)
+    at Readable.push (node:internal/streams/readable:393:5)
+    at nextAsync (node:internal/streams/from:194:22)
+    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)
+2025-07-10 15:18:33 [ERROR] Error fetching students Invalid column name 'courseYear'.
+RequestError: Invalid column name 'courseYear'.
+    at handleError (C:\Users\Windows\Desktop\New Projetct\library-management-system\.next\server\chunks\node_modules_mssql_93e55d20._.js:3584:23)
+    at Connection.emit (node:events:518:28)
+    at Connection.emit (C:\Users\Windows\Desktop\New Projetct\library-management-system\.next\server\chunks\node_modules_tedious_lib_connection_cdf92d37.js:879:22)
+    at RequestTokenHandler.onErrorMessage (C:\Users\Windows\Desktop\New Projetct\library-management-system\.next\server\chunks\node_modules_tedious_lib_token_778d00c4._.js:2122:25)
+    at Readable.<anonymous> (C:\Users\Windows\Desktop\New Projetct\library-management-system\.next\server\chunks\node_modules_tedious_lib_token_778d00c4._.js:1823:39)
+    at Readable.emit (node:events:518:28)
+    at addChunk (node:internal/streams/readable:561:12)
+    at readableAddChunkPushObjectMode (node:internal/streams/readable:538:3)
+    at Readable.push (node:internal/streams/readable:393:5)
+    at nextAsync (node:internal/streams/from:194:22)
+    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)
+2025-07-10 15:19:08 [ERROR] Error fetching students Invalid column name 'courseYear'.
+RequestError: Invalid column name 'courseYear'.
+    at handleError (C:\Users\Windows\Desktop\New Projetct\library-management-system\.next\server\chunks\node_modules_mssql_93e55d20._.js:3584:23)
+    at Connection.emit (node:events:518:28)
+    at Connection.emit (C:\Users\Windows\Desktop\New Projetct\library-management-system\.next\server\chunks\node_modules_tedious_lib_connection_cdf92d37.js:879:22)
+    at RequestTokenHandler.onErrorMessage (C:\Users\Windows\Desktop\New Projetct\library-management-system\.next\server\chunks\node_modules_tedious_lib_token_778d00c4._.js:2122:25)
+    at Readable.<anonymous> (C:\Users\Windows\Desktop\New Projetct\library-management-system\.next\server\chunks\node_modules_tedious_lib_token_778d00c4._.js:1823:39)
+    at Readable.emit (node:events:518:28)
+    at addChunk (node:internal/streams/readable:561:12)
+    at readableAddChunkPushObjectMode (node:internal/streams/readable:538:3)
+    at Readable.push (node:internal/streams/readable:393:5)
+    at nextAsync (node:internal/streams/from:194:22)
+    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)
+2025-07-10 15:19:10 [ERROR] Error fetching students Invalid column name 'courseYear'.
+RequestError: Invalid column name 'courseYear'.
+    at handleError (C:\Users\Windows\Desktop\New Projetct\library-management-system\.next\server\chunks\node_modules_mssql_93e55d20._.js:3584:23)
+    at Connection.emit (node:events:518:28)
+    at Connection.emit (C:\Users\Windows\Desktop\New Projetct\library-management-system\.next\server\chunks\node_modules_tedious_lib_connection_cdf92d37.js:879:22)
+    at RequestTokenHandler.onErrorMessage (C:\Users\Windows\Desktop\New Projetct\library-management-system\.next\server\chunks\node_modules_tedious_lib_token_778d00c4._.js:2122:25)
+    at Readable.<anonymous> (C:\Users\Windows\Desktop\New Projetct\library-management-system\.next\server\chunks\node_modules_tedious_lib_token_778d00c4._.js:1823:39)
+    at Readable.emit (node:events:518:28)
+    at addChunk (node:internal/streams/readable:561:12)
+    at readableAddChunkPushObjectMode (node:internal/streams/readable:538:3)
+    at Readable.push (node:internal/streams/readable:393:5)
+    at nextAsync (node:internal/streams/from:194:22)
+    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)
+2025-07-10 15:19:15 [ERROR] Error fetching students Invalid column name 'courseYear'.
+RequestError: Invalid column name 'courseYear'.
+    at handleError (C:\Users\Windows\Desktop\New Projetct\library-management-system\.next\server\chunks\node_modules_mssql_93e55d20._.js:3584:23)
+    at Connection.emit (node:events:518:28)
+    at Connection.emit (C:\Users\Windows\Desktop\New Projetct\library-management-system\.next\server\chunks\node_modules_tedious_lib_connection_cdf92d37.js:879:22)
+    at RequestTokenHandler.onErrorMessage (C:\Users\Windows\Desktop\New Projetct\library-management-system\.next\server\chunks\node_modules_tedious_lib_token_778d00c4._.js:2122:25)
+    at Readable.<anonymous> (C:\Users\Windows\Desktop\New Projetct\library-management-system\.next\server\chunks\node_modules_tedious_lib_token_778d00c4._.js:1823:39)
+    at Readable.emit (node:events:518:28)
+    at addChunk (node:internal/streams/readable:561:12)
+    at readableAddChunkPushObjectMode (node:internal/streams/readable:538:3)
+    at Readable.push (node:internal/streams/readable:393:5)
+    at nextAsync (node:internal/streams/from:194:22)
+    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)
+2025-07-10 15:19:33 [ERROR] Error fetching students Incorrect syntax near the keyword 'FROM'.
+RequestError: Incorrect syntax near the keyword 'FROM'.
     at handleError (C:\Users\Windows\Desktop\New Projetct\library-management-system\.next\server\chunks\node_modules_mssql_93e55d20._.js:3584:23)
     at Connection.emit (node:events:518:28)
     at Connection.emit (C:\Users\Windows\Desktop\New Projetct\library-management-system\.next\server\chunks\node_modules_tedious_lib_connection_cdf92d37.js:879:22)

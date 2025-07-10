@@ -14,7 +14,8 @@ import {
   faGraduationCap,
   faUser,
   faBook,
-  faRupeeSign
+  faRupeeSign,
+  faRotateLeft
 } from '@fortawesome/free-solid-svg-icons';
 import { toast } from 'react-toastify';
 
@@ -118,7 +119,7 @@ export default function LibraryPaymentPage() {
                 onClick={clearFilters}
                 className="px-4 py-2 text-gray-600 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors duration-200 flex items-center gap-2"
               >
-                <FontAwesomeIcon icon={faFilter} />
+                <FontAwesomeIcon icon={faRotateLeft} size="xs" />
                 Clear Filters
               </button>
               <button 

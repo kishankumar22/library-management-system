@@ -10,6 +10,7 @@ import {
   faSearch,
   faFileExcel,
   faMoneyBill,
+  faRotateLeft,
 } from '@fortawesome/free-solid-svg-icons';
 import * as XLSX from 'xlsx';
 import { toast } from 'react-toastify';
@@ -267,7 +268,7 @@ const ManagePenalty = () => {
                     onClick={clearFilters}
                     className="bg-gray-500 text-white px-2 py-2 rounded text-sm hover:bg-gray-600"
                   >
-                    Clear Filters
+                    <FontAwesomeIcon icon={faRotateLeft} size="xs" className='mr-2' />Clear Filters
                   </button>
               <button
                 onClick={exportToExcel}

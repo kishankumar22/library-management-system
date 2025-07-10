@@ -18,7 +18,7 @@ export interface User {
 
 export interface Student {
   [x: string]: any;
-  courseYear: boolean;
+  courseYear: string;
   id: number;
   stdCollId: string;
   fName: string;
@@ -66,6 +66,8 @@ export interface Publication {
 }
 
 export interface Book {
+ AccessionNumber: string;
+  Source: string | null;
   id: number;
   title: string;
   author: string;
@@ -92,6 +94,9 @@ export interface BookIssue {
   dueDate: Date;
   returnDate?: Date;
   penalty?: number;
+  fatherName:string;
+  courseYear:string;
+  sessionYear:string
 }
 export interface Book {
   BookId: number;

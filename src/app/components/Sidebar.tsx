@@ -4,7 +4,7 @@ import Image from 'next/image';
 import Link from 'next/link';
 import { useState, useEffect } from 'react';
 import { usePathname } from 'next/navigation';
-import { LayoutDashboard, Menu } from 'lucide-react';
+import { LayoutDashboard, Menu, X } from 'lucide-react';
 import {
   Book,
   LibraryBig,
@@ -39,6 +39,7 @@ const Sidebar: React.FC<SidebarProps> = ({ role }) => {
     '/admin/issue-report': 'Issue Report',
     '/admin/library-payment': 'Library Payment',
     '/admin/penalty': 'Penalty',
+    '/admin/book-stock-history': 'Book Stock History',
     '/student': 'Dashboard',
     '/student/my-account': 'My Account',
     '/student/my-report': 'My Report',
@@ -53,6 +54,33 @@ const Sidebar: React.FC<SidebarProps> = ({ role }) => {
   useEffect(() => {
     document.title = `${currentTitle} | Library Management`;
   }, [pathname, currentTitle]);
+
+  // Close sidebar when route changes on mobile
+  useEffect(() => {
+    setIsOpen(false);
+  }, [pathname]);
+
+  // Handle escape key to close sidebar on mobile
+  useEffect(() => {
+    const handleEscapeKey = (event: KeyboardEvent) => {
+      if (event.key === 'Escape' && isOpen) {
+        setIsOpen(false);
+      }
+    };
+
+    if (isOpen) {
+      document.addEventListener('keydown', handleEscapeKey);
+      // Prevent background scrolling when mobile sidebar is open
+      document.body.style.overflow = 'hidden';
+    } else {
+      document.body.style.overflow = 'unset';
+    }
+
+    return () => {
+      document.removeEventListener('keydown', handleEscapeKey);
+      document.body.style.overflow = 'unset';
+    };
+  }, [isOpen]);
 
   const adminLinks = [
     { name: 'Dashboard', href: '/admin', icon: LayoutDashboard },
@@ -74,86 +102,122 @@ const Sidebar: React.FC<SidebarProps> = ({ role }) => {
 
   const links = role === 'admin' ? adminLinks : studentLinks;
 
-  // Close sidebar on navigation (mobile)
+  // Handle link clicks - close sidebar on mobile
   const handleLinkClick = () => {
-    if (isOpen && window.innerWidth < 768) {
-      setIsOpen(false);
-    }
+    setIsOpen(false);
+  };
+
+  // Handle sidebar toggle
+  const toggleSidebar = () => {
+    setIsOpen(!isOpen);
   };
 
   return (
     <>
-      {/* Mobile top-bar */}
-      <div className="bg-gray-800 text-white flex items-center p-3 md:hidden fixed top-0 left-0 w-full z-20 shadow-md">
-        <button
-          onClick={() => setIsOpen(!isOpen)}
-          aria-label="Toggle Sidebar Menu"
-          aria-expanded={isOpen}
-          aria-controls="sidebar-nav"
-          className="focus:outline-none focus:ring-2 focus:ring-yellow-400 rounded"
-        >
-          <Menu size={24} />
-        </button>
-        <h2 className="text-lg font-bold ml-3 truncate">{currentTitle}</h2>
+      {/* Mobile Header Bar - Only visible on mobile devices */}
+      <div className="md:hidden fixed top-0 left-0 right-0 z-50 bg-gray-800 text-white shadow-lg">
+        <div className="flex items-center justify-between px-4 py-3">
+          <div className="flex items-center space-x-3">
+            <button
+              onClick={toggleSidebar}
+              className="p-1 rounded-md hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-400 transition-colors"
+              aria-label="Toggle navigation menu"
+              aria-expanded={isOpen}
+              aria-controls="mobile-sidebar"
+            >
+              <Menu className="w-6 h-6" />
+            </button>
+            <h1 className="text-lg font-semibold truncate">
+              {currentTitle}
+            </h1>
+          </div>
+        </div>
       </div>
 
-      {/* Sidebar */}
+      {/* Main Sidebar - Responsive behavior */}
       <aside
-        id="sidebar-nav"
-        className={`fixed top-0 left-0 h-screen bg-gray-800 text-white w-64 p-4 transform ${
+        id="mobile-sidebar"
+        className={`fixed top-0 left-0 h-screen w-64 bg-gray-800 text-white shadow-xl transform transition-transform duration-300 ease-in-out z-40 overflow-y-auto ${
           isOpen ? 'translate-x-0' : '-translate-x-full'
-        } md:translate-x-0 z-10 transition-transform duration-300 ease-in-out overflow-y-auto shadow-lg`}
+        } md:translate-x-0`}
       >
-        <div className="flex items-center gap-3 mb-6 px-2  rounded-lg transition-colors duration-200">
-          <div className="w-12 h-12 rounded-full overflow-hidden bg-white shadow-md">
-            <Image
-              src={defaultPic}
-              alt="JK Library Logo"
-              width={48}
-              height={48}
-              className="object-contain w-full h-full"
-              priority
-            />
+        {/* Sidebar Header */}
+        <div className="flex items-center justify-between p-4 border-b border-gray-700">
+          <div className="flex items-center gap-3">
+            <div className="w-12 h-12 rounded-full overflow-hidden bg-white shadow-md">
+              <Image
+                src={defaultPic}
+                alt="JK Library Logo"
+                width={48}
+                height={48}
+                className="object-contain w-full h-full"
+                priority
+              />
+            </div>
+            <Link
+              href={role === 'admin' ? '/admin' : '/student'}
+              className="flex flex-col leading-snug"
+              onClick={handleLinkClick}
+              aria-label="Navigate to Dashboard"
+            >
+              <h2 className="text-xl font-bold text-white">
+                JK <span className="text-blue-400">Library</span>
+              </h2>
+              <span className="text-sm text-gray-300">Management System</span>
+            </Link>
           </div>
-          <Link
-            href={role === 'admin' ? '/admin' : '/student'}
-            className="flex flex-col leading-snug"
-            onClick={handleLinkClick}
-            aria-label="Navigate to Dashboard"
+          
+          {/* Close button - only visible on mobile */}
+          <button
+            onClick={toggleSidebar}
+            className="p-1 rounded-md hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-400 md:hidden transition-colors"
+            aria-label="Close navigation menu"
           >
-            <h2 className="text-xl font-bold text-white">
-              JK <span className="text-blue-400">Library</span>
-            </h2>
-            <span className="text-sm text-gray-300">Management</span>
-          </Link>
+            <X className="w-5 h-5" />
+          </button>
         </div>
 
-        <nav>
-          <ul>
-            {links.map(({ href, name, icon: Icon }) => (
-              <li key={href} className="mb-1">
-                <Link
-                  href={href}
-                  onClick={handleLinkClick}
-                  className={`flex items-center gap-3 p-2 rounded transition-colors ${
-                    pathname === href ? 'bg-gray-700 text-white font-semibold' : 'hover:bg-gray-700'
-                  }`}
-                  aria-current={pathname === href ? 'page' : undefined}
-                >
-                  <Icon className="w-5 h-5" />
-                  <span>{name}</span>
-                </Link>
-              </li>
-            ))}
-          </ul>
+        {/* Navigation Links */}
+        <nav className="p-4 space-y-1">
+          {links.map(({ href, name, icon: Icon }) => {
+            const isActive = pathname === href;
+            return (
+              <Link
+                key={href}
+                href={href}
+                onClick={handleLinkClick}
+                className={`flex items-center gap-3 px-3 py-2 rounded-lg transition-all duration-200 ${
+                  isActive
+                    ? 'bg-blue-600 text-white shadow-md'
+                    : 'text-gray-300 hover:bg-gray-700 hover:text-white'
+                }`}
+                aria-current={isActive ? 'page' : undefined}
+              >
+                <Icon className="w-5 h-5" />
+                <span className="font-medium flex items-center justify-center gap-2">{name}
+                    {isActive && (
+                  <div className="ml-auto w-2 h-2 bg-blue-200 rounded-full animate-pulse"></div>
+                )}
+                </span>
+              </Link>
+            );
+          })}
         </nav>
+
+        {/* Sidebar Footer */}
+        <div className="absolute bottom-0 left-0 right-0 p-4 border-t border-gray-700 bg-gray-800">
+          <div className="text-center text-xs text-gray-400">
+            <p>© 2024 JK Library</p>
+            <p>Management System</p>
+          </div>
+        </div>
       </aside>
 
-      {/* Mobile overlay */}
+      {/* Mobile Overlay - Only visible when sidebar is open on mobile */}
       {isOpen && (
         <div
-          className="fixed inset-0 bg-black opacity-50 md:hidden z-0"
-          onClick={() => setIsOpen(false)}
+          className="fixed inset-0 bg-black bg-opacity-50 z-30 md:hidden"
+          onClick={toggleSidebar}
           aria-hidden="true"
         />
       )}
