@@ -262,8 +262,8 @@ const BooksPage = () => {
     if (fileInputRef.current) fileInputRef.current.value = '';
   };
 
-  // const baseUrl = 'http://localhost:3001';// developmemnt
-  const baseUrl = 'https://library.jkipm.in'; // production
+  const baseUrl = 'http://localhost:3001';// developmemnt
+  // const baseUrl = 'https://library.jkipm.in'; // production
 
   const handleSubjectChange = (subId: string) => {
     setFormData({ ...formData, SubjectId: subId });
