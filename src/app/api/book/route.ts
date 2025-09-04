@@ -1,11 +1,10 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getConnection } from '@/app/lib/db';
 import logger from '@/app/lib/logger';
-import multer from 'multer';
 import path from 'path';
 import fs from 'fs/promises';
 
-// Configure Multer for file uploads with unique naming
+// Configure upload directory
 const uploadDir = path.join(process.cwd(), 'public/Books');
 
 // Ensure the upload directory exists and is writable
@@ -23,67 +22,33 @@ async function ensureUploadDir() {
   }
 }
 
-const storage = multer.diskStorage({
-  destination: (req, file, cb) => {
-    cb(null, uploadDir);
-  },
-  filename: (req, file, cb) => {
-    const ext = path.extname(file.originalname);
-    const baseName = path.basename(file.originalname, ext);
-    let uniqueName = baseName;
-    let counter = 1;
+// Generate unique filename with counter
+async function generateUniqueFilename(originalName: string): Promise<string> {
+  const ext = path.extname(originalName);
+  const baseName = path.basename(originalName, ext);
+  let uniqueName = `${baseName}${ext}`;
+  let counter = 1;
 
-    const checkFile = async () => {
-      const filePath = path.join(uploadDir, `${uniqueName}${ext}`);
-      try {
-        await fs.access(filePath);
-        logger.debug(`File exists: ${filePath}, trying next name`);
-        uniqueName = `${baseName}(${counter})`;
-        counter++;
-        await checkFile();
-      } catch (err) {
-        // File does not exist, this is the unique name
-        logger.debug(`Unique filename found: ${uniqueName}${ext}`);
-        cb(null, `${uniqueName}${ext}`);
-      }
-    };
-    checkFile().catch(err => {
-      logger.error(`Error checking file existence: ${err}`, { stack: (err as Error).stack });
-      cb(err, null);
-    });
-  },
-});
-
-const upload = multer({
-  storage,
-  limits: { fileSize: 5 * 1024 * 1024 }, // 5MB limit
-  fileFilter: (req, file, cb) => {
-    const allowedTypes = ['image/jpeg', 'image/png', 'image/gif'];
-    if (!allowedTypes.includes(file.mimetype)) {
-      logger.error(`Invalid file type: ${file.mimetype}`);
-      return cb(new Error('Only JPEG, PNG, and GIF images are allowed'));
+  while (true) {
+    const filePath = path.join(uploadDir, uniqueName);
+    try {
+      await fs.access(filePath);
+      // File exists, try next name
+      uniqueName = `${baseName}(${counter})${ext}`;
+      counter++;
+    } catch (err) {
+      // File does not exist, this name is available
+      break;
     }
-    cb(null, true);
-  },
-});
+  }
 
-const uploadMiddleware = upload.single('BookPhoto');
+  return uniqueName;
+}
 
 export const config = {
   api: {
     bodyParser: false,
   },
-};
-
-const runMiddleware = (req: NextRequest, res: NextResponse, fn: any) => {
-  return new Promise((resolve, reject) => {
-    fn(req as any, res as any, (result: any) => {
-      if (result instanceof Error) {
-        return reject(result);
-      }
-      return resolve(result);
-    });
-  });
 };
 
 export async function GET(req: NextRequest) {
@@ -126,9 +91,9 @@ export async function GET(req: NextRequest) {
     if (availableCopies) {
       query += ' AND b.AvailableCopies >= @availableCopies';
       params.availableCopies = availableCopies;
-    }
-
-    const result = await pool.request()
+    } 
+    
+  const result = await pool.request()
       .input('search', params.search)
       .input('isActive', params.isActive)
       .input('courseId', params.courseId)
@@ -136,7 +101,7 @@ export async function GET(req: NextRequest) {
       .input('publicationId', params.publicationId)
       .input('availableCopies', params.availableCopies)
       .query(query);
-
+    
     return NextResponse.json(result.recordset);
   } catch (error) {
     logger.error(`Error fetching books: ${error}`, { stack: (error as Error).stack });
@@ -146,7 +111,7 @@ export async function GET(req: NextRequest) {
 
 export async function POST(req: NextRequest) {
   try {
-    await ensureUploadDir(); // Ensure directory exists and is writable
+    await ensureUploadDir();
     const { body, file } = await parseFormData(req);
     const {
       IsbnNumber, Title, Author, Details, CourseId, Price, SubjectId, PublicationId,
@@ -154,15 +119,16 @@ export async function POST(req: NextRequest) {
     } = body;
 
     // Validation
-    if (!IsbnNumber || !Title || !AccessionNumber) {
-      return NextResponse.json({ message: 'ISBN, Title, and Accession Number are required' }, { status: 400 });
+    if (!IsbnNumber || !Title) {
+      return NextResponse.json({ message: 'ISBN and Title are required' }, { status: 400 });
     }
     if (!CourseId || !SubjectId || !PublicationId) {
       return NextResponse.json({ message: 'Course, Subject, and Publication are required' }, { status: 400 });
     }
-    if (!/^\d{10,13}$/.test(IsbnNumber)) {
-      return NextResponse.json({ message: 'Invalid ISBN format' }, { status: 400 });
+    if (!IsbnNumber) {
+     return NextResponse.json({ message: 'ISBN is required' }, { status: 400 });
     }
+
     if (Price && isNaN(parseFloat(Price))) {
       return NextResponse.json({ message: 'Invalid Price format' }, { status: 400 });
     }
@@ -172,24 +138,13 @@ export async function POST(req: NextRequest) {
 
     const pool = await getConnection();
 
-    const checkResult = await pool.request()
-      .input('AccessionNumber', AccessionNumber)
-      .query('SELECT * FROM Books WHERE AccessionNumber = @AccessionNumber');
-    if (checkResult.recordset.length > 0) {
-      return NextResponse.json({ message: 'Book with this Accession Number already exists' }, { status: 400 });
-    }
-
     let bookPhotoPath = null;
-    if (file) {
-      const uploadResult = await handleManualFileUpload(file);
+    if (file && file.size > 0) {
+      const uploadResult = await handleFileUpload(file);
       if (uploadResult) {
         bookPhotoPath = `/Books/${uploadResult.filename}`;
-        logger.info(`File saved at: ${bookPhotoPath}`);
-      } else {
-        logger.warn('File upload failed, proceeding without photo');
+        logger.info(`File uploaded successfully: ${uploadResult.filename}`);
       }
-    } else {
-      logger.info('No file uploaded');
     }
 
     const result = await pool.request()
@@ -209,7 +164,7 @@ export async function POST(req: NextRequest) {
       .input('CreatedBy', CreatedBy || 'admin')
       .input('BookPhoto', bookPhotoPath)
       .input('Barcode', Barcode || null)
-      .input('AccessionNumber', AccessionNumber)
+      .input('AccessionNumber', AccessionNumber || null)
       .input('Source', Source || null)
       .query(`
         INSERT INTO Books (
@@ -223,7 +178,7 @@ export async function POST(req: NextRequest) {
         )
       `);
 
-    logger.info(`Book added: ${Title}`);
+    logger.info(`Book added successfully: ${Title}`);
     return NextResponse.json({ message: 'Book added successfully' });
   } catch (error: any) {
     logger.error(`Error adding book: ${error.message}`, { stack: error.stack });
@@ -233,18 +188,17 @@ export async function POST(req: NextRequest) {
 
 export async function PUT(req: NextRequest) {
   try {
-    await ensureUploadDir(); // Ensure directory exists and is writable
+    await ensureUploadDir();
     const formData = await req.formData();
-    logger.info('PUT FormData processed');
 
     let body: { [key: string]: string } = {};
     let file: File | null = null;
+    
     for (const [key, value] of formData.entries()) {
       if (typeof value === 'string') {
         body[key] = value;
-      } else if (key === 'BookPhoto' && value instanceof File) {
+      } else if (key === 'BookPhoto' && value instanceof File && value.size > 0) {
         file = value;
-        logger.info(`File detected in formData: ${file.name}`);
       }
     }
 
@@ -254,15 +208,16 @@ export async function PUT(req: NextRequest) {
     } = body;
 
     // Validation
-    if (!BookId || !IsbnNumber || !Title || !AccessionNumber) {
-      return NextResponse.json({ message: 'BookId, ISBN, Title, and Accession Number are required' }, { status: 400 });
+    if (!BookId || !IsbnNumber || !Title) {
+      return NextResponse.json({ message: 'BookId, ISBN, and Title are required' }, { status: 400 });
     }
     if (!CourseId || !SubjectId || !PublicationId) {
       return NextResponse.json({ message: 'Course, Subject, and Publication are required' }, { status: 400 });
     }
-    if (!/^\d{10,13}$/.test(IsbnNumber)) {
-      return NextResponse.json({ message: 'Invalid ISBN format' }, { status: 400 });
-    }
+  if (!IsbnNumber) {
+  return NextResponse.json({ message: 'ISBN is required' }, { status: 400 });
+}
+
     if (Price && isNaN(parseFloat(Price))) {
       return NextResponse.json({ message: 'Invalid Price format' }, { status: 400 });
     }
@@ -272,37 +227,34 @@ export async function PUT(req: NextRequest) {
 
     const pool = await getConnection();
 
-    // Check for duplicate AccessionNumber
-    const checkResult = await pool.request()
-      .input('AccessionNumber', AccessionNumber)
-      .input('BookId', BookId)
-      .query('SELECT * FROM Books WHERE AccessionNumber = @AccessionNumber AND BookId != @BookId');
-    if (checkResult.recordset.length > 0) {
-      return NextResponse.json({ message: 'Book with this Accession Number already exists' }, { status: 400 });
-    }
-
     // Fetch existing book to get current BookPhoto
-    const existingBook = await pool.request()
+    const existingBookResult = await pool.request()
       .input('BookId', BookId)
       .query('SELECT BookPhoto FROM Books WHERE BookId = @BookId');
-    let bookPhotoPath = existingBook.recordset[0]?.BookPhoto || null;
+    
+    if (existingBookResult.recordset.length === 0) {
+      return NextResponse.json({ message: 'Book not found' }, { status: 404 });
+    }
 
+    let bookPhotoPath = existingBookResult.recordset[0]?.BookPhoto || null;
+
+    // Handle new file upload
     if (file) {
-      const uploadResult = await handleManualFileUpload(file);
+      const uploadResult = await handleFileUpload(file);
       if (uploadResult) {
-        bookPhotoPath = `/Books/${uploadResult.filename}`;
-        logger.info(`New file saved at: ${bookPhotoPath}`);
-        // Delete old photo if it exists
-        if (existingBook.recordset[0]?.BookPhoto) {
-          const oldPhotoPath = path.join(process.cwd(), 'public', existingBook.recordset[0].BookPhoto);
-          await fs.unlink(oldPhotoPath).catch(err => logger.error(`Failed to delete old photo: ${err}`));
+        // Delete old photo if it exists and new upload is successful
+        if (bookPhotoPath) {
+          const oldPhotoPath = path.join(process.cwd(), 'public', bookPhotoPath);
+          try {
+            await fs.unlink(oldPhotoPath);
+            logger.info(`Old photo deleted: ${bookPhotoPath}`);
+          } catch (err) {
+            logger.warn(`Could not delete old photo: ${err}`);
+          }
         }
-      } else {
-        logger.warn('File upload failed, retaining existing photo', { bookPhotoPath });
-        // Proceed with the existing BookPhoto
+        bookPhotoPath = `/Books/${uploadResult.filename}`;
+        logger.info(`New file uploaded: ${uploadResult.filename}`);
       }
-    } else {
-      logger.info('No new file uploaded, retaining existing BookPhoto:', { bookPhotoPath });
     }
 
     const result = await pool.request()
@@ -324,7 +276,7 @@ export async function PUT(req: NextRequest) {
       .input('ModifiedOn', new Date().toISOString())
       .input('BookPhoto', bookPhotoPath)
       .input('Barcode', Barcode || null)
-      .input('AccessionNumber', AccessionNumber)
+      .input('AccessionNumber', AccessionNumber || null)
       .input('Source', Source || null)
       .query(`
         UPDATE Books SET
@@ -337,7 +289,7 @@ export async function PUT(req: NextRequest) {
         WHERE BookId = @BookId
       `);
 
-    logger.info(`Book updated: ${Title}`);
+    logger.info(`Book updated successfully: ${Title}`);
     return NextResponse.json({ message: 'Book updated successfully' });
   } catch (error: any) {
     logger.error(`Error updating book: ${error.message}`, { stack: error.stack });
@@ -359,7 +311,12 @@ export async function DELETE(req: NextRequest) {
 
     if (book.recordset[0]?.BookPhoto) {
       const photoPath = path.join(process.cwd(), 'public', book.recordset[0].BookPhoto);
-      await fs.unlink(photoPath).catch(err => logger.error(`Failed to delete photo: ${err}`));
+      try {
+        await fs.unlink(photoPath);
+        logger.info(`Photo deleted: ${book.recordset[0].BookPhoto}`);
+      } catch (err) {
+        logger.warn(`Could not delete photo: ${err}`);
+      }
     }
 
     await pool.request()
@@ -376,6 +333,58 @@ export async function DELETE(req: NextRequest) {
 
 export async function PATCH(req: NextRequest) {
   try {
+    const url = new URL(req.url);
+    const action = url.searchParams.get('action');
+    
+    if (action === 'delete-image') {
+      const { BookId, ModifiedBy } = await req.json();
+      
+      if (!BookId) {
+        return NextResponse.json({ message: 'BookId is required' }, { status: 400 });
+      }
+      
+      const pool = await getConnection();
+      
+      // Get current book image
+      const book = await pool.request()
+        .input('BookId', BookId)
+        .query('SELECT BookPhoto FROM Books WHERE BookId = @BookId');
+        
+      if (book.recordset.length === 0) {
+        return NextResponse.json({ message: 'Book not found' }, { status: 404 });
+      }
+      
+      const bookPhoto = book.recordset[0]?.BookPhoto;
+      
+      // Delete physical file if exists
+      if (bookPhoto) {
+        const photoPath = path.join(process.cwd(), 'public', bookPhoto);
+        try {
+          await fs.unlink(photoPath);
+          logger.info(`Image deleted from filesystem: ${bookPhoto}`);
+        } catch (err) {
+          logger.warn(`Could not delete image file: ${err}`);
+        }
+      }
+      
+      // Update database to remove image reference
+      await pool.request()
+        .input('BookId', BookId)
+        .input('ModifiedBy', ModifiedBy || 'system')
+        .input('ModifiedOn', new Date().toISOString())
+        .query(`
+          UPDATE Books SET 
+            BookPhoto = NULL,
+            ModifiedBy = @ModifiedBy,
+            ModifiedOn = @ModifiedOn
+          WHERE BookId = @BookId
+        `);
+      
+      logger.info(`Book image deleted: ${BookId}`);
+      return NextResponse.json({ message: 'Image deleted successfully' });
+    }
+    
+    // Existing toggle active logic
     const { BookId, IsActive, ModifiedBy } = await req.json();
 
     if (!BookId || typeof IsActive !== 'boolean') {
@@ -398,11 +407,11 @@ export async function PATCH(req: NextRequest) {
       `);
 
     const statusText = IsActive ? 'activated' : 'deactivated';
-    logger.info(`Book ${statusText} | ID: ${BookId} | ModifiedBy: ${ModifiedBy || 'system'}`);
+    logger.info(`Book ${statusText}: ${BookId}`);
 
     return NextResponse.json({ message: `Book ${statusText} successfully` });
   } catch (error: any) {
-    logger.error(`Error toggling book status: ${error.message}`, { stack: error.stack });
+    logger.error(`Error in PATCH operation: ${error.message}`, { stack: error.stack });
     return NextResponse.json({ message: 'Internal server error' }, { status: 500 });
   }
 }
@@ -411,59 +420,47 @@ async function parseFormData(req: NextRequest): Promise<{ body: { [key: string]:
   const formData = await req.formData();
   const body: { [key: string]: string } = {};
   let file: File | null = null;
+  
   for (const [key, value] of formData.entries()) {
     if (typeof value === 'string') {
       body[key] = value;
-    } else if (key === 'BookPhoto' && value instanceof File) {
+    } else if (key === 'BookPhoto' && value instanceof File && value.size > 0) {
       file = value;
-      logger.info(`File detected in formData: ${file.name}`);
     }
   }
   return { body, file };
 }
 
-async function handleManualFileUpload(file: File): Promise<{ filename: string } | null> {
+async function handleFileUpload(file: File): Promise<{ filename: string } | null> {
   try {
-    await ensureUploadDir(); // Ensure directory exists and is writable
-    const ext = path.extname(file.name);
-    const baseName = path.basename(file.name, ext);
-    let uniqueName = baseName;
-    let counter = 1;
-
-    const checkFile = async (): Promise<string> => {
-      const filePath = path.join(uploadDir, `${uniqueName}${ext}`);
-      try {
-        await fs.access(filePath);
-        logger.debug(`File exists: ${filePath}, trying next name`);
-        uniqueName = `${baseName}(${counter})`;
-        counter++;
-        return await checkFile();
-      } catch (err) {
-        // File does not exist, this is the unique name
-        logger.debug(`Unique filename found: ${uniqueName}${ext}`);
-        return `${uniqueName}${ext}`;
-      }
-    };
-
-    const filename = await checkFile();
-    if (!filename) {
-      logger.error('No valid filename generated');
-      return null;
+    // Validate file type
+    const allowedTypes = ['image/jpeg', 'image/png', 'image/gif'];
+    if (!allowedTypes.includes(file.type)) {
+      logger.error(`Invalid file type: ${file.type}`);
+      throw new Error('Only JPEG, PNG, and GIF images are allowed');
     }
 
+    // Validate file size (5MB limit)
+    if (file.size > 5 * 1024 * 1024) {
+      logger.error(`File too large: ${file.size} bytes`);
+      throw new Error('File size must be less than 5MB');
+    }
+
+    await ensureUploadDir();
+    
+    // Generate unique filename
+    const filename = await generateUniqueFilename(file.name);
     const filePath = path.join(uploadDir, filename);
-    try {
-      const arrayBuffer = await file.arrayBuffer();
-      const uint8Array = new Uint8Array(arrayBuffer);
-      await fs.writeFile(filePath, uint8Array);
-      logger.info(`Manually saved file at: ${filePath}`);
-      return { filename };
-    } catch (writeError) {
-      logger.error(`Failed to write file at ${filePath}: ${writeError}`, { stack: (writeError as Error).stack });
-      return null;
-    }
+
+    // Write file
+    const arrayBuffer = await file.arrayBuffer();
+    const uint8Array = new Uint8Array(arrayBuffer);
+    await fs.writeFile(filePath, uint8Array);
+
+    logger.info(`File saved: ${filename}`);
+    return { filename };
   } catch (error) {
-    logger.error(`Error in manual file upload: ${error}`, { stack: (error as Error).stack });
+    logger.error(`File upload failed: ${error}`, { stack: (error as Error).stack });
     return null;
   }
 }

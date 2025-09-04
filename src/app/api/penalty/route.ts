@@ -7,44 +7,45 @@ export async function GET() {
   try {
     const pool = await getConnection();
     const result = await pool.request().query(`
-      SELECT 
-        p.PenaltyId,
-        p.IssueId,
-        p.Amount,
-        CASE 
-          WHEN p.Amount <= COALESCE(SUM(lp.AmountPaid), 0) THEN 'paid'
-          ELSE 'unpaid'
-        END AS PenaltyStatus,
-        p.CreatedOn,
-        p.CreatedBy,
-        p.ModifiedBy,
-        p.ModifiedOn,
-        p.Remarks,
-        bi.BookId,
-        bi.StudentId,
-        bi.IssueDate,
-        bi.DueDate,
-        bi.ReturnDate,
-        bi.Status AS BookIssueStatus,
-        bi.IsRenewed,
-        b.Title AS BookTitle,
-        s.fName + ' ' + s.lName AS StudentName,
-        c.courseName,
-        sad.courseYear,
-        COALESCE(SUM(lp.AmountPaid), 0) AS TotalPaid
-      FROM Penalty p WITH (NOLOCK)
-      JOIN BookIssue bi WITH (NOLOCK) ON p.IssueId = bi.IssueId
-      JOIN Books b WITH (NOLOCK) ON bi.BookId = b.BookId
-      JOIN Student s WITH (NOLOCK) ON bi.StudentId = s.id
-      JOIN Course c WITH (NOLOCK) ON s.courseId = c.id
-      LEFT JOIN StudentAcademicDetails sad WITH (NOLOCK) ON s.id = sad.studentId
-      LEFT JOIN LibraryPayment lp WITH (NOLOCK) ON p.IssueId = lp.IssueId
-      GROUP BY 
-        p.PenaltyId, p.IssueId, p.Amount, p.Status, p.CreatedOn, p.CreatedBy, 
-        p.ModifiedBy, p.ModifiedOn, p.Remarks, bi.BookId, bi.StudentId, 
-        bi.IssueDate, bi.DueDate, bi.ReturnDate, bi.Status, bi.IsRenewed, 
-        b.Title, s.fName, s.lName, c.courseName, sad.courseYear
-      ORDER BY p.CreatedOn DESC
+   SELECT 
+    p.PenaltyId,
+    p.IssueId,
+    p.Amount,
+    CASE 
+        WHEN COALESCE(SUM(lp.AmountPaid), 0) >= p.Amount THEN 'paid'
+        ELSE 'unpaid'
+    END AS PenaltyStatus,
+    p.CreatedOn,
+    p.CreatedBy,
+    p.ModifiedBy,
+    p.ModifiedOn,
+    p.Remarks,
+    bi.BookId,
+    bi.StudentId,
+    bi.IssueDate,
+    bi.DueDate,
+    bi.ReturnDate,
+    bi.Status AS BookIssueStatus,
+    bi.IsRenewed,
+    b.Title AS BookTitle,
+    (s.fName + ' ' + s.lName) AS StudentName,
+    c.courseName,
+    sad.courseYear,
+    COALESCE(SUM(lp.AmountPaid), 0) AS TotalPaid
+FROM Penalty p
+JOIN BookIssue bi ON p.IssueId = bi.IssueId
+LEFT JOIN Books b ON bi.BookId = b.BookId
+LEFT JOIN LibraryPayment lp ON p.IssueId = lp.IssueId
+LEFT JOIN StudentAcademicDetails sad ON lp.StudentId = sad.id  -- 🔑 Fixed join
+LEFT JOIN Student s ON sad.studentId = s.id                   -- 🔑 Added this join
+LEFT JOIN Course c ON s.courseId = c.id
+GROUP BY 
+    p.PenaltyId, p.IssueId, p.Amount, p.CreatedOn, p.CreatedBy, 
+    p.ModifiedBy, p.ModifiedOn, p.Remarks, bi.BookId, bi.StudentId, 
+    bi.IssueDate, bi.DueDate, bi.ReturnDate, bi.Status, bi.IsRenewed, 
+    b.Title, s.fName, s.lName, c.courseName, sad.courseYear
+ORDER BY p.CreatedOn DESC;
+
     `);
     return NextResponse.json(result.recordset);
   } catch (error) {

@@ -5,7 +5,19 @@ import { toast } from 'react-toastify';
 import axios from 'axios';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import {
-  faSpinner, faPlus, faBook, faTimes, faTimesCircle, faSearch, faArrowCircleDown, faArrowCircleUp,
+  faSpinner, 
+  faPlus, 
+  faBook, 
+  faTimes, 
+  faTimesCircle, 
+  faSearch, 
+  faArrowCircleDown, 
+  faArrowCircleUp,
+  faSync,
+  faChevronLeft,
+  faChevronRight,
+  faAnglesLeft,
+  faAnglesRight
 } from '@fortawesome/free-solid-svg-icons';
 import { Book, Publication, BookStockHistory } from '@/types';
 
@@ -37,11 +49,20 @@ const BookStockHistoryPage = () => {
   const [totalStock, setTotalStock] = useState(0);
   const [totalStockIn, setTotalStockIn] = useState(0);
   const [totalStockOut, setTotalStockOut] = useState(0);
-  const user = useUser();
 
+  // Pagination states
+  const [currentPage, setCurrentPage] = useState(1);
+  const [itemsPerPage, setItemsPerPage] = useState(50);
+
+  const user = useUser();
   const modalRef = useRef<HTMLDivElement>(null);
   const filterPublicationInputRef = useRef<HTMLInputElement>(null);
   const modalPublicationInputRef = useRef<HTMLInputElement>(null);
+
+  // Reset pagination when filters change
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [statusFilter, publicationFilter, searchTerm, itemsPerPage]);
 
   useEffect(() => {
     fetchData();
@@ -102,6 +123,7 @@ const BookStockHistoryPage = () => {
       setLoading(false);
     }
   };
+
 
   const handleFilterPublicationChange = (pubId: number) => {
     const selectedPub = publications.find(p => p.PubId === pubId);
@@ -171,6 +193,7 @@ const BookStockHistoryPage = () => {
     setBooks(allBooks);
   };
 
+  // Filter history
   const filteredHistory = bookStockHistory.filter(history => {
     const matchesSearch = history.BookName?.toLowerCase().includes(searchTerm.toLowerCase());
     const matchesPublication = publicationFilter === 0 || history.PublicationName?.toLowerCase() === publications.find(p => p.PubId === publicationFilter)?.Name.toLowerCase();
@@ -180,68 +203,90 @@ const BookStockHistoryPage = () => {
     return matchesSearch && matchesPublication && matchesStatus;
   });
 
-  return (
-    <div className="container ">
-      <div className="flex flex-col sm:flex-row justify-between items-center mb-2 gap-2 bg-gradient-to-r from-blue-50 to-white p-2 rounded-md">
-        <h1 className="text-xl font-bold text-blue-800">Book Stock History</h1>
-        <button
-          onClick={() => {
-            resetFormFields();
-            setIsModalOpen(true);
-          }}
-          className="bg-blue-600 hover:bg-blue-800 text-white py-1 px-3 rounded text-sm flex items-center gap-1 transition duration-200"
-        >
-          <FontAwesomeIcon icon={faPlus} size="xs" /> Manage Book Quantity
-        </button>
-      </div>
+  // Pagination calculations
+  const totalItems = filteredHistory.length;
+  const totalPages = Math.ceil(totalItems / itemsPerPage);
+  const startIndex = (currentPage - 1) * itemsPerPage;
+  const endIndex = startIndex + itemsPerPage;
+  const currentHistory = filteredHistory.slice(startIndex, endIndex);
 
-<div className="bg-white rounded-lg shadow p-2 mb-3 border border-gray-200">
-  <div className="grid grid-cols-1 md:grid-cols-4 gap-3 items-center text-sm">
+  // Pagination handlers
+  const goToPage = (page: number) => {
+    if (page >= 1 && page <= totalPages) {
+      setCurrentPage(page);
+    }
+  };
+
+  const handleItemsPerPageChange = (newItemsPerPage: number) => {
+    setItemsPerPage(newItemsPerPage);
+    setCurrentPage(1);
+  };
+
+  // Generate page numbers for pagination
+  const getPageNumbers = () => {
+    const pages = [];
+    const maxVisiblePages = 5;
+    let start = Math.max(1, currentPage - Math.floor(maxVisiblePages / 2));
+    let end = Math.min(totalPages, start + maxVisiblePages - 1);
     
-    {/* Stock Summary - Compact */}
-    <div className="flex flex-wrap gap-3 text-[11px] font-medium">
-      <div className="flex items-center gap-1 text-blue-700">
-        <FontAwesomeIcon icon={faBook} className="w-4 h-4" />
-        <span>Total Stock:</span>
-        <span className="font-semibold">{totalStock}</span>
-      </div>
-      <div className="flex items-center gap-1 text-green-600">
-        <FontAwesomeIcon icon={faArrowCircleDown} className="w-4 h-4" />
-        <span>Stock In:</span>
-        <span className="font-semibold">{totalStockIn}</span>
-      </div>
-      <div className="flex items-center gap-1 text-red-600">
-        <FontAwesomeIcon icon={faArrowCircleUp} className="w-4 h-4" />
-        <span>Stock Out:</span>
-        <span className="font-semibold">{totalStockOut}</span>
-      </div>
+    if (end - start + 1 < maxVisiblePages) {
+      start = Math.max(1, end - maxVisiblePages + 1);
+    }
+    
+    for (let i = start; i <= end; i++) {
+      pages.push(i);
+    }
+    
+    return pages;
+  };
+
+  return (
+    <div className="container">
+      {/* Enhanced Filter Bar with Better Spacing */}
+    <div className="bg-gray-50 p-3 rounded-lg shadow-sm flex flex-col gap-3">
+  {/* First Row: Stock Summary */}
+  <div className="flex flex-wrap gap-3">
+    <div className="flex-1 flex items-center justify-start gap-2 text-blue-700 font-semibold">
+      <FontAwesomeIcon icon={faBook} className="w-4 h-4" />
+      <span>Total Stock:</span>
+      <span>{totalStock}</span>
+    </div>
+    <div className="flex-1 flex items-center justify-start gap-2 text-green-600 font-semibold">
+      <FontAwesomeIcon icon={faArrowCircleDown} className="w-4 h-4" />
+      <span>Stock In:</span>
+      <span>{totalStockIn}</span>
+    </div>
+    <div className="flex-1 flex items-center justify-start gap-2 text-red-600 font-semibold">
+      <FontAwesomeIcon icon={faArrowCircleUp} className="w-4 h-4" />
+      <span>Stock Out:</span>
+      <span>{totalStockOut}</span>
+    </div>
+  </div>
+
+  {/* Second Row: Filters + Actions */}
+  <div className="flex flex-wrap gap-3 items-center">
+    {/* Search */}
+    <div className="relative flex-grow min-w-[180px]">
+      <FontAwesomeIcon
+        icon={faSearch}
+        className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400"
+      />
+      <input
+        type="text"
+        placeholder="Search by book name"
+        className="w-full pl-10 pr-3 py-2 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-1 focus:ring-blue-500"
+        value={searchTerm}
+        onChange={(e) => setSearchTerm(e.target.value)}
+      />
     </div>
 
-    {/* Status Dropdown */}
-    <div>
-      <label className="block text-xs font-medium text-gray-600 mb-1">Status</label>
-      <select
-        className="w-full px-2 py-1.5 border rounded text-sm focus:outline-none focus:ring-1 focus:ring-blue-500"
-        value={statusFilter}
-        onChange={(e) => setStatusFilter(e.target.value as 'all' | 'Stock In' | 'Stock Out')}
-      >
-        <option value="all">All</option>
-        <option value="Stock In">Stock In</option>
-        <option value="Stock Out">Stock Out</option>
-      </select>
-    </div>
-
-    {/* Publication Search */}
-    <div className="relative">
-      <label className="block text-xs font-medium text-gray-600 mb-1">Publication</label>
+    {/* Publication Filter */}
+    <div className="relative min-w-[180px]">
       <div
-        className="flex items-center border rounded px-2 py-1.5 bg-white text-sm focus-within:ring-1 focus-within:ring-blue-500"
+        className="flex items-center border border-gray-300 rounded-md px-3 py-2 bg-white text-sm focus-within:ring-1 focus-within:ring-blue-500 cursor-pointer"
         onClick={() => {
           setShowFilterPublicationInput(true);
-          if (filterPublicationInputRef.current) {
-            filterPublicationInputRef.current.focus();
-            if (!filterPublicationSearch) setFilterPublicationSearch('');
-          }
+          filterPublicationInputRef.current?.focus();
         }}
       >
         <input
@@ -270,12 +315,12 @@ const BookStockHistoryPage = () => {
         )}
       </div>
       {showFilterPublicationInput && (
-        <ul className="absolute z-10 w-full bg-white border rounded mt-1 max-h-40 overflow-y-auto text-sm">
-          <li className="px-2 py-1 font-semibold bg-gray-100">Select Publication</li>
+        <ul className="absolute z-10 w-full bg-white border rounded-md mt-1 max-h-40 overflow-y-auto text-sm shadow-lg">
+          <li className="px-3 py-2 font-semibold bg-gray-100">Select Publication</li>
           {publications.filter(pub =>
             pub.Name.toLowerCase().includes(filterPublicationSearch.toLowerCase())
           ).length === 0 ? (
-            <li className="px-2 py-1 italic text-gray-400">No publication found</li>
+            <li className="px-3 py-2 italic text-gray-400">No publication found</li>
           ) : (
             publications
               .filter(pub =>
@@ -284,7 +329,7 @@ const BookStockHistoryPage = () => {
               .map(pub => (
                 <li
                   key={pub.PubId}
-                  className="px-2 py-1 hover:bg-gray-100 cursor-pointer"
+                  className="px-3 py-2 hover:bg-gray-100 cursor-pointer"
                   onClick={() => handleFilterPublicationChange(pub.PubId)}
                 >
                   {pub.Name}
@@ -295,26 +340,46 @@ const BookStockHistoryPage = () => {
       )}
     </div>
 
-    {/* Book Search */}
-    <div className="relative">
-      <label className="block text-xs font-medium text-gray-600 mb-1">Search Book</label>
-      <input
-        type="text"
-        placeholder="Search by book name"
-        className="w-full pl-8 pr-2 py-1.5 border rounded text-sm focus:outline-none focus:ring-1 focus:ring-blue-500"
-        value={searchTerm}
-        onChange={(e) => setSearchTerm(e.target.value)}
-      />
-      <FontAwesomeIcon
-        icon={faSearch}
-        className="absolute left-2 top-9 transform -translate-y-1/2 w-3.5 h-3.5 text-gray-400"
-      />
+    {/* Status Filter */}
+    <select
+      className="px-3 py-2 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-1 focus:ring-blue-500 min-w-[120px]"
+      value={statusFilter}
+      onChange={(e) => setStatusFilter(e.target.value as 'all' | 'Stock In' | 'Stock Out')}
+    >
+      <option value="all">All Status</option>
+      <option value="Stock In">Stock In</option>
+      <option value="Stock Out">Stock Out</option>
+    </select>
+
+    {/* Items Per Page */}
+    <div className="flex items-center gap-2 text-sm">
+      <span className="text-gray-700 whitespace-nowrap">Show:</span>
+      <select
+        value={itemsPerPage}
+        onChange={(e) => handleItemsPerPageChange(Number(e.target.value))}
+        className="px-2 py-2 text-sm border border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500 focus:outline-none"
+      >
+        <option value={25}>25</option>
+        <option value={50}>50</option>
+        <option value={75}>75</option>
+        <option value={100}>100</option>
+      </select>
     </div>
+
+    {/* Manage Book Quantity */}
+    <button
+      onClick={() => {
+        resetFormFields();
+        setIsModalOpen(true);
+      }}
+      className="bg-blue-600 hover:bg-blue-800 text-white py-2 px-3 rounded text-sm flex items-center gap-1 transition duration-200 ml-auto"
+    >
+      <FontAwesomeIcon icon={faPlus} size="xs" /> Manage Book Quantity
+    </button>
   </div>
 </div>
 
-
-
+      {/* Table */}
       <div className="bg-white rounded shadow overflow-x-auto">
         {loading ? (
           <div className="flex justify-center h-[85vh] items-center p-4">
@@ -324,29 +389,28 @@ const BookStockHistoryPage = () => {
           <table className="min-w-full divide-y divide-gray-200 text-sm">
             <thead className="bg-gray-50">
               <tr>
-                <th className="px-3 py-2 text-left text-blue-800">Sr.</th>
-                <th className="px-3 py-2 text-left text-blue-800">Book Name</th>
-                <th className="px-3 py-2 text-left text-blue-800">Publication</th>
-                <th className="px-3 py-2 text-left text-blue-800">Added/Removed</th>
-                <th className="px-3 py-2 text-left text-blue-800">Remarks</th>
-                <th className="px-3 py-2 text-left text-blue-800">Created On</th>
-                <th className="px-3 py-2 text-left text-blue-800">Created By</th>
+                <th className="px-3 py-2 text-left text-blue-800 font-medium">Sr.</th>
+                <th className="px-3 py-2 text-left text-blue-800 font-medium">Book Name</th>
+                <th className="px-3 py-2 text-left text-blue-800 font-medium">Publication</th>
+                <th className="px-3 py-2 text-left text-blue-800 font-medium">Added/Removed</th>
+                <th className="px-3 py-2 text-left text-blue-800 font-medium">Remarks</th>
+                <th className="px-3 py-2 text-left text-blue-800 font-medium">Created On</th>
+                <th className="px-3 py-2 text-left text-blue-800 font-medium">Created By</th>
               </tr>
             </thead>
             <tbody className="bg-white divide-y divide-gray-200">
-              {filteredHistory.length === 0 ? (
+              {currentHistory.length === 0 ? (
                 <tr>
-                  <td colSpan={7} className="px-3 py-2 text-center text-gray-500">No history found</td>
+                  <td colSpan={7} className="px-3 py-8 text-center text-gray-500">No history found</td>
                 </tr>
               ) : (
-                filteredHistory.map((history, index) => (
+                currentHistory.map((history, index) => (
                   <tr key={history.BookStockHistoryId} className="hover:bg-gray-50">
-                    <td className="px-3 py-2">{index + 1}</td>
-                    <td className="px-3 py-2 uppercase">{history.BookName}</td>
+                    <td className="px-3 py-2">{startIndex + index + 1}</td>
+                    <td className="px-3 py-2 uppercase font-medium">{history.BookName}</td>
                     <td className="px-3 py-2">{history.PublicationName}</td>
                     <td className="px-3 py-2">
                       <div className="flex items-center gap-1">
-                       
                         <span
                           className={history.CopiesAdded >= 0 ? 'text-green-600 font-medium' : 'text-red-600 font-medium'}
                           title={history.CopiesAdded >= 0 
@@ -368,8 +432,81 @@ const BookStockHistoryPage = () => {
         )}
       </div>
 
+      {/* Pagination */}
+      {totalPages > 1 && (
+        <div className="flex flex-col sm:flex-row items-center justify-between gap-4 mt-4 px-2">
+          {/* Pagination Info */}
+          <div className="text-sm text-gray-700">
+            Showing <span className="font-medium">{startIndex + 1}</span> to{' '}
+            <span className="font-medium">{Math.min(endIndex, totalItems)}</span> of{' '}
+            <span className="font-medium">{totalItems}</span> records
+          </div>
+
+          {/* Pagination Controls */}
+          <div className="flex items-center gap-2">
+            {/* First Page */}
+            <button
+              onClick={() => goToPage(1)}
+              disabled={currentPage === 1}
+              className="px-2 py-1 text-sm border border-gray-300 rounded hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
+              title="First Page"
+            >
+              <FontAwesomeIcon icon={faAnglesLeft} size="sm" />
+            </button>
+
+            {/* Previous Page */}
+            <button
+              onClick={() => goToPage(currentPage - 1)}
+              disabled={currentPage === 1}
+              className="px-2 py-1 text-sm border border-gray-300 rounded hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
+              title="Previous Page"
+            >
+              <FontAwesomeIcon icon={faChevronLeft} size="sm" />
+            </button>
+
+            {/* Page Numbers */}
+            <div className="flex items-center gap-1">
+              {getPageNumbers().map((pageNum) => (
+                <button
+                  key={pageNum}
+                  onClick={() => goToPage(pageNum)}
+                  className={`px-3 py-1 text-sm border rounded ${
+                    currentPage === pageNum
+                      ? 'bg-blue-600 text-white border-blue-600'
+                      : 'border-gray-300 hover:bg-gray-50'
+                  }`}
+                >
+                  {pageNum}
+                </button>
+              ))}
+            </div>
+
+            {/* Next Page */}
+            <button
+              onClick={() => goToPage(currentPage + 1)}
+              disabled={currentPage === totalPages}
+              className="px-2 py-1 text-sm border border-gray-300 rounded hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
+              title="Next Page"
+            >
+              <FontAwesomeIcon icon={faChevronRight} size="sm" />
+            </button>
+
+            {/* Last Page */}
+            <button
+              onClick={() => goToPage(totalPages)}
+              disabled={currentPage === totalPages}
+              className="px-2 py-1 text-sm border border-gray-300 rounded hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
+              title="Last Page"
+            >
+              <FontAwesomeIcon icon={faAnglesRight} size="sm" />
+            </button>
+          </div>
+        </div>
+      )}
+
+      {/* Modal remains the same */}
       {isModalOpen && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-2 z-50">
+        <div className="fixed inset-0 bg-black/30 backdrop-blur-sm flex items-center justify-center p-2 z-50">
           <div ref={modalRef} className="bg-white rounded shadow w-full max-w-2xl max-h-[90vh] overflow-y-auto relative">
             <button
               onClick={() => {

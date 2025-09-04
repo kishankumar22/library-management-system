@@ -7,8 +7,7 @@ import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import {
   faSpinner, faPlus, faSearch, faEdit, faTrash,
   faCalendarDays, faTimes, faTimesCircle, faFileExcel,
-  faUndo, faRedo,
-  faRotateLeft,
+  faUndo, faRedo, faRotateLeft, faSync,
 } from '@fortawesome/free-solid-svg-icons';
 import { Book, BookIssue, Student, Publication, Course } from '@/types';
 import * as XLSX from 'xlsx';
@@ -54,12 +53,18 @@ const BookIssuePage = () => {
   const [studentSearch, setStudentSearch] = useState('');
   const [bookSearch, setBookSearch] = useState('');
   const [overdueBooks, setOverdueBooks] = useState<BookIssue[]>([]);
+  const [currentPage, setCurrentPage] = useState(1);
+  const [itemsPerPage, setItemsPerPage] = useState(50);
   const modalRef = useRef<HTMLDivElement>(null);
   const user = useUser();
 
   useEffect(() => {
     fetchData();
   }, []);
+
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [searchTerm, statusFilter, dateRange, courseNameFilter, courseYearFilter]);
 
   useEffect(() => {
     const handleOutsideClick = (e: MouseEvent) => {
@@ -357,6 +362,11 @@ const BookIssuePage = () => {
     return matchesSearch && matchesStatus && matchesDate && matchesCourseName && matchesCourseYear;
   });
 
+  const indexOfLast = currentPage * itemsPerPage;
+  const indexOfFirst = indexOfLast - itemsPerPage;
+  const currentIssues = filteredIssues.slice(indexOfFirst, indexOfLast);
+  const totalPages = Math.ceil(filteredIssues.length / itemsPerPage);
+
   const resetFormFields = () => {
     setFormData({
       BookId: 0,
@@ -403,7 +413,7 @@ const BookIssuePage = () => {
   };
 
   return (
-    <div className="container">
+    <div className="container mx-auto">
       <div className="flex flex-col sm:flex-row justify-between items-center mb-2 gap-2 bg-gradient-to-r from-blue-50 to-white p-2 rounded-md">
         <h1 className="text-xl font-bold text-blue-800">Book Issue Manager</h1>
         <div className="flex gap-2">
@@ -424,101 +434,118 @@ const BookIssuePage = () => {
           </button>
         </div>
       </div>
+      <div className="bg-white rounded shadow px-3 py-2 mb-4 w-full">
+        <div className="flex flex-wrap lg:flex-nowrap items-center gap-2 w-full">
+          <div className="text-sm font-medium text-blue-600 whitespace-nowrap">
+            Total Book Issues: {bookIssues.length}
+          </div>
 
- <div className="bg-white rounded shadow px-3 py-2 mb-4 w-full">
-  <div className="flex flex-wrap lg:flex-nowrap items-center gap-2 w-full">
-    <div className="text-sm font-medium text-blue-600 whitespace-nowrap">
-      Total Book Issues: {bookIssues.length}
-    </div>
+          {/* Search */}
+          <div className="relative flex items-center">
+            <FontAwesomeIcon
+              icon={faSearch}
+              className="absolute left-2 top-1/2 transform -translate-y-1/2 w-3 h-3 text-gray-400"
+            />
+            <input
+              type="text"
+              placeholder="Search by book, student"
+              className="pl-7 pr-2 py-1 border rounded-sm text-sm w-[180px] lg:w-[200px]"
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+            />
+          </div>
 
-    {/* Search */}
-    <div className="relative flex items-center">
-      <FontAwesomeIcon
-        icon={faSearch}
-        className="absolute left-2 top-1/2 transform -translate-y-1/2 w-3 h-3 text-gray-400"
-      />
-      <input
-        type="text"
-        placeholder="Search by book, student"
-        className="pl-7 pr-2 py-1 border rounded-sm text-sm w-[180px] lg:w-[200px]"
-        value={searchTerm}
-        onChange={(e) => setSearchTerm(e.target.value)}
-      />
-    </div>
+          {/* Status */}
+          <select
+            className="px-2 py-1 border rounded-sm text-sm min-w-[100px]"
+            value={statusFilter}
+            onChange={(e) => setStatusFilter(e.target.value as any)}
+          >
+            <option value="all">All Status</option>
+            <option value="issued">Issued</option>
+            <option value="returned">Returned</option>
+            <option value="overdue">Overdue</option>
+          </select>
 
-    {/* Status */}
-    <select
-      className="px-2 py-1 border rounded-sm text-sm min-w-[100px]"
-      value={statusFilter}
-      onChange={(e) => setStatusFilter(e.target.value as any)}
-    >
-      <option value="all">All Status</option>
-      <option value="issued">Issued</option>
-      <option value="returned">Returned</option>
-      <option value="overdue">Overdue</option>
-    </select>
+          {/* Date Pickers */}
+          <input
+            type="date"
+            className="px-2 py-1 border rounded-sm text-sm min-w-[140px]"
+            value={dateRange.start}
+            onChange={(e) => setDateRange({ ...dateRange, start: e.target.value })}
+            title="From Date"
+          />
+          <input
+            type="date"
+            className="px-2 py-1 border rounded-sm text-sm min-w-[140px]"
+            value={dateRange.end}
+            onChange={(e) => setDateRange({ ...dateRange, end: e.target.value })}
+            title="To Date"
+          />
 
-    {/* Date Pickers */}
-    <input
-      type="date"
-      className="px-2 py-1 border rounded-sm text-sm min-w-[140px]"
-      value={dateRange.start}
-      onChange={(e) => setDateRange({ ...dateRange, start: e.target.value })}
-      title="From Date"
-    />
-    <input
-      type="date"
-      className="px-2 py-1 border rounded-sm text-sm min-w-[140px]"
-      value={dateRange.end}
-      onChange={(e) => setDateRange({ ...dateRange, end: e.target.value })}
-      title="To Date"
-    />
+          {/* Courses */}
+          <select
+            className="px-2 py-1 border rounded-sm text-sm min-w-[130px]"
+            value={courseNameFilter}
+            onChange={(e) => setCourseNameFilter(e.target.value)}
+          >
+            <option value="">All Courses</option>
+            {uniqueCourseNames.map((name, idx) => (
+              <option key={String(name || idx)} value={String(name || '')}>
+                {name || ''}
+              </option>
+            ))}
+          </select>
 
-    {/* Courses */}
-    <select
-      className="px-2 py-1 border rounded-sm text-sm min-w-[130px]"
-      value={courseNameFilter}
-      onChange={(e) => setCourseNameFilter(e.target.value)}
-    >
-      <option value="">All Courses</option>
-      {uniqueCourseNames.map((name, idx) => (
-        <option key={String(name || idx)} value={String(name || '')}>
-          {name || ''}
-        </option>
-      ))}
-    </select>
+          {/* Year */}
+          <select
+            className="px-2 py-1 border rounded-sm text-sm min-w-[110px]"
+            value={courseYearFilter}
+            onChange={(e) => setCourseYearFilter(e.target.value)}
+          >
+            {courseYears.map((year) => (
+              <option key={year} value={year}>
+                {year === 'all' ? 'All Years' : year}
+              </option>
+            ))}
+          </select>
 
-    {/* Year */}
-    <select
-      className="px-2 py-1 border rounded-sm text-sm min-w-[110px]"
-      value={courseYearFilter}
-      onChange={(e) => setCourseYearFilter(e.target.value)}
-    >
-      {courseYears.map((year) => (
-        <option key={year} value={year}>
-          {year === 'all' ? 'All Years' : year}
-        </option>
-      ))}
-    </select>
+          {/* Reset Button */}
+          <button
+            onClick={() => {
+              setSearchTerm('');
+              setStatusFilter('all');
+              setDateRange({ start: '', end: '' });
+              setCourseNameFilter('');
+              setCourseYearFilter('all');
+            }}
+            className="px-3 py-1 text-sm text-gray-700 bg-red-100 hover:bg-red-200 rounded-sm border border-red-300 transition whitespace-nowrap"
+          >
+            <FontAwesomeIcon icon={faRotateLeft} size="xs" /> Reset Filters
+          </button>
 
-    {/* Reset Button */}
-    <button
-      onClick={() => {
-        setSearchTerm('');
-        setStatusFilter('all');
-        setDateRange({ start: '', end: '' });
-        setCourseNameFilter('');
-        setCourseYearFilter('all');
-      }}
-      className="px-3 py-1 text-sm text-gray-700 bg-red-100 hover:bg-red-200 rounded-sm border border-red-300 transition whitespace-nowrap"
-    >
-     <FontAwesomeIcon icon={faRotateLeft} size="xs" /> Reset Filters
-    </button>
-  </div>
-</div>
+ 
 
-
-
+          {/* Rows per page */}
+          <div>
+            {/* <label className="text-sm mr-2">Rows per page:</label> */}
+            <select
+              value={itemsPerPage}
+              onChange={(e) => {
+                setItemsPerPage(Number(e.target.value));
+                setCurrentPage(1);
+              }}
+              className="px-2 w-32 text-center py-1 border rounded-sm text-sm"
+              title='Rows per page'
+            >
+              <option value={25}>25</option>
+              <option value={50}>50</option>
+              <option value={75}>75</option>
+              <option value={100}>100</option>
+            </select>
+          </div>
+        </div>
+      </div>
 
       <div className="bg-white rounded shadow overflow-hidden">
         {loading ? (
@@ -526,7 +553,7 @@ const BookIssuePage = () => {
             <FontAwesomeIcon icon={faSpinner} spin size="lg" className="w-10 h-10 text-blue-600" />
           </div>
         ) : (
-        <div className="overflow-x-auto bg-white rounded-lg shadow-md">
+         <div className="overflow-x-auto bg-white rounded-lg shadow-md">
   <table className="table-auto min-w-[1000px] w-full text-xs text-left">
     <thead className="bg-blue-50 text-blue-800">
       <tr>
@@ -546,15 +573,15 @@ const BookIssuePage = () => {
       </tr>
     </thead>
     <tbody className="divide-y divide-gray-200">
-      {filteredIssues.length === 0 ? (
+      {currentIssues.length === 0 ? (
         <tr>
           <td colSpan={13} className="text-center text-gray-500 py-4">No book issues found</td>
         </tr>
       ) : (
-        filteredIssues.map((issue, index) => {
+        currentIssues.map((issue, index) => {
           const dueDate = new Date(issue.DueDate).getTime();
-const now = new Date().getTime();
-const daysLeft = Math.ceil((dueDate - now) / (1000 * 60 * 60 * 24));
+          const issueDate = new Date(issue.IssueDate).getTime();
+          const now = new Date().getTime();
 
           const returnDate =
             Array.isArray(issue.ReturnDate) && issue.ReturnDate[0]
@@ -563,20 +590,44 @@ const daysLeft = Math.ceil((dueDate - now) / (1000 * 60 * 60 * 24));
                 ? new Date(issue.ReturnDate).toLocaleDateString()
                 : 'N/A';
 
+          // 🔥 Updated Days Left Logic
+          let daysCalculation, daysText, textColor;
+          
+          if (issue.Status === 'returned' && returnDate !== 'N/A') {
+            // If book is returned, calculate days kept (return date - issue date)
+            const returnDateMs = Array.isArray(issue.ReturnDate) && issue.ReturnDate[0]
+              ? new Date(issue.ReturnDate[0]).getTime()
+              : new Date(issue.ReturnDate).getTime();
+            
+            const daysKept = Math.ceil((returnDateMs - issueDate) / (1000 * 60 * 60 * 24));
+            daysCalculation = daysKept;
+            daysText = `${daysKept} days kept`;
+            textColor = 'text-blue-600'; // Blue for returned books
+          } else {
+            // If book is NOT returned, calculate days left until due date
+            const daysLeft = Math.ceil((dueDate - now) / (1000 * 60 * 60 * 24));
+            daysCalculation = Math.abs(daysLeft);
+            daysText = `${Math.abs(daysLeft)} days ${daysLeft < 0 ? 'overdue' : 'left'}`;
+            textColor = daysLeft < 0 ? 'text-red-600' : 'text-green-600';
+          }
+
           return (
             <tr key={issue.IssueId} className="hover:bg-gray-50 whitespace-nowrap">
-              <td className="px-2 py-2">{index + 1}</td>
+              <td className="px-2 py-2">{(currentPage - 1) * itemsPerPage + index + 1}</td>
               <td className="px-2 py-2 font-semibold text-gray-700 uppercase">{issue.BookTitle}</td>
               <td className="px-2 py-2">{issue.StudentName}</td>
               <td className="px-2 py-2">{issue.fatherName}</td>
               <td className="px-2 py-2">{issue.courseName || 'N/A'}</td>
               <td className="px-2 py-2">{issue.courseYear || 'N/A'}</td>
               <td className="px-2 py-2">{issue.sessionYear || 'N/A'}</td>
+              
+              {/* 🔥 Updated Days Left Display */}
               <td className="px-2 py-2">
-                <div className={`text-xs font-medium ${daysLeft < 0 ? 'text-red-600' : 'text-green-600'}`}>
-                  {Math.abs(daysLeft)} days {daysLeft < 0 ? 'overdue' : 'left'}
+                <div className={`text-xs font-medium ${textColor}`}>
+                  {daysText}
                 </div>
               </td>
+              
               <td className="px-2 py-2">{new Date(issue.IssueDate).toLocaleDateString()}</td>
               <td className="px-2 py-2">{new Date(issue.DueDate).toLocaleDateString()}</td>
               <td className="px-2 py-2">{returnDate}</td>
@@ -617,10 +668,41 @@ const daysLeft = Math.ceil((dueDate - now) / (1000 * 60 * 60 * 24));
       )}
     </tbody>
   </table>
-</div>
+    </div>
 
         )}
       </div>
+
+      {/* Pagination */}
+      {filteredIssues.length > 0 && (
+        <div className="flex flex-col sm:flex-row justify-between items-center p-2 bg-white border-t border-gray-200">
+          <div className="flex items-center gap-1">
+            <button
+              onClick={() => setCurrentPage((prev) => Math.max(prev - 1, 1))}
+              disabled={currentPage === 1}
+              className="px-3 py-1 text-sm bg-gray-200 hover:bg-gray-300 rounded disabled:opacity-50"
+            >
+              Prev
+            </button>
+            {Array.from({ length: totalPages }, (_, i) => i + 1).map((page) => (
+              <button
+                key={page}
+                onClick={() => setCurrentPage(page)}
+                className={`px-3 py-1 text-sm rounded ${page === currentPage ? 'bg-blue-600 text-white' : 'bg-gray-200 hover:bg-gray-300'}`}
+              >
+                {page}
+              </button>
+            ))}
+            <button
+              onClick={() => setCurrentPage((prev) => Math.min(prev + 1, totalPages))}
+              disabled={currentPage === totalPages}
+              className="px-3 py-1 text-sm bg-gray-200 hover:bg-gray-300 rounded disabled:opacity-50"
+            >
+              Next
+            </button>
+          </div>
+        </div>
+      )}
 
       {isModalOpen && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-2 z-50">
@@ -638,7 +720,7 @@ const daysLeft = Math.ceil((dueDate - now) / (1000 * 60 * 60 * 24));
               <h2 className="text-lg font-bold mb-3 p-2 rounded-md bg-gradient-to-r from-blue-50 to-white text-black">BOOK ISSUE FORM</h2>
               <div className="space-y-4">
                 <div className="bg-gray-100 p-3 rounded">
-                    <h3 className="font-medium text-xl mb-2 text-blue-800">Select Book Detail</h3>
+                  <h3 className="font-medium text-xl mb-2 text-blue-800">Select Book Detail</h3>
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
                     <div>
                       <label className="block text-xs font-medium mb-1 text-gray-700">Select Publication</label>
@@ -770,13 +852,13 @@ const daysLeft = Math.ceil((dueDate - now) / (1000 * 60 * 60 * 24));
                           <div><span className="font-medium text-red-700">Available Qty:</span> {selectedBook.AvailableCopies}</div>
                           <div><span className="font-medium text-green-700">Rent Qty:</span> {selectedBook.TotalCopies - selectedBook.AvailableCopies}</div>
                           <div><span className="font-medium text-gray-700">Accession Number:</span> {selectedBook.AccessionNumber}</div>
-                          <div><span className="font-medium text-gray-700">Sourse:</span> {selectedBook.Source}</div>
+                          <div><span className="font-medium text-gray-700">Source:</span> {selectedBook.Source}</div>
                           <div className="col-span-2"><span className="font-medium text-gray-700">Detail:</span> {selectedBook.Details}</div>
                         </div>
                       </div>
                       {selectedBook.BookPhoto && (
                         <div className="flex justify-center">
-                          <img src={selectedBook.BookPhoto} alt={selectedBook.Title} className="h-32 w-auto object-contain " />
+                          <img src={selectedBook.BookPhoto} alt={selectedBook.Title} className="h-32 w-auto object-contain" />
                         </div>
                       )}
                     </div>
@@ -1062,11 +1144,11 @@ const daysLeft = Math.ceil((dueDate - now) / (1000 * 60 * 60 * 24));
 
                 {selectedBook && (
                   <div className="bg-gray-50 p-3 rounded">
-                    <h3 className="font-medium text-xl  mb-2 text-blue-800">View Book Detail</h3>
+                    <h3 className="font-medium text-xl mb-2 text-blue-800">View Book Detail</h3>
                     <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                       <div className="col-span-2">
                         <div className="grid grid-cols-2 gap-2 text-sm">
-                          <div className='font-bold'><span className="font-medium text-gray-700">Book Name:</span> {selectedBook.Title}</div>
+                          <div><span className="font-medium text-gray-700">Book Name:</span> {selectedBook.Title}</div>
                           <div><span className="font-medium text-gray-700">Author:</span> {selectedBook.Author}</div>
                           <div><span className="font-medium text-gray-700">Publication:</span> {selectedBook.PublicationName}</div>
                           <div><span className="font-medium text-gray-700">Branch:</span> {selectedBook.courseName}</div>
@@ -1074,8 +1156,8 @@ const daysLeft = Math.ceil((dueDate - now) / (1000 * 60 * 60 * 24));
                           <div><span className="font-bold text-gray-700">Total Quantity:</span> {selectedBook.TotalCopies}</div>
                           <div><span className="font-medium text-red-700">Available Qty:</span> {selectedBook.AvailableCopies}</div>
                           <div><span className="font-medium text-green-700">Rent Qty:</span> {selectedBook.TotalCopies - selectedBook.AvailableCopies}</div>
-                           <div><span className="font-medium text-gray-700">Accession Number:</span> {selectedBook.AccessionNumber}</div>
-                          <div><span className="font-medium text-gray-700">Sourse:</span> {selectedBook.Source}</div>
+                          <div><span className="font-medium text-gray-700">Accession Number:</span> {selectedBook.AccessionNumber}</div>
+                          <div><span className="font-medium text-gray-700">Source:</span> {selectedBook.Source}</div>
                           <div className="col-span-2"><span className="font-medium text-gray-700">Detail:</span> {selectedBook.Details}</div>
                         </div>
                       </div>

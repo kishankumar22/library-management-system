@@ -4,7 +4,7 @@ import Image from 'next/image';
 import Link from 'next/link';
 import { useState, useEffect } from 'react';
 import { usePathname } from 'next/navigation';
-import { LayoutDashboard, Menu, X } from 'lucide-react';
+import { ClipboardMinus, LayoutDashboard, Menu, X } from 'lucide-react';
 import {
   Book,
   LibraryBig,
@@ -38,6 +38,7 @@ const Sidebar: React.FC<SidebarProps> = ({ role }) => {
     '/admin/book-report': 'Book Report',
     '/admin/issue-report': 'Issue Report',
     '/admin/library-payment': 'Library Payment',
+    '/admin/view-logs': 'View Logs',
     '/admin/penalty': 'Penalty',
     '/admin/book-stock-history': 'Book Stock History',
     '/student': 'Dashboard',
@@ -88,9 +89,10 @@ const Sidebar: React.FC<SidebarProps> = ({ role }) => {
     { name: 'Manage Publication', href: '/admin/publication', icon: NotebookPen },
     { name: 'Manage Book', href: '/admin/book', icon: Book },
     { name: 'Book Issue', href: '/admin/book-issue', icon: BookDown },
-    { name: 'Book Stock History', href: '/admin/book-stock-history', icon: BookCopy },
     { name: 'Manage Penalty', href: '/admin/penalty', icon: AlertTriangle },
     { name: 'Payment History', href: '/admin/library-payment', icon: ClipboardList },
+    { name: 'Book Stock History', href: '/admin/book-stock-history', icon: BookCopy },
+    { name: 'View Logs', href: '/admin/view-logs', icon: ClipboardMinus },
   ];
 
   const studentLinks = [

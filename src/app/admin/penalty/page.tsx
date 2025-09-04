@@ -11,6 +11,7 @@ import {
   faFileExcel,
   faMoneyBill,
   faRotateLeft,
+
 } from '@fortawesome/free-solid-svg-icons';
 import * as XLSX from 'xlsx';
 import { toast } from 'react-toastify';
@@ -35,6 +36,8 @@ const ManagePenalty = () => {
     ReceivedDate: new Date().toISOString().split('T')[0],
   });
   const [paymentHistory, setPaymentHistory] = useState([]);
+  const [currentPage, setCurrentPage] = useState(1);
+  const [itemsPerPage, setItemsPerPage] = useState(50);
   const user = useUser();
     const clearFilters = () => {
     setFilters({
@@ -214,6 +217,11 @@ const ManagePenalty = () => {
 
   const filteredPenaltiesCount = useMemo(() => penalties.length, [penalties]);
 
+  const indexOfLast = currentPage * itemsPerPage;
+  const indexOfFirst = indexOfLast - itemsPerPage;
+  const currentPenalties = penalties.slice(indexOfFirst, indexOfLast);
+  const totalPages = Math.ceil(penalties.length / itemsPerPage);
+
   return (
     <div className="container mx-auto p-4 bg-white rounded shadow overflow-hidden ">
       {loading ? (
@@ -225,8 +233,8 @@ const ManagePenalty = () => {
       ) : (
         <>
           <div className="bg-gray-50 p-2 rounded mb-2">
-            <div className="grid grid-cols-1 sm:grid-cols-4 md:grid-cols-3  xl:grid-cols-7 lg:grid-cols-4 gap-2 items-center">
-              <div className="flex items-center gap-2 text-blue-600 font-medium pl-8 py-2 border rounded text-sm">
+            <div className="grid grid-cols-1  sm:grid-cols-4 md:grid-cols-3  xl:grid-cols-9 lg:grid-cols-4 gap-2 items-center">
+              <div className="flex items-center gap-2  text-blue-600 font-medium p-2 border rounded text-sm">
                 Total Penalties: {filteredPenaltiesCount}
               </div>
               <div className="relative flex-1">
@@ -270,6 +278,24 @@ const ManagePenalty = () => {
                   >
                     <FontAwesomeIcon icon={faRotateLeft} size="xs" className='mr-2' />Clear Filters
                   </button>
+            
+                  <div className="flex items-center ">
+                    {/* <label className="text-sm mr-2">Rows per page:</label> */}
+                    <select
+                      value={itemsPerPage}
+                      onChange={(e) => {
+                        setItemsPerPage(Number(e.target.value));
+                        setCurrentPage(1);
+                      }}
+                      className="border w-44 text-center  p-2 rounded text-sm focus:outline-none focus:ring-2 focus:ring-blue-200"
+                      title='Rows per page'
+                    >
+                      <option value={25}>25</option>
+                      <option value={50}>50</option>
+                      <option value={75}>75</option>
+                      <option value={100}>100</option>
+                    </select>
+                  </div>
               <button
                 onClick={exportToExcel}
                 className="bg-green-600 text-white px-4 py-2 rounded text-sm flex items-center gap-2 hover:bg-green-700 transition-colors"
@@ -281,77 +307,147 @@ const ManagePenalty = () => {
           </div>
 
           <div className="overflow-x-auto">
-            <table className="min-w-full divide-y divide-gray-200 text-sm">
-              <thead className="bg-gray-50">
-                <tr>
-                  <th className="px-2 py-2 text-left text-gray-700">Sr.</th>
-                  <th className="px-2 py-2 text-left text-gray-700">📖 Book Title</th>
-                  <th className="px-2 py-2 text-left text-gray-700">👨‍🎓 Student Name</th>
-                  <th className="px-2 py-2 text-left text-gray-700">🎓 Course Name</th>
-                  <th className="px-2 py-2 text-left text-gray-700">⏳ Days Late</th>
-                  <th className="px-2 py-2 text-left text-gray-700">📅 Issued On</th>
-                  <th className="px-2 py-2 text-left text-gray-700">📌 Due On</th>
-                  <th className="px-2 py-2 text-left text-gray-700">🔄 Penalty Status</th>
-                  <th className="px-2 py-2 text-left text-gray-700">💰 Penalty Amount</th>
-                  <th className="px-2 py-2 text-left text-gray-700">💸 Paid Amount</th>
-                  <th className="px-2 py-2 text-left text-gray-700">⚙️ Manage</th>
-                </tr>
-              </thead>
-              <tbody className="bg-white divide-y divide-gray-200">
-                {penalties.length === 0 ? (
-                  <tr>
-                    <td colSpan={11} className="px-2 py-2 text-center text-gray-500">
-                      No penalties found
-                    </td>
-                  </tr>
-                ) : (
-                  penalties.map((penalty, index) => (
-                    <tr key={penalty.PenaltyId} className="hover:bg-gray-50">
-                      <td className="px-2 py-2">{index + 1}</td>
-                      <td className="px-2 py-2 uppercase whitespace-nowrap">{penalty.BookTitle}</td>
-                      <td className="px-2 py-2">{penalty.StudentName}</td>
-                      <td className="px-2 py-2">{penalty.courseName || 'N/A'}</td>
-                      <td className="px-2 py-2">
-                        <div className="text-xs flex items-center gap-1">
-                          <FontAwesomeIcon icon={faCalendarDays} className="text-red-500" />
-                          <span>{calculateLateDays(penalty)} days</span>
-                        </div>
-                      </td>
-                      <td className="px-2 py-2">
-                        {new Date(penalty.IssueDate).toLocaleDateString()}
-                      </td>
-                      <td className="px-2 py-2">
-                        {new Date(penalty.DueDate).toLocaleDateString()}
-                      </td>
-                      <td className="px-2 py-2 text-center">
-                        <span
-                          className={`px-2 py-1 text-xs rounded-full ${
-                            penalty.PenaltyStatus === 'paid'
-                              ? 'bg-green-100 text-green-800'
-                              : 'bg-red-100 text-red-800'
-                          }`}
-                        >
-                          {penalty.PenaltyStatus}
-                        </span>
-                      </td>
-                      <td className="px-2 py-2">{penalty.Amount} INR</td>
-                      <td className="px-2 py-2">{penalty.TotalPaid} INR</td>
-                      <td className="px-2 py-2 whitespace-nowrap">
-                        {penalty.PenaltyStatus === 'unpaid' && (
-                          <button
-                            onClick={() => handlePaymentClick(penalty)}
-                            className="text-green-600 hover:text-green-800 bg-green-200 p-1 rounded text-xs flex items-center gap-1"
-                          >
-                            <FontAwesomeIcon icon={faMoneyBill} /> Pay Fine
-                          </button>
-                        )}
-                      </td>
-                    </tr>
-                  ))
-                )}
-              </tbody>
-            </table>
+           <table className="min-w-full divide-y divide-gray-200 text-sm">
+  <thead className="bg-gray-50">
+    <tr>
+      <th className="px-2 py-2 text-left text-gray-700">Sr.</th>
+      <th className="px-2 py-2 text-left text-gray-700">📖 Book Title</th>
+      <th className="px-2 py-2 text-left text-gray-700">👨‍🎓 Student Name</th>
+      <th className="px-2 py-2 text-left text-gray-700">🎓 Course Name</th>
+      <th className="px-2 py-2 text-left text-gray-700">⏳ Days Late</th>
+      <th className="px-2 py-2 text-left text-gray-700">📅 Issued On</th>
+      <th className="px-2 py-2 text-left text-gray-700">📌 Due On</th>
+      <th className="px-2 py-2 text-left text-gray-700">🔄 Penalty Status</th>
+      <th className="px-2 py-2 text-left text-gray-700">💰 Penalty Amount</th>
+      <th className="px-2 py-2 text-left text-gray-700">💸 Paid Amount</th>
+      <th className="px-2 py-2 text-left text-gray-700">⚙️ Manage</th>
+    </tr>
+  </thead>
+  <tbody className="bg-white divide-y divide-gray-200">
+    {currentPenalties.length === 0 ? (
+      <tr>
+        <td colSpan={11} className="px-2 py-2 text-center text-gray-500">
+          No penalties found
+        </td>
+      </tr>
+    ) : (
+      currentPenalties.map((penalty, index) => {
+        // 🔥 Updated Days Late Calculation Logic
+        const calculateLateDays = (penalty) => {
+          const dueDate = new Date(penalty.DueDate).getTime();
+          const now = new Date().getTime();
+          
+          // Check if book is returned
+          const returnDate = penalty.ReturnDate && penalty.ReturnDate !== 'N/A' 
+            ? (Array.isArray(penalty.ReturnDate) && penalty.ReturnDate[0]
+                ? penalty.ReturnDate[0] 
+                : penalty.ReturnDate)
+            : null;
+          
+          if (returnDate && !isNaN(new Date(returnDate).getTime())) {
+            // 🔒 STATIC: Calculate days between Due Date and Return Date
+            const returnDateMs = new Date(returnDate).getTime();
+            const lateDays = Math.ceil((returnDateMs - dueDate) / (1000 * 60 * 60 * 24));
+            return lateDays > 0 ? lateDays : 0; // Only positive values
+          } else {
+            // 🔄 DYNAMIC: Calculate days between Due Date and Current Date
+            const lateDays = Math.ceil((now - dueDate) / (1000 * 60 * 60 * 24));
+            return lateDays > 0 ? lateDays : 0; // Only positive values
+          }
+        };
+
+        const lateDays = calculateLateDays(penalty);
+        
+        return (
+          <tr key={penalty.PenaltyId} className="hover:bg-gray-50">
+            <td className="px-2 py-2">{(currentPage - 1) * itemsPerPage + index + 1}</td>
+            <td className="px-2 py-2 uppercase whitespace-nowrap">{penalty.BookTitle}</td>
+            <td className="px-2 py-2">{penalty.StudentName}</td>
+            <td className="px-2 py-2">{penalty.courseName || 'N/A'}</td>
+            
+            {/* 🔥 Updated Days Late Display */}
+            <td className="px-2 py-2">
+              <div className="text-xs flex items-center gap-1">
+                <FontAwesomeIcon icon={faCalendarDays} className="text-red-500" />
+                <span className={`font-medium ${
+                  penalty.ReturnDate && penalty.ReturnDate !== 'N/A' 
+                    ? 'text-blue-600' // Blue for returned books (static)
+                    : 'text-red-600'  // Red for ongoing penalties (dynamic)
+                }`}>
+                  {lateDays} days
+                  {penalty.ReturnDate && penalty.ReturnDate !== 'N/A' ? ' (final)' : ' late'}
+                </span>
+              </div>
+            </td>
+            
+            <td className="px-2 py-2">
+              {new Date(penalty.IssueDate).toLocaleDateString()}
+            </td>
+            <td className="px-2 py-2">
+              {new Date(penalty.DueDate).toLocaleDateString()}
+            </td>
+            <td className="px-2 py-2 text-center">
+              <span
+                className={`px-2 py-1 text-xs rounded-full ${
+                  penalty.PenaltyStatus === 'paid'
+                    ? 'bg-green-100 text-green-800'
+                    : 'bg-red-100 text-red-800'
+                }`}
+              >
+                {penalty.PenaltyStatus}
+              </span>
+            </td>
+            <td className="px-2 py-2">{penalty.Amount} INR</td>
+            <td className="px-2 py-2">{penalty.TotalPaid} INR</td>
+            <td className="px-2 py-2 whitespace-nowrap">
+              {penalty.PenaltyStatus === 'unpaid' && (
+                <button
+                  onClick={() => handlePaymentClick(penalty)}
+                  className="text-green-600 hover:text-green-800 bg-green-200 p-1 rounded text-xs flex items-center gap-1"
+                >
+                  <FontAwesomeIcon icon={faMoneyBill} /> Pay Fine
+                </button>
+              )}
+            </td>
+          </tr>
+        );
+      })
+    )}
+  </tbody>
+</table>
+
           </div>
+
+          {/* Pagination */}
+          {penalties.length > 0 && (
+            <div className="flex flex-col sm:flex-row justify-between items-center p-2 bg-white border-t border-gray-200">
+              <div className="flex items-center gap-1">
+                <button
+                  onClick={() => setCurrentPage((prev) => Math.max(prev - 1, 1))}
+                  disabled={currentPage === 1}
+                  className="px-3 py-1 text-sm bg-gray-200 hover:bg-gray-300 rounded disabled:opacity-50"
+                >
+                  Prev
+                </button>
+                {Array.from({ length: totalPages }, (_, i) => i + 1).map((page) => (
+                  <button
+                    key={page}
+                    onClick={() => setCurrentPage(page)}
+                    className={`px-3 py-1 text-sm rounded ${page === currentPage ? 'bg-blue-600 text-white' : 'bg-gray-200 hover:bg-gray-300'}`}
+                  >
+                    {page}
+                  </button>
+                ))}
+                <button
+                  onClick={() => setCurrentPage((prev) => Math.min(prev + 1, totalPages))}
+                  disabled={currentPage === totalPages}
+                  className="px-3 py-1 text-sm bg-gray-200 hover:bg-gray-300 rounded disabled:opacity-50"
+                >
+                  Next
+                </button>
+              </div>
+            </div>
+          )}
         </>
       )}
 
