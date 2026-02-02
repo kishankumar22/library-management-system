@@ -7,6 +7,7 @@ import { useRouter } from 'next/navigation';
 import { toast } from 'react-toastify';
 import Image from 'next/image';
 import pic from '../../public/images/library.jpg';
+import { safeStorage } from '@/app/lib/safeStorage';
 
 const LoginPage = () => {
   const router = useRouter();
@@ -35,22 +36,25 @@ const LoginPage = () => {
         body: JSON.stringify(body),
       });
       const data = await res.json();
-      if (res.ok) {
-        if (data.otpRequired) {
-          setIsOtpSent(true);
-          setIsModalOpen(true);
-          toast.success('OTP sent to your email');
-        } else {
-          localStorage.setItem('token', data.token);
-          localStorage.setItem('role', role);
-          if (rememberMe) {
-            localStorage.setItem('rememberMe', 'true');
-          }
-          toast.success('Logged in successfully');
-          router.push(role === 'admin' ? '/admin/students' : '/student/my-account');
-          router.refresh();
-        }
-      } else {
+    if (res.ok) {
+  if (data.otpRequired) {
+    setIsOtpSent(true);
+    setIsModalOpen(true);
+    toast.success('OTP sent to your email');
+  } else {
+    safeStorage.set('token', data.token);
+    safeStorage.set('role', role);
+
+    if (rememberMe) {
+      safeStorage.set('rememberMe', 'true');
+    }
+
+    toast.success('Logged in successfully');
+    router.push(role === 'admin' ? '/admin/students' : '/student/my-account');
+    router.refresh();
+  }
+}
+else {
         toast.error(data.message);
       }
     } catch (error) {
@@ -67,19 +71,23 @@ const LoginPage = () => {
         body: JSON.stringify({ email, otp, role }),
       });
       const data = await res.json();
-      if (res.ok) {
-        localStorage.setItem('token', data.token);
-        localStorage.setItem('role', role);
-        if (rememberMe) {
-          localStorage.setItem('rememberMe', 'true');
-        }
-        setIsModalOpen(false);
-        setIsOtpSent(false);
-        setOtp('');
-        toast.success('OTP verified successfully');
-        router.push(role === 'admin' ? '/admin/students' : '/student/my-account');
-        router.refresh();
-      } else {
+if (res.ok) {
+  safeStorage.set('token', data.token);
+  safeStorage.set('role', role);
+
+  if (rememberMe) {
+    safeStorage.set('rememberMe', 'true');
+  }
+
+  setIsModalOpen(false);
+  setIsOtpSent(false);
+  setOtp('');
+
+  toast.success('OTP verified successfully');
+  router.push(role === 'admin' ? '/admin/students' : '/student/my-account');
+  router.refresh();
+}
+ else {
         toast.error(data.message);
       }
     } catch (error) {

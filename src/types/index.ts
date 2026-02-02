@@ -66,6 +66,7 @@ export interface Publication {
 }
 
 export interface Book {
+  collegeName: string;
  AccessionNumber: string;
   Source: string | null;
   id: number;

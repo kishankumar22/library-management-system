@@ -7,18 +7,35 @@ import fs from 'fs/promises';
 // Configure upload directory
 const uploadDir = path.join(process.cwd(), 'public/Books');
 
-// Ensure the upload directory exists and is writable
+// Improved function - बिना test file के permission check करता है
 async function ensureUploadDir() {
   try {
+    // Directory create करें अगर नहीं है
     await fs.mkdir(uploadDir, { recursive: true });
-    // Verify write permissions by creating a temporary file
-    const testFilePath = path.join(uploadDir, '.test-write');
-    await fs.writeFile(testFilePath, 'test');
-    await fs.unlink(testFilePath);
-    logger.info(`Upload directory ensured and writable: ${uploadDir}`);
+    
+    // Permission check करें बिना test file के
+    await fs.access(uploadDir, fs.constants.F_OK | fs.constants.W_OK);
+    
+    logger.info(`Upload directory ensured and accessible: ${uploadDir}`);
   } catch (err) {
-    logger.error(`Failed to ensure upload directory: ${err}`, { stack: (err as Error).stack });
-    throw new Error(`Upload directory setup failed: ${err}`);
+    logger.error(`Failed to ensure upload directory: ${err}`, { 
+      stack: (err as Error).stack,
+      uploadDir: uploadDir,
+      solution: 'Set IIS_IUSRS and IUSR permissions to Full Control on Books folder'
+    });
+    throw new Error(`Upload directory setup failed. Check IIS permissions for Books folder: ${err}`);
+  }
+}
+
+// Alternative permission check function - यदि ऊपर वाला काम न करे
+async function checkDirectoryPermissions(dirPath: string): Promise<boolean> {
+  try {
+    // Directory accessibility check करें
+    await fs.access(dirPath, fs.constants.F_OK | fs.constants.W_OK);
+    return true;
+  } catch (error) {
+    logger.warn(`Directory permission check failed: ${error}`);
+    return false;
   }
 }
 
@@ -51,6 +68,7 @@ export const config = {
   },
 };
 
+// GET method - Books की list fetch करने के लिए
 export async function GET(req: NextRequest) {
   try {
     const { searchParams } = new URL(req.url);
@@ -72,6 +90,7 @@ export async function GET(req: NextRequest) {
     `;
     const params: any = { search: `%${search.trim()}%` };
 
+    // Filter conditions apply करें
     if (status !== 'all') {
       query += ' AND b.IsActive = @isActive';
       params.isActive = status === 'active' ? 1 : 0;
@@ -93,7 +112,7 @@ export async function GET(req: NextRequest) {
       params.availableCopies = availableCopies;
     } 
     
-  const result = await pool.request()
+    const result = await pool.request()
       .input('search', params.search)
       .input('isActive', params.isActive)
       .input('courseId', params.courseId)
@@ -109,26 +128,27 @@ export async function GET(req: NextRequest) {
   }
 }
 
+// POST method - नई book add करने के लिए
 export async function POST(req: NextRequest) {
   try {
+    // Permission check करें पहले (improved method)
     await ensureUploadDir();
+    
     const { body, file } = await parseFormData(req);
     const {
       IsbnNumber, Title, Author, Details, CourseId, Price, SubjectId, PublicationId,
       TotalCopies, Edition, Language, PublishedYear, CreatedBy, Barcode, AccessionNumber, Source
     } = body;
 
-    // Validation
+    // Required fields validation
     if (!IsbnNumber || !Title) {
       return NextResponse.json({ message: 'ISBN and Title are required' }, { status: 400 });
     }
     if (!CourseId || !SubjectId || !PublicationId) {
       return NextResponse.json({ message: 'Course, Subject, and Publication are required' }, { status: 400 });
     }
-    if (!IsbnNumber) {
-     return NextResponse.json({ message: 'ISBN is required' }, { status: 400 });
-    }
 
+    // Data type validation
     if (Price && isNaN(parseFloat(Price))) {
       return NextResponse.json({ message: 'Invalid Price format' }, { status: 400 });
     }
@@ -138,6 +158,7 @@ export async function POST(req: NextRequest) {
 
     const pool = await getConnection();
 
+    // File upload handle करें अगर file है
     let bookPhotoPath = null;
     if (file && file.size > 0) {
       const uploadResult = await handleFileUpload(file);
@@ -147,6 +168,7 @@ export async function POST(req: NextRequest) {
       }
     }
 
+    // Database में book insert करें
     const result = await pool.request()
       .input('IsbnNumber', IsbnNumber)
       .input('Title', Title)
@@ -181,19 +203,29 @@ export async function POST(req: NextRequest) {
     logger.info(`Book added successfully: ${Title}`);
     return NextResponse.json({ message: 'Book added successfully' });
   } catch (error: any) {
-    logger.error(`Error adding book: ${error.message}`, { stack: error.stack });
-    return NextResponse.json({ message: error.message || 'Internal server error' }, { status: 500 });
+    logger.error(`Error adding book: ${error.message}`, { 
+      stack: error.stack,
+      suggestion: 'If permission error, check IIS folder permissions for Books directory'
+    });
+    return NextResponse.json({ 
+      message: error.message || 'Internal server error',
+      hint: error.message.includes('EPERM') ? 'Check IIS permissions for Books folder' : undefined
+    }, { status: 500 });
   }
 }
 
+// PUT method - existing book update करने के लिए
 export async function PUT(req: NextRequest) {
   try {
+    // Permission check करें
     await ensureUploadDir();
+    
     const formData = await req.formData();
 
     let body: { [key: string]: string } = {};
     let file: File | null = null;
     
+    // FormData parse करें
     for (const [key, value] of formData.entries()) {
       if (typeof value === 'string') {
         body[key] = value;
@@ -214,9 +246,6 @@ export async function PUT(req: NextRequest) {
     if (!CourseId || !SubjectId || !PublicationId) {
       return NextResponse.json({ message: 'Course, Subject, and Publication are required' }, { status: 400 });
     }
-  if (!IsbnNumber) {
-  return NextResponse.json({ message: 'ISBN is required' }, { status: 400 });
-}
 
     if (Price && isNaN(parseFloat(Price))) {
       return NextResponse.json({ message: 'Invalid Price format' }, { status: 400 });
@@ -227,7 +256,7 @@ export async function PUT(req: NextRequest) {
 
     const pool = await getConnection();
 
-    // Fetch existing book to get current BookPhoto
+    // Existing book fetch करें
     const existingBookResult = await pool.request()
       .input('BookId', BookId)
       .query('SELECT BookPhoto FROM Books WHERE BookId = @BookId');
@@ -238,11 +267,11 @@ export async function PUT(req: NextRequest) {
 
     let bookPhotoPath = existingBookResult.recordset[0]?.BookPhoto || null;
 
-    // Handle new file upload
+    // New file upload handle करें
     if (file) {
       const uploadResult = await handleFileUpload(file);
       if (uploadResult) {
-        // Delete old photo if it exists and new upload is successful
+        // Old photo delete करें अगर successful upload है
         if (bookPhotoPath) {
           const oldPhotoPath = path.join(process.cwd(), 'public', bookPhotoPath);
           try {
@@ -257,6 +286,7 @@ export async function PUT(req: NextRequest) {
       }
     }
 
+    // Database update करें
     const result = await pool.request()
       .input('BookId', BookId)
       .input('IsbnNumber', IsbnNumber)
@@ -293,10 +323,14 @@ export async function PUT(req: NextRequest) {
     return NextResponse.json({ message: 'Book updated successfully' });
   } catch (error: any) {
     logger.error(`Error updating book: ${error.message}`, { stack: error.stack });
-    return NextResponse.json({ message: error.message || 'Internal server error' }, { status: 500 });
+    return NextResponse.json({ 
+      message: error.message || 'Internal server error',
+      hint: error.message.includes('EPERM') ? 'Check IIS permissions for Books folder' : undefined
+    }, { status: 500 });
   }
 }
 
+// DELETE method - book delete करने के लिए
 export async function DELETE(req: NextRequest) {
   try {
     const { BookId } = await req.json();
@@ -305,10 +339,13 @@ export async function DELETE(req: NextRequest) {
     }
 
     const pool = await getConnection();
+    
+    // Book का photo fetch करें
     const book = await pool.request()
       .input('BookId', BookId)
       .query('SELECT BookPhoto FROM Books WHERE BookId = @BookId');
 
+    // Photo delete करें अगर exists है
     if (book.recordset[0]?.BookPhoto) {
       const photoPath = path.join(process.cwd(), 'public', book.recordset[0].BookPhoto);
       try {
@@ -319,6 +356,7 @@ export async function DELETE(req: NextRequest) {
       }
     }
 
+    // Database से book delete करें
     await pool.request()
       .input('BookId', BookId)
       .query('DELETE FROM Books WHERE BookId = @BookId');
@@ -331,11 +369,13 @@ export async function DELETE(req: NextRequest) {
   }
 }
 
+// PATCH method - book status change या image delete के लिए
 export async function PATCH(req: NextRequest) {
   try {
     const url = new URL(req.url);
     const action = url.searchParams.get('action');
     
+    // Image delete action
     if (action === 'delete-image') {
       const { BookId, ModifiedBy } = await req.json();
       
@@ -345,7 +385,7 @@ export async function PATCH(req: NextRequest) {
       
       const pool = await getConnection();
       
-      // Get current book image
+      // Current book image get करें
       const book = await pool.request()
         .input('BookId', BookId)
         .query('SELECT BookPhoto FROM Books WHERE BookId = @BookId');
@@ -356,7 +396,7 @@ export async function PATCH(req: NextRequest) {
       
       const bookPhoto = book.recordset[0]?.BookPhoto;
       
-      // Delete physical file if exists
+      // Physical file delete करें
       if (bookPhoto) {
         const photoPath = path.join(process.cwd(), 'public', bookPhoto);
         try {
@@ -367,7 +407,7 @@ export async function PATCH(req: NextRequest) {
         }
       }
       
-      // Update database to remove image reference
+      // Database में image reference remove करें
       await pool.request()
         .input('BookId', BookId)
         .input('ModifiedBy', ModifiedBy || 'system')
@@ -384,7 +424,7 @@ export async function PATCH(req: NextRequest) {
       return NextResponse.json({ message: 'Image deleted successfully' });
     }
     
-    // Existing toggle active logic
+    // Book active/inactive toggle
     const { BookId, IsActive, ModifiedBy } = await req.json();
 
     if (!BookId || typeof IsActive !== 'boolean') {
@@ -416,6 +456,7 @@ export async function PATCH(req: NextRequest) {
   }
 }
 
+// Helper function - FormData parse करने के लिए
 async function parseFormData(req: NextRequest): Promise<{ body: { [key: string]: string }, file: File | null }> {
   const formData = await req.formData();
   const body: { [key: string]: string } = {};
@@ -431,36 +472,60 @@ async function parseFormData(req: NextRequest): Promise<{ body: { [key: string]:
   return { body, file };
 }
 
+// Helper function - File upload handle करने के लिए (improved with better error handling)
 async function handleFileUpload(file: File): Promise<{ filename: string } | null> {
   try {
-    // Validate file type
+    // File type validation
     const allowedTypes = ['image/jpeg', 'image/png', 'image/gif'];
     if (!allowedTypes.includes(file.type)) {
       logger.error(`Invalid file type: ${file.type}`);
       throw new Error('Only JPEG, PNG, and GIF images are allowed');
     }
 
-    // Validate file size (5MB limit)
+    // File size validation (5MB limit)
     if (file.size > 5 * 1024 * 1024) {
       logger.error(`File too large: ${file.size} bytes`);
       throw new Error('File size must be less than 5MB');
     }
 
+    // Directory permission check करें
     await ensureUploadDir();
     
-    // Generate unique filename
+    // Unique filename generate करें
     const filename = await generateUniqueFilename(file.name);
     const filePath = path.join(uploadDir, filename);
 
-    // Write file
-    const arrayBuffer = await file.arrayBuffer();
-    const uint8Array = new Uint8Array(arrayBuffer);
-    await fs.writeFile(filePath, uint8Array);
-
-    logger.info(`File saved: ${filename}`);
-    return { filename };
-  } catch (error) {
-    logger.error(`File upload failed: ${error}`, { stack: (error as Error).stack });
+    // File write करें with proper error handling
+    try {
+      const arrayBuffer = await file.arrayBuffer();
+      const uint8Array = new Uint8Array(arrayBuffer);
+      await fs.writeFile(filePath, uint8Array);
+      
+      logger.info(`File saved successfully: ${filename}`);
+      return { filename };
+    } catch (writeError: any) {
+      // यदि permission error आए तो specific message दें
+      if (writeError.code === 'EPERM') {
+        logger.error(`Permission denied writing file: ${writeError}`, {
+          filePath: filePath,
+          solution: 'Check IIS_IUSRS and IUSR permissions on Books folder'
+        });
+        throw new Error('Permission denied. Please check IIS folder permissions for Books directory.');
+      }
+      throw writeError;
+    }
+  } catch (error: any) {
+    logger.error(`File upload failed: ${error.message}`, { 
+      stack: error.stack,
+      fileName: file.name,
+      fileSize: file.size
+    });
+    
+    // User-friendly error message return करें
+    if (error.message.includes('Permission denied') || error.message.includes('EPERM')) {
+      throw new Error('File upload failed due to server permissions. Please contact administrator.');
+    }
+    
     return null;
   }
 }

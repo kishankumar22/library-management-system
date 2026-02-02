@@ -20,7 +20,9 @@ import {
   faChevronLeft,
   faChevronRight,
   faAnglesLeft,
-  faAnglesRight
+  faAnglesRight,
+  faRotateLeft,
+  faExclamationCircle
 } from '@fortawesome/free-solid-svg-icons';
 import { Publication } from '@/types';
 
@@ -257,273 +259,332 @@ const PublicationsPage = () => {
           </div>
         ) : (
           <>
-            <div className="flex flex-col lg:flex-row items-center justify-between gap-3 mb-4">
-              {/* Left Side: Total + Search + Filter */}
-              <div className="flex flex-col sm:flex-row items-center gap-3 w-full lg:w-auto">
-                {/* Total Publications */}
-                <div className="text-sm text-gray-700 whitespace-nowrap">
-                  Total Publications: <span className="font-semibold text-blue-700">{totalItems}</span>
-                </div>
-                
-                {/* Search Box */}
-                <div className="relative w-full sm:w-56">
-                  <span className="absolute inset-y-0 left-0 flex items-center pl-2 text-gray-400">
-                    <FontAwesomeIcon icon={faSearch} className="text-sm" />
-                  </span>
-                  <input
-                    type="text"
-                    value={searchTerm}
-                    onChange={(e) => setSearchTerm(e.target.value)}
-                    placeholder="Search publications..."
-                    className="pl-8 pr-3 py-2 text-sm border border-gray-300 rounded-md w-full shadow-sm focus:ring-blue-500 focus:border-blue-500 focus:outline-none"
-                  />
-                </div>
-                
-                {/* Status Filter */}
-                <div className="relative w-full sm:w-36">
-                  <span className="absolute inset-y-0 left-0 flex items-center pl-2 text-gray-400">
-                    <FontAwesomeIcon icon={faFilter} className="text-sm" />
-                  </span>
-                  <select
-                    value={statusFilter}
-                    onChange={(e) => setStatusFilter(e.target.value as 'all' | 'active' | 'inactive')}
-                    className="pl-8 pr-2 py-2 text-sm border border-gray-300 rounded-md w-full shadow-sm focus:ring-blue-500 focus:border-blue-500 focus:outline-none"
-                  >
-                    <option value="all">All</option>
-                    <option value="active">Active</option>
-                    <option value="inactive">Inactive</option>
-                  </select>
-                </div>
-              </div>
+{/* Compact Header - Publications */}
+<div className="bg-white rounded-lg shadow-sm p-3 mb-2 border border-gray-200">
+  <div className="flex flex-wrap items-center gap-2">
+    {/* Search */}
+    <div className="relative flex-1 min-w-[200px]">
+      <FontAwesomeIcon icon={faSearch} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 text-xs" />
+      <input
+        type="text"
+        value={searchTerm}
+        onChange={(e) => setSearchTerm(e.target.value)}
+        placeholder="Search publications..."
+        className="pl-9 pr-3 py-2 text-xs border border-gray-300 rounded-lg w-full focus:outline-none focus:border-blue-500"
+      />
+    </div>
 
-              {/* Right Side: Items Per Page + Refresh + Add Publication Button */}
-              <div className="flex items-center gap-3 w-full lg:w-auto justify-end">
-                {/* Items Per Page */}
-                <div className="flex items-center gap-2 text-sm">
-                  <span className="text-gray-700 whitespace-nowrap">Show:</span>
-                  <select
-                    value={itemsPerPage}
-                    onChange={(e) => handleItemsPerPageChange(Number(e.target.value))}
-                    className="px-2 py-2 text-sm border border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500 focus:outline-none"
-                  >
-                    <option value={25}>25</option>
-                    <option value={50}>50</option>
-                    <option value={75}>75</option>
-                    <option value={100}>100</option>
-                  </select>
-                </div>
+    {/* Status Filter */}
+    <select
+      value={statusFilter}
+      onChange={(e) => setStatusFilter(e.target.value as 'all' | 'active' | 'inactive')}
+      className="px-3 py-2 text-xs border border-gray-300 rounded-lg focus:outline-none focus:border-blue-500"
+    >
+      <option value="all">All Status</option>
+      <option value="active">Active</option>
+      <option value="inactive">Inactive</option>
+    </select>
 
-         
+    {/* Items Per Page */}
+    <select
+      value={itemsPerPage}
+      onChange={(e) => handleItemsPerPageChange(Number(e.target.value))}
+      className="px-2 py-2 text-xs border border-gray-300 rounded-lg focus:outline-none focus:border-blue-500"
+    >
+      <option value={25}>25/page</option>
+      <option value={50}>50/page</option>
+      <option value={75}>75/page</option>
+      <option value={100}>100/page</option>
+    </select>
 
-                {/* Add Publication Button */}
-                <button
-                  onClick={() => {
-                    setName('');
-                    setEditingId(null);
-                    setIsModalOpen(true);
-                  }}
-                  className="flex items-center gap-2 bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium px-4 py-2 rounded-md shadow-sm transition-colors whitespace-nowrap"
-                >
-                  <FontAwesomeIcon icon={faPlus} size="sm" />
-                  Add Publication
-                </button>
-              </div>
-            </div>
+    {/* Clear Filter Button */}
+    <button
+      onClick={() => {
+        setSearchTerm('');
+        setStatusFilter('all');
+        setCurrentPage(1);
+      }}
+      className="bg-yellow-500 hover:bg-yellow-600 text-white px-3 py-2 text-xs font-medium rounded-lg transition-all"
+      title="Clear All Filters"
+    >
+      <FontAwesomeIcon icon={faRotateLeft} />
+    </button>
 
-            {/* Add/Edit Modal */}
-            {isModalOpen && (
-              <div className="fixed inset-0 bg-black/30 backdrop-blur-sm flex items-center justify-center p-4 z-50 transition-opacity duration-300 ease-in-out">
-                <div
-                  ref={modalRef}
-                  className="bg-white rounded-xl shadow-2xl p-6 w-full max-w-md transform transition-all duration-300 ease-out scale-95 animate-in fade-in-90 slide-in-from-bottom-10"
-                >
-                  <div className="flex justify-between items-center mb-4">
-                    <h3 className="text-xl font-bold text-gray-800">{editingId ? 'Edit Publication' : 'Add Publication'}</h3>
-                    <button
-                      type="button"
-                      onClick={() => setIsModalOpen(false)}
-                      className="text-red-600 hover:bg-gray-100 p-1 rounded flex items-center gap-1"
-                    >
-                      <FontAwesomeIcon icon={faTimes} size="lg" />
-                    </button>
-                  </div>
-                  
-                  <form onSubmit={handleSubmit}>
-                    <div className="mb-4">
-                      <label htmlFor="publicationName" className="block text-sm font-medium text-gray-700 mb-1">
-                        Publication Name
-                      </label>
-                      <input
-                        id="publicationName"
-                        type="text"
-                        value={name}
-                        onChange={(e) => setName(e.target.value)}
-                        placeholder="Enter publication name"
-                        className="p-3 border border-gray-300 rounded-lg w-full focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                        required
-                      />
-                    </div>
-                    <div className="flex justify-end gap-3">
-                      <button
-                        type="button"
-                        onClick={() => setIsModalOpen(false)}
-                        className="px-4 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50 transition duration-200 flex items-center gap-2"
-                      >
-                        <FontAwesomeIcon icon={faTimes} /> Cancel
-                      </button>
-                      <button
-                        type="submit"
-                        className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition duration-200 flex items-center gap-2 shadow-md hover:shadow-lg"
-                      >
-                        {editingId ? (
-                          <>
-                            <FontAwesomeIcon icon={faEdit} /> Update
-                          </>
-                        ) : (
-                          <>
-                            <FontAwesomeIcon icon={faPlus} /> Add
-                          </>
-                        )}
-                      </button>
-                    </div>
-                  </form>
-                </div>
-              </div>
+    {/* Add Button */}
+    <button
+      onClick={() => {
+        setName('');
+        setEditingId(null);
+        setIsModalOpen(true);
+      }}
+      className="bg-blue-600 hover:bg-blue-700 text-white px-3 py-2 text-xs font-medium rounded-lg whitespace-nowrap"
+    >
+      <FontAwesomeIcon icon={faPlus} className="mr-1" />
+      Add Publication
+    </button>
+
+    {/* Count Info */}
+    <span className="text-xs text-gray-600 font-medium">
+      {startIndex + 1}-{Math.min(endIndex, totalItems)} of {totalItems}
+    </span>
+  </div>
+</div>
+
+
+{/* Enhanced Add/Edit Modal */}
+{isModalOpen && (
+  <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center p-3 z-50">
+    <div
+      ref={modalRef}
+      className="bg-white rounded-lg shadow-2xl w-full max-w-md"
+    >
+      {/* Header */}
+      <div className="bg-blue-600 px-4 py-3 rounded-t-lg flex items-center justify-between">
+        <h3 className="text-lg font-bold text-white flex items-center gap-2">
+          <FontAwesomeIcon icon={editingId ? faEdit : faPlus} />
+          {editingId ? 'Edit Publication' : 'Add Publication'}
+        </h3>
+        <button
+          type="button"
+          onClick={() => setIsModalOpen(false)}
+          className="text-white hover:bg-blue-700 p-2 rounded transition-all"
+        >
+          <FontAwesomeIcon icon={faTimes} />
+        </button>
+      </div>
+      
+      {/* Body */}
+      <form onSubmit={handleSubmit} className="p-4">
+        <div className="mb-4">
+          <label htmlFor="publicationName" className="block text-xs font-bold text-gray-700 mb-2">
+            Publication Name <span className="text-red-500">*</span>
+          </label>
+          <input
+            id="publicationName"
+            type="text"
+            value={name}
+            onChange={(e) => setName(e.target.value)}
+            placeholder="Enter publication name"
+            className="w-full px-3 py-2 text-sm border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+            required
+            autoFocus
+          />
+        </div>
+
+        {/* Actions */}
+        <div className="flex justify-end gap-2 pt-3 border-t">
+          <button
+            type="button"
+            onClick={() => setIsModalOpen(false)}
+            className="px-4 py-2 text-sm bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition-all"
+          >
+            <FontAwesomeIcon icon={faTimes} className="mr-1" />
+            Cancel
+          </button>
+          <button
+            type="submit"
+            className="px-4 py-2 text-sm bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-all shadow-sm"
+          >
+            {editingId ? (
+              <>
+                <FontAwesomeIcon icon={faEdit} className="mr-1" />
+                Update
+              </>
+            ) : (
+              <>
+                <FontAwesomeIcon icon={faPlus} className="mr-1" />
+                Add
+              </>
             )}
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+)}
 
-            {/* Confirmation Modal */}
-            {isConfirmModalOpen && (
-              <div className="fixed inset-0 bg-black/30 backdrop-blur-sm flex items-center justify-center p-4 z-50 transition-opacity duration-300 ease-in-out">
-                <div
-                  ref={confirmModalRef}
-                  className="bg-white rounded-xl shadow-2xl p-6 w-full max-w-sm transform transition-all duration-300 ease-out scale-95 animate-in fade-in-90 slide-in-from-bottom-10"
-                >
-                  <h3 className="text-xl font-bold text-gray-800 mb-4">Confirm Action</h3>
-                  <p className="text-gray-600 mb-6">
-                    Are you sure you want to {confirmAction === 'delete' 
-                      ? 'delete this publication' 
-                      : confirmStatus 
-                        ? 'deactivate this publication' 
-                        : 'activate this publication'}?
-                  </p>
-                  <div className="flex justify-end gap-3">
-                    <button
-                      onClick={() => setIsConfirmModalOpen(false)}
-                      className="px-4 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50 transition duration-200 flex items-center gap-2"
-                    >
-                      <FontAwesomeIcon icon={faTimes} /> Cancel
-                    </button>
-                    <button
-                      onClick={confirmAction === 'delete' ? handleDelete : handleToggleActive}
-                      className={`px-4 py-2 text-white rounded-lg transition duration-200 flex items-center gap-2 shadow-md hover:shadow-lg ${
-                        confirmAction === 'delete' 
-                          ? 'bg-red-600 hover:bg-red-700' 
-                          : confirmStatus 
-                            ? 'bg-blue-600 hover:bg-blue-700' 
-                            : 'bg-green-600 hover:bg-green-700'
-                      }`}
-                    >
-                      <FontAwesomeIcon icon={confirmAction === 'delete' ? faTrash : confirmStatus ? faToggleOff : faToggleOn} /> 
-                      {confirmAction === 'delete' ? 'Delete' : confirmStatus ? 'Deactivate' : 'Activate'}
-                    </button>
-                  </div>
-                </div>
-              </div>
-            )}
+{/* Enhanced Confirmation Modal */}
+{isConfirmModalOpen && (
+  <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center p-3 z-50">
+    <div
+      ref={confirmModalRef}
+      className="bg-white rounded-lg shadow-2xl w-full max-w-sm"
+    >
+      {/* Header */}
+      <div className={`px-4 py-3 rounded-t-lg ${
+        confirmAction === 'delete' 
+          ? 'bg-red-600' 
+          : confirmStatus 
+            ? 'bg-orange-600' 
+            : 'bg-green-600'
+      }`}>
+        <h3 className="text-lg font-bold text-white flex items-center gap-2">
+          <FontAwesomeIcon 
+            icon={confirmAction === 'delete' ? faTrash : confirmStatus ? faToggleOff : faToggleOn} 
+          />
+          Confirm Action
+        </h3>
+      </div>
+
+      {/* Body */}
+      <div className="p-4">
+        <p className="text-sm text-gray-700 mb-4">
+          {confirmAction === 'delete' 
+            ? 'Are you sure you want to delete this publication?' 
+            : confirmStatus 
+              ? 'Are you sure you want to deactivate this publication?' 
+              : 'Are you sure you want to activate this publication?'}
+        </p>
+
+        {/* Actions */}
+        <div className="flex justify-end gap-2 pt-3 border-t">
+          <button
+            onClick={() => setIsConfirmModalOpen(false)}
+            className="px-4 py-2 text-sm bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition-all"
+          >
+            <FontAwesomeIcon icon={faTimes} className="mr-1" />
+            Cancel
+          </button>
+          <button
+            onClick={confirmAction === 'delete' ? handleDelete : handleToggleActive}
+            className={`px-4 py-2 text-sm text-white rounded-lg transition-all shadow-sm ${
+              confirmAction === 'delete' 
+                ? 'bg-red-600 hover:bg-red-700' 
+                : confirmStatus 
+                  ? 'bg-orange-600 hover:bg-orange-700' 
+                  : 'bg-green-600 hover:bg-green-700'
+            }`}
+          >
+            <FontAwesomeIcon 
+              icon={confirmAction === 'delete' ? faTrash : confirmStatus ? faToggleOff : faToggleOn} 
+              className="mr-1"
+            /> 
+            {confirmAction === 'delete' ? 'Delete' : confirmStatus ? 'Deactivate' : 'Activate'}
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+)}
+
 
             {/* Table */}
-            <div className="overflow-x-auto rounded-lg border border-gray-200">
-              <table className="min-w-full divide-y divide-gray-200">
-                <thead className="bg-gray-50">
-                  <tr>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">ID</th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Name</th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Created By</th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Created On</th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Modified By</th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Modified On</th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
-                  </tr>
-                </thead>
-                <tbody className="bg-white divide-y divide-gray-200">
-                  {tableLoading ? (
-                    <tr>
-                      <td colSpan={8} className="px-6 py-8 text-center">
-                        <div className="flex justify-center items-center gap-2">
-                          <FontAwesomeIcon 
-                            icon={faSpinner} 
-                            className="animate-spin text-blue-500" 
-                            size="sm"
-                          />
-                          Loading...
-                        </div>
-                      </td>
-                    </tr>
-                  ) : currentPublications.length === 0 ? (
-                    <tr>
-                      <td colSpan={8} className="px-6 py-8 text-center text-gray-500">
-                        No publications found
-                      </td>
-                    </tr>
-                  ) : (
-                    currentPublications.map((publication) => (
-                      <tr key={publication.PubId} className="hover:bg-gray-50 transition-colors duration-150">
-                        <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">{publication.PubId}</td>
-                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-700 font-medium">{publication.Name}</td>
-                        <td className="px-6 py-4 whitespace-nowrap text-sm">
-                          <span className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${
-                            publication.IsActive 
-                              ? 'bg-green-100 text-green-800' 
-                              : 'bg-gray-100 text-gray-800'
-                          }`}>
-                            {publication.IsActive ? 'Active' : 'Inactive'}
-                          </span>
-                        </td>
-                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-700">{publication.CreatedBy}</td>
-                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-700">{new Date(publication.CreatedOn).toLocaleDateString()}</td>
-                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-700">{publication.ModifiedBy || '-'}</td>
-                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-700">{publication.ModifiedOn ? new Date(publication.ModifiedOn).toLocaleDateString() : '-'}</td>
-                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                          <div className="flex space-x-2">
-                            <button
-                              onClick={() => handleEdit(publication)}
-                              className={`p-1 rounded transition-colors duration-200 ${
-                              publication.IsActive
-                                ? 'text-blue-600 hover:text-blue-800 hover:bg-blue-50 cursor-pointer'
-                                : 'text-gray-400 cursor-not-allowed opacity-60'
-                              }`}
-                              title={publication.IsActive ? "Edit" : "Please activate to edit"}
-                              disabled={!publication.IsActive}
-                            >
-                              <FontAwesomeIcon icon={faEdit} />
-                            </button>
-                            <button
-                              onClick={() => openConfirmModal('delete', publication.PubId)}
-                              className="text-red-600 hover:text-red-800 p-1 rounded hover:bg-red-50 transition-colors duration-200"
-                              title="Delete"
-                            >
-                              <FontAwesomeIcon icon={faTrash} />
-                            </button>
-                            <button
-                              onClick={() => openConfirmModal('toggle', publication.PubId, publication.IsActive)}
-                              className={`p-1 rounded transition-colors duration-200 ${
-                                publication.IsActive 
-                                  ? 'text-blue-600 hover:text-blue-800 hover:bg-blue-50' 
-                                  : 'text-green-600 hover:text-green-800 hover:bg-green-50'
-                              }`}
-                              title={publication.IsActive ? 'Deactivate' : 'Activate'}
-                            >
-                              <FontAwesomeIcon icon={publication.IsActive ? faToggleOn : faToggleOff} size="lg" />
-                            </button>
-                          </div>
-                        </td>
-                      </tr>
-                    ))
-                  )}
-                </tbody>
-              </table>
+        {/* Table */}
+<div className="overflow-x-auto rounded-lg border min-h-[73vh] border-gray-200 bg-white shadow-md">
+  <table className="min-w-full text-xs">
+    <thead className="bg-blue-600 text-white sticky top-0">
+      <tr>
+        <th className="px-3 py-2 text-left font-bold">ID</th>
+        <th className="px-3 py-2 text-left font-bold">📚 Name</th>
+        <th className="px-3 py-2 text-center font-bold">Status</th>
+        <th className="px-3 py-2 text-left font-bold">Created By</th>
+        <th className="px-3 py-2 text-left font-bold">Created On</th>
+        <th className="px-3 py-2 text-left font-bold">Modified By</th>
+        <th className="px-3 py-2 text-left font-bold">Modified On</th>
+        <th className="px-3 py-2 text-center font-bold">Actions</th>
+      </tr>
+    </thead>
+    <tbody className="divide-y divide-gray-100">
+      {tableLoading ? (
+        <tr>
+          <td colSpan={8} className="px-6 py-12 text-center">
+            <div className="flex justify-center items-center gap-2">
+              <FontAwesomeIcon 
+                icon={faSpinner} 
+                className="animate-spin text-blue-600" 
+                size="lg"
+              />
+              <span className="text-gray-600">Loading publications...</span>
             </div>
+          </td>
+        </tr>
+      ) : currentPublications.length === 0 ? (
+        <tr>
+          <td colSpan={8} className="px-6 py-12 text-center text-gray-500">
+            <FontAwesomeIcon icon={faExclamationCircle} className="text-4xl mb-2 text-gray-300" />
+            <p className="font-medium">No publications found</p>
+          </td>
+        </tr>
+      ) : (
+        currentPublications.map((publication) => (
+          <tr key={publication.PubId} className="hover:bg-blue-50 transition-colors">
+            <td className="px-3 py-2 font-bold text-gray-700">{publication.PubId}</td>
+            <td className="px-3 py-2 font-bold text-gray-900 uppercase">{publication.Name}</td>
+            <td className="px-3 py-2 text-center">
+              <span className={`inline-flex items-center px-2.5 py-1 rounded-full font-semibold ${
+                publication.IsActive 
+                  ? 'bg-green-500 text-white' 
+                  : 'bg-gray-500 text-white'
+              }`}>
+                <FontAwesomeIcon 
+                  icon={publication.IsActive ? faToggleOn : faToggleOff} 
+                  className="mr-1" 
+                />
+                {publication.IsActive ? 'Active' : 'Inactive'}
+              </span>
+            </td>
+            <td className="px-3 py-2 text-gray-700">{publication.CreatedBy}</td>
+            <td className="px-3 py-2 text-gray-600">
+              {new Date(publication.CreatedOn).toLocaleDateString('en-IN', {
+                day: '2-digit',
+                month: 'short',
+                year: 'numeric'
+              })}
+            </td>
+            <td className="px-3 py-2 text-gray-700">
+              {publication.ModifiedBy || <span className="text-gray-400 italic">—</span>}
+            </td>
+            <td className="px-3 py-2 text-gray-600">
+              {publication.ModifiedOn 
+                ? new Date(publication.ModifiedOn).toLocaleDateString('en-IN', {
+                    day: '2-digit',
+                    month: 'short',
+                    year: 'numeric'
+                  })
+                : <span className="text-gray-400 italic">—</span>
+              }
+            </td>
+            <td className="px-3 py-2">
+              <div className="flex justify-center items-center gap-2">
+                <button
+                  onClick={() => handleEdit(publication)}
+                  className={`p-1.5 rounded-lg transition-all ${
+                    publication.IsActive
+                      ? 'text-blue-600 hover:bg-blue-100 cursor-pointer'
+                      : 'text-gray-400 cursor-not-allowed opacity-50'
+                  }`}
+                  title={publication.IsActive ? "Edit Publication" : "Activate to edit"}
+                  disabled={!publication.IsActive}
+                >
+                  <FontAwesomeIcon icon={faEdit} />
+                </button>
+                <button
+                  onClick={() => openConfirmModal('delete', publication.PubId)}
+                  className="text-red-600 hover:bg-red-100 p-1.5 rounded-lg transition-all"
+                  title="Delete Publication"
+                >
+                  <FontAwesomeIcon icon={faTrash} />
+                </button>
+                <button
+                  onClick={() => openConfirmModal('toggle', publication.PubId, publication.IsActive)}
+                  className={`p-1.5 rounded-lg transition-all ${
+                    publication.IsActive 
+                      ? 'text-orange-600 hover:bg-orange-100' 
+                      : 'text-green-600 hover:bg-green-100'
+                  }`}
+                  title={publication.IsActive ? 'Deactivate' : 'Activate'}
+                >
+                  <FontAwesomeIcon icon={publication.IsActive ? faToggleOff : faToggleOn} size="lg" />
+                </button>
+              </div>
+            </td>
+          </tr>
+        ))
+      )}
+    </tbody>
+  </table>
+</div>
+
 
             {/* Pagination */}
             {totalPages > 1 && (

@@ -11,6 +11,8 @@ import {
   faFileExcel,
   faMoneyBill,
   faRotateLeft,
+  faCheckCircle,
+  faExclamationCircle,
 
 } from '@fortawesome/free-solid-svg-icons';
 import * as XLSX from 'xlsx';
@@ -232,191 +234,248 @@ const ManagePenalty = () => {
         <div className="text-red-600 text-center p-4">{error}</div>
       ) : (
         <>
-          <div className="bg-gray-50 p-2 rounded mb-2">
-            <div className="grid grid-cols-1  sm:grid-cols-4 md:grid-cols-3  xl:grid-cols-9 lg:grid-cols-4 gap-2 items-center">
-              <div className="flex items-center gap-2  text-blue-600 font-medium p-2 border rounded text-sm">
-                Total Penalties: {filteredPenaltiesCount}
-              </div>
-              <div className="relative flex-1">
-                <input
-                  type="text"
-                  name="searchTerm"
-                  placeholder="Search by book or student..."
-                  value={filters.searchTerm}
-                  onChange={handleFilterChange}
-                  className="w-full pl-8 pr-2 py-2 border rounded text-sm focus:outline-none focus:ring-2 focus:ring-blue-200"
-                />
-                <FontAwesomeIcon icon={faSearch} className="absolute left-2 top-2.5 text-gray-400" />
-              </div>
-              <select
-                name="statusFilter"
-                value={filters.statusFilter}
-                onChange={handleFilterChange}
-                className="border p-2 rounded text-sm focus:outline-none focus:ring-2 focus:ring-blue-200"
-              >
-                <option value="all">All Status</option>
-                <option value="paid">Paid</option>
-                <option value="unpaid">Unpaid</option>
-              </select>
-              <input
-                type="date"
-                name="startDate"
-                value={filters.startDate}
-                onChange={handleFilterChange}
-                className="border p-2 rounded text-sm focus:outline-none focus:ring-2 focus:ring-blue-200"
-              />
-              <input
-                type="date"
-                name="endDate"
-                value={filters.endDate}
-                onChange={handleFilterChange}
-                className="border p-2 rounded text-sm focus:outline-none focus:ring-2 focus:ring-blue-200"
-              />
-                <button
-                    onClick={clearFilters}
-                    className="bg-gray-500 text-white px-2 py-2 rounded text-sm hover:bg-gray-600"
-                  >
-                    <FontAwesomeIcon icon={faRotateLeft} size="xs" className='mr-2' />Clear Filters
-                  </button>
-            
-                  <div className="flex items-center ">
-                    {/* <label className="text-sm mr-2">Rows per page:</label> */}
-                    <select
-                      value={itemsPerPage}
-                      onChange={(e) => {
-                        setItemsPerPage(Number(e.target.value));
-                        setCurrentPage(1);
-                      }}
-                      className="border w-44 text-center  p-2 rounded text-sm focus:outline-none focus:ring-2 focus:ring-blue-200"
-                      title='Rows per page'
-                    >
-                      <option value={25}>25</option>
-                      <option value={50}>50</option>
-                      <option value={75}>75</option>
-                      <option value={100}>100</option>
-                    </select>
-                  </div>
-              <button
-                onClick={exportToExcel}
-                className="bg-green-600 text-white px-4 py-2 rounded text-sm flex items-center gap-2 hover:bg-green-700 transition-colors"
-              >
-                <FontAwesomeIcon icon={faFileExcel} /> Export to Excel
-              </button>
-            
-            </div>
-          </div>
+  {/* Compact Header - Penalties */}
+<div className="bg-white rounded-lg shadow-sm p-3 mb-2 border border-gray-200">
+  <div className="flex flex-wrap items-center gap-2">
+    {/* Search */}
+    <div className="relative flex-1 min-w-[200px]">
+      <FontAwesomeIcon icon={faSearch} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 text-xs" />
+      <input
+        type="text"
+        name="searchTerm"
+        placeholder="Search by book or student..."
+        value={filters.searchTerm}
+        onChange={handleFilterChange}
+        className="pl-9 pr-3 py-2 text-xs border border-gray-300 rounded-lg w-full focus:outline-none focus:border-blue-500"
+      />
+    </div>
 
-          <div className="overflow-x-auto">
-           <table className="min-w-full divide-y divide-gray-200 text-sm">
-  <thead className="bg-gray-50">
-    <tr>
-      <th className="px-2 py-2 text-left text-gray-700">Sr.</th>
-      <th className="px-2 py-2 text-left text-gray-700">📖 Book Title</th>
-      <th className="px-2 py-2 text-left text-gray-700">👨‍🎓 Student Name</th>
-      <th className="px-2 py-2 text-left text-gray-700">🎓 Course Name</th>
-      <th className="px-2 py-2 text-left text-gray-700">⏳ Days Late</th>
-      <th className="px-2 py-2 text-left text-gray-700">📅 Issued On</th>
-      <th className="px-2 py-2 text-left text-gray-700">📌 Due On</th>
-      <th className="px-2 py-2 text-left text-gray-700">🔄 Penalty Status</th>
-      <th className="px-2 py-2 text-left text-gray-700">💰 Penalty Amount</th>
-      <th className="px-2 py-2 text-left text-gray-700">💸 Paid Amount</th>
-      <th className="px-2 py-2 text-left text-gray-700">⚙️ Manage</th>
-    </tr>
-  </thead>
-  <tbody className="bg-white divide-y divide-gray-200">
-    {currentPenalties.length === 0 ? (
+    {/* Status Filter */}
+    <select
+      name="statusFilter"
+      value={filters.statusFilter}
+      onChange={handleFilterChange}
+      className="px-3 py-2 text-xs border border-gray-300 rounded-lg focus:outline-none focus:border-blue-500"
+    >
+      <option value="all">All Status</option>
+      <option value="paid">Paid</option>
+      <option value="unpaid">Unpaid</option>
+    </select>
+
+    {/* Start Date */}
+    <input
+      type="date"
+      name="startDate"
+      value={filters.startDate}
+      onChange={handleFilterChange}
+      className="px-2 py-2 text-xs border border-gray-300 rounded-lg focus:outline-none focus:border-blue-500"
+      title="Start Date"
+    />
+
+    {/* End Date */}
+    <input
+      type="date"
+      name="endDate"
+      value={filters.endDate}
+      onChange={handleFilterChange}
+      className="px-2 py-2 text-xs border border-gray-300 rounded-lg focus:outline-none focus:border-blue-500"
+      title="End Date"
+    />
+
+    {/* Items Per Page */}
+    <select
+      value={itemsPerPage}
+      onChange={(e) => {
+        setItemsPerPage(Number(e.target.value));
+        setCurrentPage(1);
+      }}
+      className="px-2 py-2 text-xs border border-gray-300 rounded-lg focus:outline-none focus:border-blue-500"
+      title="Rows per page"
+    >
+      <option value={25}>25/page</option>
+      <option value={50}>50/page</option>
+      <option value={75}>75/page</option>
+      <option value={100}>100/page</option>
+    </select>
+
+    {/* Clear Filter */}
+    <button
+      onClick={clearFilters}
+      className="bg-yellow-500 hover:bg-yellow-600 text-white px-3 py-2 text-xs font-medium rounded-lg transition-all"
+      title="Clear All Filters"
+    >
+      <FontAwesomeIcon icon={faRotateLeft} />
+    </button>
+
+    {/* Export to Excel */}
+    <button
+      onClick={exportToExcel}
+      className="bg-green-600 hover:bg-green-700 text-white px-3 py-2 text-xs font-medium rounded-lg whitespace-nowrap ml-auto"
+      title="Export to Excel"
+    >
+      <FontAwesomeIcon icon={faFileExcel} className="mr-1" />
+      Export
+    </button>
+
+    {/* Count Info */}
+    <span className="text-xs text-gray-600 font-medium">
+      Total: <span className="font-bold text-blue-600">{filteredPenaltiesCount}</span>
+    </span>
+  </div>
+</div>
+
+<div className="overflow-x-auto min-h-[70vh] bg-white rounded-lg shadow-md">
+  <table className="min-w-full text-xs">
+    <thead className="bg-blue-600 text-white sticky top-0">
       <tr>
-        <td colSpan={11} className="px-2 py-2 text-center text-gray-500">
-          No penalties found
-        </td>
+        <th className="px-3 py-2 text-left font-bold">#</th>
+        <th className="px-3 py-2 text-left font-bold">📖 Book Title</th>
+        <th className="px-3 py-2 text-left font-bold">👨‍🎓 Student</th>
+        <th className="px-3 py-2 text-left font-bold">🎓 Course</th>
+        <th className="px-3 py-2 text-left font-bold">⏳ Days Late</th>
+        <th className="px-3 py-2 text-left font-bold">📅 Issued</th>
+        <th className="px-3 py-2 text-left font-bold">📌 Due</th>
+        <th className="px-3 py-2 text-center font-bold">🔄 Status</th>
+        <th className="px-3 py-2 text-right font-bold">💰 Penalty</th>
+        <th className="px-3 py-2 text-right font-bold">💸 Paid</th>
+        <th className="px-3 py-2 text-center font-bold">⚙️ Action</th>
       </tr>
-    ) : (
-      currentPenalties.map((penalty, index) => {
-        // 🔥 Updated Days Late Calculation Logic
-        const calculateLateDays = (penalty) => {
-          const dueDate = new Date(penalty.DueDate).getTime();
-          const now = new Date().getTime();
-          
-          // Check if book is returned
-          const returnDate = penalty.ReturnDate && penalty.ReturnDate !== 'N/A' 
-            ? (Array.isArray(penalty.ReturnDate) && penalty.ReturnDate[0]
-                ? penalty.ReturnDate[0] 
-                : penalty.ReturnDate)
-            : null;
-          
-          if (returnDate && !isNaN(new Date(returnDate).getTime())) {
-            // 🔒 STATIC: Calculate days between Due Date and Return Date
-            const returnDateMs = new Date(returnDate).getTime();
-            const lateDays = Math.ceil((returnDateMs - dueDate) / (1000 * 60 * 60 * 24));
-            return lateDays > 0 ? lateDays : 0; // Only positive values
-          } else {
-            // 🔄 DYNAMIC: Calculate days between Due Date and Current Date
-            const lateDays = Math.ceil((now - dueDate) / (1000 * 60 * 60 * 24));
-            return lateDays > 0 ? lateDays : 0; // Only positive values
-          }
-        };
-
-        const lateDays = calculateLateDays(penalty);
-        
-        return (
-          <tr key={penalty.PenaltyId} className="hover:bg-gray-50">
-            <td className="px-2 py-2">{(currentPage - 1) * itemsPerPage + index + 1}</td>
-            <td className="px-2 py-2 uppercase whitespace-nowrap">{penalty.BookTitle}</td>
-            <td className="px-2 py-2">{penalty.StudentName}</td>
-            <td className="px-2 py-2">{penalty.courseName || 'N/A'}</td>
+    </thead>
+    <tbody className="divide-y divide-gray-100">
+      {currentPenalties.length === 0 ? (
+        <tr>
+          <td colSpan={11} className="px-4 py-12 text-center text-gray-500">
+            <FontAwesomeIcon icon={faExclamationCircle} className="text-4xl mb-2 text-gray-300" />
+            <p className="font-medium">No penalties found</p>
+          </td>
+        </tr>
+      ) : (
+        currentPenalties.map((penalty, index) => {
+          // Days Late Calculation
+          const calculateLateDays = (penalty) => {
+            const dueDate = new Date(penalty.DueDate).getTime();
+            const now = new Date().getTime();
             
-            {/* 🔥 Updated Days Late Display */}
-            <td className="px-2 py-2">
-              <div className="text-xs flex items-center gap-1">
-                <FontAwesomeIcon icon={faCalendarDays} className="text-red-500" />
-                <span className={`font-medium ${
-                  penalty.ReturnDate && penalty.ReturnDate !== 'N/A' 
-                    ? 'text-blue-600' // Blue for returned books (static)
-                    : 'text-red-600'  // Red for ongoing penalties (dynamic)
-                }`}>
-                  {lateDays} days
-                  {penalty.ReturnDate && penalty.ReturnDate !== 'N/A' ? ' (final)' : ' late'}
+            const returnDate = penalty.ReturnDate && penalty.ReturnDate !== 'N/A' 
+              ? (Array.isArray(penalty.ReturnDate) && penalty.ReturnDate[0]
+                  ? penalty.ReturnDate[0] 
+                  : penalty.ReturnDate)
+              : null;
+            
+            if (returnDate && !isNaN(new Date(returnDate).getTime())) {
+              const returnDateMs = new Date(returnDate).getTime();
+              const lateDays = Math.ceil((returnDateMs - dueDate) / (1000 * 60 * 60 * 24));
+              return lateDays > 0 ? lateDays : 0;
+            } else {
+              const lateDays = Math.ceil((now - dueDate) / (1000 * 60 * 60 * 24));
+              return lateDays > 0 ? lateDays : 0;
+            }
+          };
+
+          const lateDays = calculateLateDays(penalty);
+          const isReturned = penalty.ReturnDate && penalty.ReturnDate !== 'N/A';
+          const isPaid = penalty.PenaltyStatus === 'paid';
+          
+          return (
+            <tr key={penalty.PenaltyId} className="hover:bg-blue-50 transition-colors">
+              <td className="px-3 py-2 font-medium text-gray-700">
+                {(currentPage - 1) * itemsPerPage + index + 1}
+              </td>
+              <td className="px-3 py-2 font-semibold text-gray-900 uppercase max-w-xs truncate" title={penalty.BookTitle}>
+                {penalty.BookTitle}
+              </td>
+              <td className="px-3 py-2 text-gray-700">
+                {penalty.StudentName}
+              </td>
+              <td className="px-3 py-2">
+                <span className="inline-flex items-center px-2 py-0.5 rounded-full bg-blue-100 text-blue-800 font-medium">
+                  {penalty.courseName || 'N/A'}
                 </span>
-              </div>
-            </td>
-            
-            <td className="px-2 py-2">
-              {new Date(penalty.IssueDate).toLocaleDateString()}
-            </td>
-            <td className="px-2 py-2">
-              {new Date(penalty.DueDate).toLocaleDateString()}
-            </td>
-            <td className="px-2 py-2 text-center">
-              <span
-                className={`px-2 py-1 text-xs rounded-full ${
-                  penalty.PenaltyStatus === 'paid'
-                    ? 'bg-green-100 text-green-800'
-                    : 'bg-red-100 text-red-800'
-                }`}
-              >
-                {penalty.PenaltyStatus}
-              </span>
-            </td>
-            <td className="px-2 py-2">{penalty.Amount} INR</td>
-            <td className="px-2 py-2">{penalty.TotalPaid} INR</td>
-            <td className="px-2 py-2 whitespace-nowrap">
-              {penalty.PenaltyStatus === 'unpaid' && (
-                <button
-                  onClick={() => handlePaymentClick(penalty)}
-                  className="text-green-600 hover:text-green-800 bg-green-200 p-1 rounded text-xs flex items-center gap-1"
-                >
-                  <FontAwesomeIcon icon={faMoneyBill} /> Pay Fine
-                </button>
-              )}
-            </td>
-          </tr>
-        );
-      })
-    )}
-  </tbody>
-</table>
+              </td>
+              
+              {/* Days Late */}
+              <td className="px-3 py-2">
+                <div className={`inline-flex items-center gap-1.5 px-2 py-1 rounded-lg font-bold ${
+                  isReturned 
+                    ? 'bg-blue-100 text-blue-700' 
+                    : 'bg-red-100 text-red-700'
+                }`}>
+                  <FontAwesomeIcon icon={faCalendarDays} className="text-xs" />
+                  <span>{lateDays} days {isReturned ? '(final)' : ''}</span>
+                </div>
+              </td>
+              
+              <td className="px-3 py-2 text-gray-600">
+                {new Date(penalty.IssueDate).toLocaleDateString('en-IN', {
+                  day: '2-digit',
+                  month: 'short',
+                  year: 'numeric'
+                })}
+              </td>
+              <td className="px-3 py-2 text-gray-600">
+                {new Date(penalty.DueDate).toLocaleDateString('en-IN', {
+                  day: '2-digit',
+                  month: 'short',
+                  year: 'numeric'
+                })}
+              </td>
+              
+              {/* Status */}
+              <td className="px-3 py-2 text-center">
+                <span className={`inline-flex items-center px-2.5 py-1 rounded-full font-semibold ${
+                  isPaid
+                    ? 'bg-green-500 text-white'
+                    : 'bg-red-500 text-white'
+                }`}>
+                  {isPaid ? (
+                    <>
+                      <FontAwesomeIcon icon={faCheckCircle} className="mr-1" />
+                      Paid
+                    </>
+                  ) : (
+                    <>
+                      <FontAwesomeIcon icon={faExclamationCircle} className="mr-1" />
+                      Unpaid
+                    </>
+                  )}
+                </span>
+              </td>
+              
+              {/* Penalty Amount */}
+              <td className="px-3 py-2 text-right font-bold text-orange-600">
+                ₹{penalty.Amount}
+              </td>
+              
+              {/* Paid Amount */}
+              <td className="px-3 py-2 text-right font-bold text-green-600">
+                ₹{penalty.TotalPaid}
+              </td>
+              
+              {/* Action */}
+              <td className="px-3 py-2 text-center">
+                {!isPaid ? (
+                  <button
+                    onClick={() => handlePaymentClick(penalty)}
+                    className="bg-green-600 hover:bg-green-700 text-white px-3 py-1.5 rounded-lg font-medium transition-all shadow-sm flex items-center gap-1.5 mx-auto"
+                  >
+                    <FontAwesomeIcon icon={faMoneyBill} />
+                    Pay
+                  </button>
+                ) : (
+                  <span className="text-green-600 font-medium">
+                    <FontAwesomeIcon icon={faCheckCircle} className="mr-1" />
+                    Done
+                  </span>
+                )}
+              </td>
+            </tr>
+          );
+        })
+      )}
+    </tbody>
+  </table>
+</div>
 
-          </div>
 
           {/* Pagination */}
           {penalties.length > 0 && (

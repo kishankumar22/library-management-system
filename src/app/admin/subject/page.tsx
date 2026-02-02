@@ -4,7 +4,7 @@ import { useEffect, useState, useRef } from 'react';
 import { toast } from 'react-toastify';
 import axios from 'axios';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faSpinner, faEye, faEyeSlash, faArrowLeft, faPlus, faEdit, faTrash, faSearch, faFilter, faTimes, faToggleOff, faToggleOn, faRefresh, faChevronLeft, faChevronRight, faAnglesLeft, faAnglesRight }
+import { faSpinner, faEye, faEyeSlash, faArrowLeft, faPlus, faEdit, faTrash, faSearch, faFilter, faTimes, faToggleOff, faToggleOn, faRefresh, faChevronLeft, faChevronRight, faAnglesLeft, faAnglesRight, faRotateLeft, faExclamationCircle }
  from '@fortawesome/free-solid-svg-icons';
 import { Subject } from '@/types';
 
@@ -234,263 +234,396 @@ const SubjectsPage = () => {
           </div>
         ) : (
           <>
-            <div className="flex flex-col lg:flex-row items-center justify-between gap-3 mb-4">
-              {/* Left Side: Total + Search + Filter */}
-              <div className="flex flex-col sm:flex-row items-center gap-3 w-full lg:w-auto">
-                {/* Total Subjects */}
-                <div className="text-sm text-gray-700 whitespace-nowrap">
-                  Total Subjects: <span className="font-semibold text-blue-700">{totalItems}</span>
-                </div>
-                
-                {/* Search Box */}
-                <div className="relative w-full sm:w-56">
-                  <span className="absolute inset-y-0 left-0 flex items-center pl-2 text-gray-400">
-                    <FontAwesomeIcon icon={faSearch} className="text-sm" />
-                  </span>
-                  <input
-                    type="text"
-                    value={searchTerm}
-                    onChange={(e) => setSearchTerm(e.target.value)}
-                    placeholder="Search subjects..."
-                    className="pl-8 pr-3 py-2 text-sm border border-gray-300 rounded-md w-full shadow-sm focus:ring-blue-500 focus:border-blue-500 focus:outline-none"
-                  />
-                </div>
-                
-                {/* Status Filter */}
-                <div className="relative w-full sm:w-36">
-                  <span className="absolute inset-y-0 left-0 flex items-center pl-2 text-gray-400">
-                    <FontAwesomeIcon icon={faFilter} className="text-sm" />
-                  </span>
-                  <select
-                    value={statusFilter}
-                    onChange={(e) => setStatusFilter(e.target.value as 'all' | 'active' | 'inactive')}
-                    className="pl-8 pr-2 py-2 text-sm border border-gray-300 rounded-md w-full shadow-sm focus:ring-blue-500 focus:border-blue-500 focus:outline-none"
-                  >
-                    <option value="all">All</option>
-                    <option value="active">Active</option>
-                    <option value="inactive">Inactive</option>
-                  </select>
-                </div>
-              </div>
+{/* Compact Header - Subjects */}
+{/* Enhanced Compact Header - Subjects */}
+<div className="bg-white rounded-lg shadow-sm p-3 mb-2 border border-gray-200">
+  <div className="flex flex-wrap items-center gap-2">
+    {/* Search */}
+    <div className="relative flex-1 min-w-[200px]">
+      <FontAwesomeIcon icon={faSearch} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 text-xs" />
+      <input
+        type="text"
+        value={searchTerm}
+        onChange={(e) => setSearchTerm(e.target.value)}
+        placeholder="Search subjects..."
+        className="pl-9 pr-3 py-2 text-xs border border-gray-300 rounded-lg w-full focus:outline-none focus:border-blue-500"
+      />
+    </div>
 
-              {/* Right Side: Items Per Page + Refresh + Add Subject Button */}
-              <div className="flex items-center gap-3 w-full lg:w-auto justify-end">
-                {/* Items Per Page */}
-                <div className="flex items-center gap-2 text-sm">
-                  <span className="text-gray-700 whitespace-nowrap">Show:</span>
-                  <select
-                    value={itemsPerPage}
-                    onChange={(e) => handleItemsPerPageChange(Number(e.target.value))}
-                    className="px-2 py-2 text-sm border border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500 focus:outline-none"
-                  >
-                    <option value={25}>25</option>
-                    <option value={50}>50</option>
-                    <option value={75}>75</option>
-                    <option value={100}>100</option>
-                  </select>
-                </div>
+    {/* Status Filter */}
+    <select
+      value={statusFilter}
+      onChange={(e) => setStatusFilter(e.target.value as 'all' | 'active' | 'inactive')}
+      className="px-3 py-2 text-xs border border-gray-300 rounded-lg focus:outline-none focus:border-blue-500"
+    >
+      <option value="all">All Status</option>
+      <option value="active">Active</option>
+      <option value="inactive">Inactive</option>
+    </select>
 
+    {/* Items Per Page */}
+    <select
+      value={itemsPerPage}
+      onChange={(e) => handleItemsPerPageChange(Number(e.target.value))}
+      className="px-2 py-2 text-xs border border-gray-300 rounded-lg focus:outline-none focus:border-blue-500"
+    >
+      <option value={25}>25/page</option>
+      <option value={50}>50/page</option>
+      <option value={75}>75/page</option>
+      <option value={100}>100/page</option>
+    </select>
 
-                {/* Add Subject Button */}
-                <button
-                  onClick={() => {
-                    setName('');
-                    setEditingId(null);
-                    setIsModalOpen(true);
-                  }}
-                  className="flex items-center gap-2 bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium px-4 py-2 rounded-md shadow-sm transition-colors whitespace-nowrap"
-                >
-                  <FontAwesomeIcon icon={faPlus} size="sm" />
-                  Add Subject
-                </button>
-              </div>
-            </div>
+    {/* Clear Filter Button */}
+    <button
+      onClick={() => {
+        setSearchTerm('');
+        setStatusFilter('all');
+        setCurrentPage(1);
+      }}
+      className="bg-yellow-500 hover:bg-yellow-600 text-white px-3 py-2 text-xs font-medium rounded-lg transition-all"
+      title="Clear All Filters"
+    >
+      <FontAwesomeIcon icon={faRotateLeft} />
+    </button>
+
+    {/* Add Button */}
+    <button
+      onClick={() => {
+        setName('');
+        setEditingId(null);
+        setIsModalOpen(true);
+      }}
+      className="bg-blue-600 hover:bg-blue-700 text-white px-3 py-2 text-xs font-medium rounded-lg whitespace-nowrap"
+    >
+      <FontAwesomeIcon icon={faPlus} className="mr-1" />
+      Add Subject
+    </button>
+
+    {/* Count Info */}
+    <span className="text-xs text-gray-600 font-medium">
+      {startIndex + 1}-{Math.min(endIndex, totalItems)} of {totalItems}
+    </span>
+  </div>
+</div>
+
 
             {/* Modal */}
-            {isModalOpen && (
-              <div className="fixed inset-0  bg-black/30 backdrop-blur-sm flex items-center justify-center p-3 z-50">
-                <div
-                  ref={modalRef}
-                  className="bg-white rounded-lg shadow-lg p-4 w-full max-w-sm"
-                >
-                  <div className='flex justify-between items-center mb-4'>
-                    <h3 className="text-lg font-semibold">{editingId ? 'Edit Subject' : 'Add Subject'}</h3>
-                    <button
-                      type="button"
-                      onClick={() => setIsModalOpen(false)}
-                      className="text-sm text-red-600 px-2 rounded hover:bg-gray-100 flex items-center gap-1"
-                    >
-                      <FontAwesomeIcon icon={faTimes} size="lg" />
-                    </button>
-                  </div>
-                  
-                  <form onSubmit={handleSubmit}>
-                    <input
-                      type="text"
-                      value={name}
-                      onChange={(e) => setName(e.target.value)}
-                      placeholder="Subject Name"
-                      className="p-2 text-sm border border-gray-300 rounded w-full mb-3 focus:outline-none focus:ring-1 focus:ring-blue-500"
-                      required
-                    />
-                    <div className="flex justify-end gap-2">
-                      <button
-                        type="button"
-                        onClick={() => setIsModalOpen(false)}
-                        className="text-sm bg-gray-200 text-gray-800 py-1.5 px-3 rounded hover:bg-gray-300 flex items-center gap-1"
-                      >
-                        <FontAwesomeIcon icon={faTimes} size="xs" /> Cancel
-                      </button>
-                      <button
-                        type="submit"
-                        className="text-sm bg-blue-600 text-white py-1.5 px-3 rounded hover:bg-blue-700 flex items-center gap-1"
-                      >
-                        {editingId ? (
-                          <>
-                            <FontAwesomeIcon icon={faEdit} size="xs" /> Update
-                          </>
-                        ) : (
-                          <>
-                            <FontAwesomeIcon icon={faPlus} size="xs" /> Add
-                          </>
-                        )}
-                      </button>
-                    </div>
-                  </form>
-                </div>
-              </div>
-            )}
+{/* Enhanced Add/Edit Modal */}
+{isModalOpen && (
+  <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center p-3 z-50">
+    <div
+      ref={modalRef}
+      className="bg-white rounded-lg shadow-2xl w-full max-w-md"
+    >
+      {/* Header */}
+      <div className="bg-blue-600 px-4 py-3 rounded-t-lg flex items-center justify-between">
+        <h3 className="text-lg font-bold text-white flex items-center gap-2">
+          <FontAwesomeIcon icon={editingId ? faEdit : faPlus} />
+          {editingId ? 'Edit Subject' : 'Add Subject'}
+        </h3>
+        <button
+          type="button"
+          onClick={() => setIsModalOpen(false)}
+          className="text-white hover:bg-blue-700 p-2 rounded transition-all"
+        >
+          <FontAwesomeIcon icon={faTimes} />
+        </button>
+      </div>
+      
+      {/* Body */}
+      <form onSubmit={handleSubmit} className="p-4">
+        <div className="mb-4">
+          <label className="block text-xs font-bold text-gray-700 mb-2">
+            Subject Name <span className="text-red-500">*</span>
+          </label>
+          <input
+            type="text"
+            value={name}
+            onChange={(e) => setName(e.target.value)}
+            placeholder="Enter subject name"
+            className="w-full px-3 py-2 text-sm border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+            required
+            autoFocus
+          />
+        </div>
 
-            {/* Confirmation Modal */}
-            {isConfirmModalOpen && (
-              <div className="fixed inset-0  bg-black/30 backdrop-blur-sm flex items-center justify-center p-3 z-50">
-                <div
-                  ref={confirmModalRef}
-                  className="bg-white rounded-lg shadow-lg p-4 w-full max-w-xs"
-                >
-                  <h3 className="text-lg font-semibold mb-2">Confirm Action</h3>
-                  <p className="text-sm text-gray-600 mb-3">
-                    {confirmAction === 'delete' 
-                      ? 'Delete this subject?' 
-                      : confirmStatus 
-                        ? 'Deactivate this subject?' 
-                        : 'Activate this subject?'}
-                  </p>
-                  <div className="flex justify-end gap-2">
-                    <button
-                      onClick={() => setIsConfirmModalOpen(false)}
-                      className="text-sm bg-gray-200 text-gray-800 py-1.5 px-3 rounded hover:bg-gray-300 flex items-center gap-1"
-                    >
-                      <FontAwesomeIcon icon={faTimes} size="xs" /> Cancel
-                    </button>
-                    <button
-                      onClick={confirmAction === 'delete' ? handleDelete : handleToggleActive}
-                      className={`text-sm text-white py-1.5 px-3 rounded flex items-center gap-1 ${
-                        confirmAction === 'delete' 
-                          ? 'bg-red-600 hover:bg-red-700' 
-                          : confirmStatus 
-                            ? 'bg-blue-600 hover:bg-blue-700' 
-                            : 'bg-green-600 hover:bg-green-700'
-                      }`}
-                    >
-                      <FontAwesomeIcon 
-                        icon={confirmAction === 'delete' ? faTrash : confirmStatus ? faToggleOff : faToggleOn} 
-                        size="xs" 
-                      /> 
-                      {confirmAction === 'delete' ? 'Delete' : confirmStatus ? 'Deactivate' : 'Activate'}
-                    </button>
-                  </div>
-                </div>
-              </div>
+        {/* Actions */}
+        <div className="flex justify-end gap-2 pt-3 border-t">
+          <button
+            type="button"
+            onClick={() => setIsModalOpen(false)}
+            className="px-4 py-2 text-sm bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition-all"
+          >
+            <FontAwesomeIcon icon={faTimes} className="mr-1" />
+            Cancel
+          </button>
+          <button
+            type="submit"
+            className="px-4 py-2 text-sm bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-all shadow-sm"
+          >
+            {editingId ? (
+              <>
+                <FontAwesomeIcon icon={faEdit} className="mr-1" />
+                Update
+              </>
+            ) : (
+              <>
+                <FontAwesomeIcon icon={faPlus} className="mr-1" />
+                Add
+              </>
             )}
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+)}
+
+{/* Enhanced Confirmation Modal */}
+{isConfirmModalOpen && (
+  <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center p-3 z-50">
+    <div
+      ref={confirmModalRef}
+      className="bg-white rounded-lg shadow-2xl w-full max-w-sm"
+    >
+      {/* Header */}
+      <div className={`px-4 py-3 rounded-t-lg ${
+        confirmAction === 'delete' 
+          ? 'bg-red-600' 
+          : confirmStatus 
+            ? 'bg-orange-600' 
+            : 'bg-green-600'
+      }`}>
+        <h3 className="text-lg font-bold text-white flex items-center gap-2">
+          <FontAwesomeIcon 
+            icon={confirmAction === 'delete' ? faTrash : confirmStatus ? faToggleOff : faToggleOn} 
+          />
+          Confirm Action
+        </h3>
+      </div>
+
+      {/* Body */}
+      <div className="p-4">
+        <p className="text-sm text-gray-700 mb-4">
+          {confirmAction === 'delete' 
+            ? 'Are you sure you want to delete this subject?' 
+            : confirmStatus 
+              ? 'Are you sure you want to deactivate this subject?' 
+              : 'Are you sure you want to activate this subject?'}
+        </p>
+
+        {/* Actions */}
+        <div className="flex justify-end gap-2 pt-3 border-t">
+          <button
+            onClick={() => setIsConfirmModalOpen(false)}
+            className="px-4 py-2 text-sm bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition-all"
+          >
+            <FontAwesomeIcon icon={faTimes} className="mr-1" />
+            Cancel
+          </button>
+          <button
+            onClick={confirmAction === 'delete' ? handleDelete : handleToggleActive}
+            className={`px-4 py-2 text-sm text-white rounded-lg transition-all shadow-sm ${
+              confirmAction === 'delete' 
+                ? 'bg-red-600 hover:bg-red-700' 
+                : confirmStatus 
+                  ? 'bg-orange-600 hover:bg-orange-700' 
+                  : 'bg-green-600 hover:bg-green-700'
+            }`}
+          >
+            <FontAwesomeIcon 
+              icon={confirmAction === 'delete' ? faTrash : confirmStatus ? faToggleOff : faToggleOn} 
+              className="mr-1"
+            /> 
+            {confirmAction === 'delete' ? 'Delete' : confirmStatus ? 'Deactivate' : 'Activate'}
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+)}
+
+
+  {/* Enhanced Confirmation Modal */}
+{isConfirmModalOpen && (
+  <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center p-3 z-50">
+    <div
+      ref={confirmModalRef}
+      className="bg-white rounded-lg shadow-2xl w-full max-w-sm"
+    >
+      {/* Header */}
+      <div className={`px-4 py-3 rounded-t-lg ${
+        confirmAction === 'delete' 
+          ? 'bg-red-600' 
+          : confirmStatus 
+            ? 'bg-orange-600' 
+            : 'bg-green-600'
+      }`}>
+        <h3 className="text-lg font-bold text-white flex items-center gap-2">
+          <FontAwesomeIcon 
+            icon={confirmAction === 'delete' ? faTrash : confirmStatus ? faToggleOff : faToggleOn} 
+          />
+          Confirm Action
+        </h3>
+      </div>
+
+      {/* Body */}
+      <div className="p-4">
+        <p className="text-sm text-gray-700 mb-4">
+          {confirmAction === 'delete' 
+            ? 'Are you sure you want to delete this subject?' 
+            : confirmStatus 
+              ? 'Are you sure you want to deactivate this subject?' 
+              : 'Are you sure you want to activate this subject?'}
+        </p>
+
+        {/* Actions */}
+        <div className="flex justify-end gap-2 pt-3 border-t">
+          <button
+            onClick={() => setIsConfirmModalOpen(false)}
+            className="px-4 py-2 text-sm bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition-all"
+          >
+            <FontAwesomeIcon icon={faTimes} className="mr-1" />
+            Cancel
+          </button>
+          <button
+            onClick={confirmAction === 'delete' ? handleDelete : handleToggleActive}
+            className={`px-4 py-2 text-sm text-white rounded-lg transition-all shadow-sm ${
+              confirmAction === 'delete' 
+                ? 'bg-red-600 hover:bg-red-700' 
+                : confirmStatus 
+                  ? 'bg-orange-600 hover:bg-orange-700' 
+                  : 'bg-green-600 hover:bg-green-700'
+            }`}
+          >
+            <FontAwesomeIcon 
+              icon={confirmAction === 'delete' ? faTrash : confirmStatus ? faToggleOff : faToggleOn} 
+              className="mr-1"
+            /> 
+            {confirmAction === 'delete' ? 'Delete' : confirmStatus ? 'Deactivate' : 'Activate'}
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+)}
 
             {/* Table */}
-            <div className="overflow-x-auto rounded border border-gray-200">
-              <table className="min-w-full divide-y divide-gray-200">
-                <thead className="bg-gray-50">
-                  <tr>
-                    <th className="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">ID</th>
-                    <th className="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Name</th>
-                    <th className="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
-                    <th className="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Created By</th>
-                    <th className="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Created On</th>
-                    <th className="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Modified By</th>
-                    <th className="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Modified On</th>
-                    <th className="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
-                  </tr>
-                </thead>
-                <tbody className="bg-white divide-y divide-gray-200">
-                  {tableLoading ? (
-                    <tr>
-                      <td colSpan={8} className="px-3 py-8 text-center text-sm text-gray-600">
-                        <div className="flex justify-center items-center gap-2">
-                          <FontAwesomeIcon 
-                            icon={faSpinner} 
-                            className="animate-spin text-blue-500" 
-                            size="sm"
-                          />
-                          Loading...
-                        </div>
-                      </td>
-                    </tr>
-                  ) : currentSubjects.length === 0 ? (
-                    <tr>
-                      <td colSpan={8} className="px-3 py-8 text-center text-sm text-gray-500">
-                        No subjects found
-                      </td>
-                    </tr>
-                  ) : (
-                    currentSubjects.map((subject) => (
-                      <tr key={subject.SubId} className="hover:bg-gray-50">
-                        <td className="px-3 py-2 whitespace-nowrap text-sm">{subject.SubId}</td>
-                        <td className="px-3 py-2 whitespace-nowrap text-sm font-medium">{subject.Name}</td>
-                        <td className="px-3 py-2 whitespace-nowrap text-sm">
-                          <span className={`px-2 py-1 text-xs rounded-full font-medium ${
-                            subject.IsActive ? 'bg-green-100 text-green-800' : 'bg-gray-100 text-gray-800'
-                          }`}>
-                            {subject.IsActive ? 'Active' : 'Inactive'}
-                          </span>
-                        </td>
-                        <td className="px-3 py-2 whitespace-nowrap text-sm">{subject.CreatedBy}</td>
-                        <td className="px-3 py-2 whitespace-nowrap text-sm">{new Date(subject.CreatedOn).toLocaleDateString()}</td>
-                        <td className="px-3 py-2 whitespace-nowrap text-sm">{subject.ModifiedBy || '-'}</td>
-                        <td className="px-3 py-2 whitespace-nowrap text-sm">{subject.ModifiedOn ? new Date(subject.ModifiedOn).toLocaleDateString() : '-'}</td>
-                        <td className="px-3 py-2 whitespace-nowrap text-sm">
-                          <div className="flex gap-2">
-                            <button
-                              onClick={() => handleEdit(subject)}
-                              className={`text-blue-600 hover:text-blue-800 p-1 rounded hover:bg-blue-50 ${!subject.IsActive ? 'cursor-not-allowed opacity-60' : ''}`}
-                              title={subject.IsActive ? 'Edit' : 'Please activate to edit'}
-                              disabled={!subject.IsActive}
-                            >
-                              <FontAwesomeIcon icon={faEdit} size="sm" />
-                            </button>
-                            <button
-                              onClick={() => openConfirmModal('delete', subject.SubId)}
-                              className="text-red-600 hover:text-red-800 p-1 rounded hover:bg-red-50"
-                              title="Delete"
-                            >
-                              <FontAwesomeIcon icon={faTrash} size="sm" />
-                            </button>
-                            <button
-                              onClick={() => openConfirmModal('toggle', subject.SubId, subject.IsActive)}
-                              className={`p-1 rounded ${
-                                subject.IsActive 
-                                  ? 'text-blue-600 hover:text-blue-800 hover:bg-blue-50' 
-                                  : 'text-green-600 hover:text-green-800 hover:bg-green-50'
-                              }`}
-                              title={subject.IsActive ? 'Deactivate' : 'Activate'}
-                            >
-                              <FontAwesomeIcon icon={subject.IsActive ? faToggleOn : faToggleOff} size="lg" />
-                            </button>
-                          </div>
-                        </td>
-                      </tr>
-                    ))
-                  )}
-                </tbody>
-              </table>
+   {/* Table */}
+<div className="overflow-x-auto rounded-lg border min-h-[72vh] border-gray-200 bg-white shadow-md">
+  <table className="min-w-full text-xs">
+    <thead className="bg-blue-600 text-white sticky top-0">
+      <tr>
+        <th className="px-3 py-2 text-left font-bold">ID</th>
+        <th className="px-3 py-2 text-left font-bold">📚 Subject Name</th>
+        <th className="px-3 py-2 text-center font-bold">Status</th>
+        <th className="px-3 py-2 text-left font-bold">Created By</th>
+        <th className="px-3 py-2 text-left font-bold">Created On</th>
+        <th className="px-3 py-2 text-left font-bold">Modified By</th>
+        <th className="px-3 py-2 text-left font-bold">Modified On</th>
+        <th className="px-3 py-2 text-center font-bold">Actions</th>
+      </tr>
+    </thead>
+    <tbody className="divide-y divide-gray-100">
+      {tableLoading ? (
+        <tr>
+          <td colSpan={8} className="px-6 py-12 text-center">
+            <div className="flex justify-center items-center gap-2">
+              <FontAwesomeIcon 
+                icon={faSpinner} 
+                className="animate-spin text-blue-600" 
+                size="lg"
+              />
+              <span className="text-gray-600">Loading subjects...</span>
             </div>
+          </td>
+        </tr>
+      ) : currentSubjects.length === 0 ? (
+        <tr>
+          <td colSpan={8} className="px-6 py-12 text-center text-gray-500">
+            <FontAwesomeIcon icon={faExclamationCircle} className="text-4xl mb-2 text-gray-300" />
+            <p className="font-medium">No subjects found</p>
+          </td>
+        </tr>
+      ) : (
+        currentSubjects.map((subject) => (
+          <tr key={subject.SubId} className="hover:bg-blue-50 transition-colors">
+            <td className="px-3 py-2 font-bold text-gray-700">{subject.SubId}</td>
+            <td className="px-3 py-2 font-bold text-gray-900 uppercase">{subject.Name}</td>
+            <td className="px-3 py-2 text-center">
+              <span className={`inline-flex items-center px-2.5 py-1 rounded-full font-semibold ${
+                subject.IsActive 
+                  ? 'bg-green-500 text-white' 
+                  : 'bg-gray-500 text-white'
+              }`}>
+                <FontAwesomeIcon 
+                  icon={subject.IsActive ? faToggleOn : faToggleOff} 
+                  className="mr-1" 
+                />
+                {subject.IsActive ? 'Active' : 'Inactive'}
+              </span>
+            </td>
+            <td className="px-3 py-2 text-gray-700">{subject.CreatedBy}</td>
+            <td className="px-3 py-2 text-gray-600">
+              {new Date(subject.CreatedOn).toLocaleDateString('en-IN', {
+                day: '2-digit',
+                month: 'short',
+                year: 'numeric'
+              })}
+            </td>
+            <td className="px-3 py-2 text-gray-700">
+              {subject.ModifiedBy || <span className="text-gray-400 italic">—</span>}
+            </td>
+            <td className="px-3 py-2 text-gray-600">
+              {subject.ModifiedOn 
+                ? new Date(subject.ModifiedOn).toLocaleDateString('en-IN', {
+                    day: '2-digit',
+                    month: 'short',
+                    year: 'numeric'
+                  })
+                : <span className="text-gray-400 italic">—</span>
+              }
+            </td>
+            <td className="px-3 py-2">
+              <div className="flex justify-center items-center gap-2">
+                <button
+                  onClick={() => handleEdit(subject)}
+                  className={`p-1.5 rounded-lg transition-all ${
+                    subject.IsActive
+                      ? 'text-blue-600 hover:bg-blue-100 cursor-pointer'
+                      : 'text-gray-400 cursor-not-allowed opacity-50'
+                  }`}
+                  title={subject.IsActive ? "Edit Subject" : "Activate to edit"}
+                  disabled={!subject.IsActive}
+                >
+                  <FontAwesomeIcon icon={faEdit} />
+                </button>
+                <button
+                  onClick={() => openConfirmModal('delete', subject.SubId)}
+                  className="text-red-600 hover:bg-red-100 p-1.5 rounded-lg transition-all"
+                  title="Delete Subject"
+                >
+                  <FontAwesomeIcon icon={faTrash} />
+                </button>
+                <button
+                  onClick={() => openConfirmModal('toggle', subject.SubId, subject.IsActive)}
+                  className={`p-1.5 rounded-lg transition-all ${
+                    subject.IsActive 
+                      ? 'text-orange-600 hover:bg-orange-100' 
+                      : 'text-green-600 hover:bg-green-100'
+                  }`}
+                  title={subject.IsActive ? 'Deactivate' : 'Activate'}
+                >
+                  <FontAwesomeIcon icon={subject.IsActive ? faToggleOff : faToggleOn} size="lg" />
+                </button>
+              </div>
+            </td>
+          </tr>
+        ))
+      )}
+    </tbody>
+  </table>
+</div>
 
             {/* Pagination */}
             {totalPages > 1 && (

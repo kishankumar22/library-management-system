@@ -17,7 +17,9 @@ import {
   faChevronLeft,
   faChevronRight,
   faAnglesLeft,
-  faAnglesRight
+  faAnglesRight,
+  faRotateLeft,
+  faExclamationCircle
 } from '@fortawesome/free-solid-svg-icons';
 import { Book, Publication, BookStockHistory } from '@/types';
 
@@ -243,47 +245,61 @@ const BookStockHistoryPage = () => {
   return (
     <div className="container">
       {/* Enhanced Filter Bar with Better Spacing */}
-    <div className="bg-gray-50 p-3 rounded-lg shadow-sm flex flex-col gap-3">
-  {/* First Row: Stock Summary */}
-  <div className="flex flex-wrap gap-3">
-    <div className="flex-1 flex items-center justify-start gap-2 text-blue-700 font-semibold">
-      <FontAwesomeIcon icon={faBook} className="w-4 h-4" />
-      <span>Total Stock:</span>
-      <span>{totalStock}</span>
-    </div>
-    <div className="flex-1 flex items-center justify-start gap-2 text-green-600 font-semibold">
-      <FontAwesomeIcon icon={faArrowCircleDown} className="w-4 h-4" />
-      <span>Stock In:</span>
-      <span>{totalStockIn}</span>
-    </div>
-    <div className="flex-1 flex items-center justify-start gap-2 text-red-600 font-semibold">
-      <FontAwesomeIcon icon={faArrowCircleUp} className="w-4 h-4" />
-      <span>Stock Out:</span>
-      <span>{totalStockOut}</span>
+{/* Stats Cards */}
+<div className="grid grid-cols-3 gap-2 mb-2">
+  {/* Total Stock */}
+  <div className="bg-white rounded-lg shadow-sm p-3 border-l-4 border-blue-600">
+    <div className="flex items-center gap-2">
+      <FontAwesomeIcon icon={faBook} className="text-blue-600 text-lg" />
+      <div className="flex-1">
+        <p className="text-xs text-gray-600">Total Stock</p>
+        <p className="text-lg font-bold text-blue-700">{totalStock}</p>
+      </div>
     </div>
   </div>
 
-  {/* Second Row: Filters + Actions */}
-  <div className="flex flex-wrap gap-3 items-center">
+  {/* Stock In */}
+  <div className="bg-white rounded-lg shadow-sm p-3 border-l-4 border-green-600">
+    <div className="flex items-center gap-2">
+      <FontAwesomeIcon icon={faArrowCircleDown} className="text-green-600 text-lg" />
+      <div className="flex-1">
+        <p className="text-xs text-gray-600">Stock In</p>
+        <p className="text-lg font-bold text-green-700">{totalStockIn}</p>
+      </div>
+    </div>
+  </div>
+
+  {/* Stock Out */}
+  <div className="bg-white rounded-lg shadow-sm p-3 border-l-4 border-red-600">
+    <div className="flex items-center gap-2">
+      <FontAwesomeIcon icon={faArrowCircleUp} className="text-red-600 text-lg" />
+      <div className="flex-1">
+        <p className="text-xs text-gray-600">Stock Out</p>
+        <p className="text-lg font-bold text-red-700">{totalStockOut}</p>
+      </div>
+    </div>
+  </div>
+</div>
+
+{/* Filters Row */}
+<div className="bg-white rounded-lg shadow-sm p-3 mb-2 border border-gray-200">
+  <div className="flex flex-wrap items-center gap-2">
     {/* Search */}
-    <div className="relative flex-grow min-w-[180px]">
-      <FontAwesomeIcon
-        icon={faSearch}
-        className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400"
-      />
+    <div className="relative flex-1 min-w-[200px]">
+      <FontAwesomeIcon icon={faSearch} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 text-xs" />
       <input
         type="text"
-        placeholder="Search by book name"
-        className="w-full pl-10 pr-3 py-2 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-1 focus:ring-blue-500"
+        placeholder="Search by book name..."
         value={searchTerm}
         onChange={(e) => setSearchTerm(e.target.value)}
+        className="pl-9 pr-3 py-2 text-xs border border-gray-300 rounded-lg w-full focus:outline-none focus:border-blue-500"
       />
     </div>
 
     {/* Publication Filter */}
-    <div className="relative min-w-[180px]">
+    <div className="relative min-w-[150px]">
       <div
-        className="flex items-center border border-gray-300 rounded-md px-3 py-2 bg-white text-sm focus-within:ring-1 focus-within:ring-blue-500 cursor-pointer"
+        className="flex items-center border border-gray-300 rounded-lg px-3 py-2 bg-white text-xs cursor-pointer focus-within:border-blue-500"
         onClick={() => {
           setShowFilterPublicationInput(true);
           filterPublicationInputRef.current?.focus();
@@ -292,8 +308,8 @@ const BookStockHistoryPage = () => {
         <input
           ref={filterPublicationInputRef}
           type="text"
-          placeholder="Search Publication"
-          className="w-full border-none focus:outline-none bg-transparent"
+          placeholder="Publication"
+          className="w-full border-none focus:outline-none bg-transparent text-xs"
           value={filterPublicationSearch}
           onChange={(e) => {
             setFilterPublicationSearch(e.target.value);
@@ -308,14 +324,14 @@ const BookStockHistoryPage = () => {
               setFilterPublicationSearch('');
               setPublicationFilter(0);
             }}
-            className="text-red-500 hover:text-red-700 ml-2"
+            className="text-red-500 hover:text-red-700 ml-1"
           >
-            <FontAwesomeIcon icon={faTimesCircle} size="sm" />
+            <FontAwesomeIcon icon={faTimesCircle} className="text-xs" />
           </button>
         )}
       </div>
       {showFilterPublicationInput && (
-        <ul className="absolute z-10 w-full bg-white border rounded-md mt-1 max-h-40 overflow-y-auto text-sm shadow-lg">
+        <ul className="absolute z-10 w-full bg-white border rounded-lg mt-1 max-h-40 overflow-y-auto text-xs shadow-lg">
           <li className="px-3 py-2 font-semibold bg-gray-100">Select Publication</li>
           {publications.filter(pub =>
             pub.Name.toLowerCase().includes(filterPublicationSearch.toLowerCase())
@@ -342,9 +358,9 @@ const BookStockHistoryPage = () => {
 
     {/* Status Filter */}
     <select
-      className="px-3 py-2 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-1 focus:ring-blue-500 min-w-[120px]"
       value={statusFilter}
       onChange={(e) => setStatusFilter(e.target.value as 'all' | 'Stock In' | 'Stock Out')}
+      className="px-3 py-2 text-xs border border-gray-300 rounded-lg focus:outline-none focus:border-blue-500"
     >
       <option value="all">All Status</option>
       <option value="Stock In">Stock In</option>
@@ -352,83 +368,122 @@ const BookStockHistoryPage = () => {
     </select>
 
     {/* Items Per Page */}
-    <div className="flex items-center gap-2 text-sm">
-      <span className="text-gray-700 whitespace-nowrap">Show:</span>
-      <select
-        value={itemsPerPage}
-        onChange={(e) => handleItemsPerPageChange(Number(e.target.value))}
-        className="px-2 py-2 text-sm border border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500 focus:outline-none"
-      >
-        <option value={25}>25</option>
-        <option value={50}>50</option>
-        <option value={75}>75</option>
-        <option value={100}>100</option>
-      </select>
-    </div>
+    <select
+      value={itemsPerPage}
+      onChange={(e) => handleItemsPerPageChange(Number(e.target.value))}
+      className="px-2 py-2 text-xs border border-gray-300 rounded-lg focus:outline-none focus:border-blue-500"
+    >
+      <option value={25}>25/page</option>
+      <option value={50}>50/page</option>
+      <option value={75}>75/page</option>
+      <option value={100}>100/page</option>
+    </select>
 
-    {/* Manage Book Quantity */}
+    {/* Clear Filter */}
+    <button
+      onClick={() => {
+        setSearchTerm('');
+        setFilterPublicationSearch('');
+        setPublicationFilter(0);
+        setStatusFilter('all');
+      }}
+      className="bg-yellow-500 hover:bg-yellow-600 text-white px-3 py-2 text-xs font-medium rounded-lg transition-all"
+      title="Clear Filters"
+    >
+      <FontAwesomeIcon icon={faRotateLeft} />
+    </button>
+
+    {/* Manage Stock */}
     <button
       onClick={() => {
         resetFormFields();
         setIsModalOpen(true);
       }}
-      className="bg-blue-600 hover:bg-blue-800 text-white py-2 px-3 rounded text-sm flex items-center gap-1 transition duration-200 ml-auto"
+      className="bg-blue-600 hover:bg-blue-700 text-white px-3 py-2 text-xs font-medium rounded-lg whitespace-nowrap ml-auto"
     >
-      <FontAwesomeIcon icon={faPlus} size="xs" /> Manage Book Quantity
+      <FontAwesomeIcon icon={faPlus} className="mr-1" />
+      Manage Stock
     </button>
   </div>
 </div>
 
+
       {/* Table */}
-      <div className="bg-white rounded shadow overflow-x-auto">
+      <div className="bg-white rounded shadow min h-[73vh] overflow-x-auto">
         {loading ? (
           <div className="flex justify-center h-[85vh] items-center p-4">
             <FontAwesomeIcon icon={faSpinner} spin size="lg" className="w-10 h-10 text-blue-600" />
           </div>
         ) : (
-          <table className="min-w-full divide-y divide-gray-200 text-sm">
-            <thead className="bg-gray-50">
-              <tr>
-                <th className="px-3 py-2 text-left text-blue-800 font-medium">Sr.</th>
-                <th className="px-3 py-2 text-left text-blue-800 font-medium">Book Name</th>
-                <th className="px-3 py-2 text-left text-blue-800 font-medium">Publication</th>
-                <th className="px-3 py-2 text-left text-blue-800 font-medium">Added/Removed</th>
-                <th className="px-3 py-2 text-left text-blue-800 font-medium">Remarks</th>
-                <th className="px-3 py-2 text-left text-blue-800 font-medium">Created On</th>
-                <th className="px-3 py-2 text-left text-blue-800 font-medium">Created By</th>
-              </tr>
-            </thead>
-            <tbody className="bg-white divide-y divide-gray-200">
-              {currentHistory.length === 0 ? (
-                <tr>
-                  <td colSpan={7} className="px-3 py-8 text-center text-gray-500">No history found</td>
-                </tr>
-              ) : (
-                currentHistory.map((history, index) => (
-                  <tr key={history.BookStockHistoryId} className="hover:bg-gray-50">
-                    <td className="px-3 py-2">{startIndex + index + 1}</td>
-                    <td className="px-3 py-2 uppercase font-medium">{history.BookName}</td>
-                    <td className="px-3 py-2">{history.PublicationName}</td>
-                    <td className="px-3 py-2">
-                      <div className="flex items-center gap-1">
-                        <span
-                          className={history.CopiesAdded >= 0 ? 'text-green-600 font-medium' : 'text-red-600 font-medium'}
-                          title={history.CopiesAdded >= 0 
-                            ? `Added ${history.CopiesAdded} book${history.CopiesAdded !== 1 ? 's' : ''}` 
-                            : `Removed ${Math.abs(history.CopiesAdded)} book${Math.abs(history.CopiesAdded) !== 1 ? 's' : ''}`}
-                        >
-                          {history.CopiesAdded >= 0 ? `+${history.CopiesAdded}` : `${history.CopiesAdded}`}
-                        </span>
-                      </div>
-                    </td>
-                    <td className="px-3 py-2">{history.Remarks || 'N/A'}</td>
-                    <td className="px-3 py-2">{new Date(history.CreatedOn).toLocaleDateString()}</td>
-                    <td className="px-3 py-2">{history.CreatedBy || 'N/A'}</td>
-                  </tr>
-                ))
-              )}
-            </tbody>
-          </table>
+     <table className="min-w-full text-xs">
+  <thead className="bg-blue-600 text-white sticky top-0">
+    <tr>
+      <th className="px-3 py-2 text-left font-bold">#</th>
+      <th className="px-3 py-2 text-left font-bold">📖 Book Name</th>
+      <th className="px-3 py-2 text-left font-bold">📚 Publication</th>
+      <th className="px-3 py-2 text-center font-bold">📊 Change</th>
+      <th className="px-3 py-2 text-left font-bold">📝 Remarks</th>
+      <th className="px-3 py-2 text-left font-bold">📅 Date</th>
+      <th className="px-3 py-2 text-left font-bold">👤 By</th>
+    </tr>
+  </thead>
+  <tbody className="divide-y divide-gray-100 bg-white">
+    {currentHistory.length === 0 ? (
+      <tr>
+        <td colSpan={7} className="px-4 py-12 text-center text-gray-500">
+          <FontAwesomeIcon icon={faExclamationCircle} className="text-4xl mb-2 text-gray-300" />
+          <p className="font-medium">No history found</p>
+        </td>
+      </tr>
+    ) : (
+      currentHistory.map((history, index) => {
+        const isStockIn = history.CopiesAdded >= 0;
+        
+        return (
+          <tr key={history.BookStockHistoryId} className="hover:bg-blue-50 transition-colors">
+            <td className="px-3 py-2 font-medium text-gray-700">
+              {startIndex + index + 1}
+            </td>
+            <td className="px-3 py-2 font-bold text-gray-900 uppercase max-w-xs truncate" title={history.BookName}>
+              {history.BookName}
+            </td>
+            <td className="px-3 py-2 text-gray-700">
+              <span className="inline-flex items-center px-2 py-0.5 rounded-full bg-purple-100 text-purple-800 font-medium">
+                {history.PublicationName}
+              </span>
+            </td>
+            <td className="px-3 py-2 text-center">
+              <div className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-lg font-bold ${
+                isStockIn 
+                  ? 'bg-green-500 text-white' 
+                  : 'bg-red-500 text-white'
+              }`}>
+                <FontAwesomeIcon icon={isStockIn ? faArrowCircleDown : faArrowCircleUp} />
+                <span>
+                  {isStockIn ? `+${history.CopiesAdded}` : history.CopiesAdded}
+                </span>
+              </div>
+            </td>
+            <td className="px-3 py-2 text-gray-600 max-w-xs truncate" title={history.Remarks || 'N/A'}>
+              {history.Remarks || <span className="text-gray-400 italic">N/A</span>}
+            </td>
+            <td className="px-3 py-2 text-gray-600">
+              {new Date(history.CreatedOn).toLocaleDateString('en-IN', {
+                day: '2-digit',
+                month: 'short',
+                year: 'numeric'
+              })}
+            </td>
+            <td className="px-3 py-2 text-gray-700 font-medium">
+              {history.CreatedBy || <span className="text-gray-400 italic">N/A</span>}
+            </td>
+          </tr>
+        );
+      })
+    )}
+  </tbody>
+</table>
+
         )}
       </div>
 

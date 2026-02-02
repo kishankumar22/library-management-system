@@ -39,3 +39,27 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+# 🔥 NEW ENTRIES - Zip files, IISNode, Logs
+# Zip files
+*.zip
+*.rar
+*.7z
+*.tar
+*.gz
+
+# Log files
+*.log
+logs/
+log/
+
+# IISNode files
+iisnode/
+web.config
+iisnode.yml
+
+# Upload directories (common names)
+uploads/
+upload/
+public/uploads/
+assets/uploads/
