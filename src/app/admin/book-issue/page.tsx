@@ -687,7 +687,7 @@ const BookIssuePage = () => {
               </td>
               
               {/* Days Left/Kept */}
-              <td className="px-3 py-2">
+              <td className="px-2 py-2">
                 <div className="flex justify-center">
                   <span className={`inline-flex items-center gap-1 px-2 py-1 rounded-full font-bold text-[10px] ${bgColor} ${textColor}`}>
                     <FontAwesomeIcon icon={faClock} />
@@ -696,7 +696,7 @@ const BookIssuePage = () => {
                 </div>
               </td>
               
-              <td className="px-3 py-2 text-gray-600">
+              <td className="px-2 py-2 text-gray-600">
                 <FontAwesomeIcon icon={faCalendar} className="text-blue-600 mr-1" />
                 {new Date(issue.IssueDate).toLocaleDateString('en-IN', {
                   day: '2-digit',
@@ -712,7 +712,7 @@ const BookIssuePage = () => {
                   year: 'numeric'
                 })}
               </td>
-              <td className="px-3 py-2 text-gray-600">
+              <td className="px-1.5 py-2 text-gray-600">
                 {returnDate !== '—' && (
                   <FontAwesomeIcon icon={faCalendarCheck} className="text-green-600 mr-1" />
                 )}
